@@ -1,7 +1,7 @@
 "scrapheap"
 {
 	"base"		"base"
-	"title"		"Scrap Heap Deathmatch"
+	"title"		"Prop Deathmatch"
 	"maps"		""
 	"menusystem"	"0"
 }
