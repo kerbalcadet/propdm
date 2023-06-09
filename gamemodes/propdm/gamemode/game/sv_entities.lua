@@ -1,3 +1,9 @@
+--disable self damage
+hook.Add("PlayerShouldTakeDamage", "disableselfdamage", function(ply,att)
+    if ply == att then return false end
+end)
+
+--dissolve ents in lightning
 local diss
 function ENTITY:Dissolve(safe, type, pos)                               
     if not IsValid(self) then return end
