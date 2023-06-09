@@ -1,0 +1,7 @@
+"scrapheap"
+{
+	"base"		"base"
+	"title"		"Scrap Heap Deathmatch"
+	"maps"		""
+	"menusystem"	"0"
+}
