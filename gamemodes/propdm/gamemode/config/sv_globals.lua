@@ -1,3 +1,9 @@
-PROPDM_ROUND_STARTED = false 
-PROPDM_PROPS_DIR = "gamemodes/scrapheap/content/scrapprops.txt"
-PROPDM_DESPTIME = 10
+PDM_ROUND_STARTED = false 
+PDM_PROPS_DIR = "gamemodes/scrapheap/content/scrapprops.txt"
+PDM_DESPTIME = 100
+PDM_SPAWNDELAY = 2
+PDM_PROPS = {}
+
+
+PLAYER = FindMetaTable("Player")
+ENTITY = FindMetaTable("Entity")

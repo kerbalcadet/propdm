@@ -2,6 +2,6 @@
 {
 	"base"		"base"
 	"title"		"Prop Deathmatch"
-	"maps"		""
-	"menusystem"	"0"
+	"maps"		"pdm"
+	"menusystem"	"1"
 }
