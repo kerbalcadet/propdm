@@ -1,6 +1,6 @@
 --disable self damage
 hook.Add("PlayerShouldTakeDamage", "disableselfdamage", function(ply,att)
-    if ply == att then return false end
+    if ply == att && ply:GetActiveWeapon():GetClass() == "weapon_pdm_crowbar" then return false end
 end)
 
 --dissolve ents in lightning

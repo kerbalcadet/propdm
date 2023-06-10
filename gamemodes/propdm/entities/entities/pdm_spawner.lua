@@ -1,5 +1,6 @@
 ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
+ENT.AutomaticFrameAdvance = true
 ENT.Spawnable = true 
 ENT.PrintName = "pdm spawner"
 ENT.PropPos = Vector(0,0,-100)
@@ -12,10 +13,16 @@ function ENT:Initialize()
     self:SetSolid(SOLID_VPHYSICS)
 
     self:EmitSound("npc/attack_helicopter/aheli_rotor_loop1.wav", 400, 100, 0.2)
+    self:ResetSequence(0)
+    self:SetPlaybackRate(1)
 end
 
 if SERVER then
-    
+   
+function ENT:Think()
+    self:NextThink(CurTime())
+end
+
 function ENT:SpawnProp()
     --create prop
     local tab = table.Random(PDM_PROPS)
