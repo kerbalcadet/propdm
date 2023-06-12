@@ -20,7 +20,7 @@ SWEP.UseHands = true
 
 SWEP.Primary.Damage = 0
 SWEP.Primary.Range = 100
-SWEP.Primary.ExpRadius = 750
+SWEP.Primary.ExpRadius = 200
 SWEP.Primary.ExpPower = 300000
 SWEP.PlyWeight = 1000
 
@@ -109,6 +109,10 @@ function SWEP:DelayedAttack()   --explosion doesn't hit the second you click
     util.Effect("AirboatMuzzleFlash", ef)
 
     if SERVER then
+        util.ScreenShake(tr.HitPos, 3, 1, 0.75, 500)
+    end
+
+    if SERVER then
         own:SetAnimation(PLAYER_ATTACK1)
 
 
@@ -123,7 +127,7 @@ function SWEP:DelayedAttack()   --explosion doesn't hit the second you click
             local dir = diff:GetNormalized()
             local distsq = diff:LengthSqr()
             
-            local force = (dir/distsq)*self.Primary.ExpPower
+            local force = (dir/(distsq^5))*self.Primary.ExpPower
             
             if(ent:IsPlayer()) then     --applyforce doesn't work for players
                 ent:SetVelocity(ent:GetVelocity() + force/self.PlyWeight)
