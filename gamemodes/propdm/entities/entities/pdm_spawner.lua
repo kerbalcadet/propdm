@@ -13,16 +13,14 @@ function ENT:Initialize()
     self:SetSolid(SOLID_VPHYSICS)
 
     self:EmitSound("npc/attack_helicopter/aheli_rotor_loop1.wav", 400, 100, 0.2)
-    self:ResetSequence(0)
-    self:SetPlaybackRate(1)
-
-    self:Think()
+    self:ResetSequence("idle")
 end
 
 if SERVER then
    
 function ENT:Think()
     self:NextThink(CurTime())
+    return true
 end
 
 function ENT:SpawnProp(num)
