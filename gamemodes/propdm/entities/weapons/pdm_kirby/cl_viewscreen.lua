@@ -1,8 +1,5 @@
---thanks garry
-
 local matScreen = Material( "models/weapons/v_toolgun/screen" )
 local txBackground = surface.GetTextureID( "models/weapons/v_toolgun/screen_bg" )
-local toolmode = GetConVar( "gmod_toolmode" )
 local TEX_SIZE = 256
 
 -- GetRenderTarget returns the texture if it exists, or creates it if it doesn't
@@ -43,8 +40,8 @@ end
 	We use this opportunity to draw to the toolmode
 		screen's rendertarget texture.
 -----------------------------------------------------------]]
-function SWEP:RenderScreen()
 
+function SWEP:RenderScreen()
 	-- Set the material of the screen to our render target
 	matScreen:SetTexture( "$basetexture", RTTexture )
 
@@ -58,16 +55,10 @@ function SWEP:RenderScreen()
 		surface.DrawTexturedRect( 0, 0, TEX_SIZE, TEX_SIZE )
 
 		-- Give our toolmode the opportunity to override the drawing
-		if ( self:GetToolObject() && self:GetToolObject().DrawToolScreen ) then
 
-			self:GetToolObject():DrawToolScreen( TEX_SIZE, TEX_SIZE )
-
-		else
-
-			surface.SetFont( "GModToolScreen" )
-			DrawScrollingText( "#tool." .. toolmode:GetString() .. ".name", 104, TEX_SIZE )
-
-		end
+		local mouth = (input.IsMouseDown(MOUSE_LEFT) or input.IsMouseDown(MOUSE_RIGHT)) and "0" or "_"
+		surface.SetFont( "GModToolScreen" )
+		DrawScrollingText( "(つ -‘ "..mouth.." ‘- )つ", 104, TEX_SIZE )
 
 	cam.End2D()
 	render.PopRenderTarget()
