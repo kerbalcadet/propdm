@@ -5,7 +5,6 @@ ENT.Spawnable = true
 ENT.PrintName = "pdm spawner"
 ENT.PropPos = Vector(0,0,-100)
 ENT.PropVelRange = Vector(1000,1000,-1000)
-ENT.SpawnDelay = 0.2
 AddCSLuaFile()
 
 function ENT:Initialize()
@@ -27,7 +26,7 @@ function ENT:Think()
 end
 
 function ENT:SpawnProp(num)
-    timer.Create(tostring(self).."spawn", self.SpawnDelay, num, function()
+    timer.Create(tostring(self).."spawn", 1/PDM_SPAWNRATE, num, function()
         --create prop
         local tab = table.Random(PDM_PROPS)
         local ent = ents.Create("prop_physics")
@@ -54,15 +53,5 @@ function ENT:SpawnProp(num)
         end)
     end)
 end
-
-function ENT:StartSpawn(num)
-    num = num or 1
-    timer.Create(tostring(self).."spawning", PDM_SPAWNDELAY, 0, function() self:SpawnProp(num) end)
-end
-
-function ENT:StopSpawn()
-    timer.Destroy(tostring(self).."spawning")
-end
-
 
 end
