@@ -109,12 +109,9 @@ function SWEP:DelayedAttack()   --explosion doesn't hit the second you click
     util.Effect("AirboatMuzzleFlash", ef)
 
     if SERVER then
-        util.ScreenShake(tr.HitPos, 3, 1, 0.75, 500)
-    end
-
-    if SERVER then
         own:SetAnimation(PLAYER_ATTACK1)
 
+        util.ScreenShake(tr.HitPos, 3, 1, 0.75, 500)
 
 
         --explosion
