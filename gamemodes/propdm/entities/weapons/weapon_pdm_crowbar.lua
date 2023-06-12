@@ -99,10 +99,13 @@ function SWEP:PrimaryAttack()
         if tr.HitWorld or not tr.Entity:IsValid() then return end
 
         --explosion
-        local targs = {}
-        for _,ent in pairs(ents.FindInSphere(tr.HitPos, SWEP.Primary.ExpRadius))
+        for _,ent in pairs(ents.FindInSphere(tr.HitPos, SWEP.Primary.ExpRadius)) do
+            if not ent:IsSolid() then continue end
 
 
+        end
+
+        
     end
 
 end
