@@ -25,35 +25,40 @@ function ENT:Think()
     self:NextThink(CurTime())
 end
 
-function ENT:SpawnProp()
-    --create prop
-    local tab = table.Random(PDM_PROPS)
-    local ent = ents.Create("prop_physics")
-    
-    ent:SetModel(tab.model)
-    ent:SetPos(self:GetPos() + self.PropPos)
-    ent:Spawn()
-    
-    local phys = ent:GetPhysicsObject()
-    phys:SetMass(tab.weight)
-    ent:SetAngles(AngleRand())
+function ENT:SpawnProp(num)
+    for i = 1, num do
+        timer.Simple(0.5, function()
+            --create prop
+            local tab = table.Random(PDM_PROPS)
+            local ent = ents.Create("prop_physics")
+            
+            ent:SetModel(tab.model)
+            ent:SetPos(self:GetPos() + self.PropPos)
+            ent:Spawn()
+            
+            local phys = ent:GetPhysicsObject()
+            phys:SetMass(tab.weight)
+            ent:SetAngles(AngleRand())
 
-    local vr = VectorRand()
-    vr.z = 0;
-    local vel = self.PropVelRange*vr
-    vel.z = self.PropVelRange.z
-    phys:SetVelocity(vel)
+            local vr = VectorRand()
+            vr.z = 0;
+            local vel = self.PropVelRange*vr
+            vel.z = self.PropVelRange.z
+            phys:SetVelocity(vel)
 
-    self:EmitSound("garrysmod/balloon_pop_cute.wav", 400, 100, 0.4)
+            self:EmitSound("garrysmod/balloon_pop_cute.wav", 400, 100, 0.4)
 
-    --despawning
-    timer.Create(tostring(ent).."desp",PDM_DESPTIME,1, function()
-        ent:Dissolve(false, 1, self:GetPos())
-    end)
+            --despawning
+            timer.Create(tostring(ent).."desp",PDM_DESPTIME,1, function()
+                ent:Dissolve(false, 1, self:GetPos())
+            end)
+        end)
+    end
 end
 
-function ENT:StartSpawn()
-    timer.Create(tostring(self).."spawning", PDM_SPAWNDELAY, 0, function() self:SpawnProp() end)
+function ENT:StartSpawn(num)
+    num = num or 1
+    timer.Create(tostring(self).."spawning", PDM_SPAWNDELAY, 0, function() self:SpawnProp(num) end)
 end
 
 function ENT:StopSpawn()
