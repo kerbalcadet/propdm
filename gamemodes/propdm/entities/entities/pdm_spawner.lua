@@ -15,6 +15,8 @@ function ENT:Initialize()
     self:EmitSound("npc/attack_helicopter/aheli_rotor_loop1.wav", 400, 100, 0.2)
     self:ResetSequence(0)
     self:SetPlaybackRate(1)
+
+    self:Think()
 end
 
 if SERVER then

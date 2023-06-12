@@ -18,8 +18,10 @@ SWEP.WorldModel = "models/weapons/w_crowbar.mdl"
 SWEP.ViewModel = "models/weapons/v_crowbar.mdl"
 SWEP.UseHands = true
 
-SWEP.Primary.Damage = 25
+SWEP.Primary.Damage = 0
 SWEP.Primary.Range = 100
+SWEP.Primary.ExpRadius = 500
+
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true 
@@ -82,8 +84,6 @@ function SWEP:PrimaryAttack()
             local ef = EffectData()
             ef:SetOrigin(tr.HitPos)
             ef:SetNormal(tr.Normal)
-
-            util.BlastDamage(self, own, tr.HitPos, 200, 25)
             util.Effect("Impact", ef)
         end
     else
@@ -98,15 +98,10 @@ function SWEP:PrimaryAttack()
         --no hit
         if tr.HitWorld or not tr.Entity:IsValid() then return end
 
-        local dmg = DamageInfo()
-        dmg:SetDamage(self.Primary.Damage)
-        dmg:SetAttacker(own)
-        dmg:SetInflictor(selfs or self)
-        dmg:SetDamageForce(own:GetAimVector()*5)
-        dmg:SetDamagePosition(own:GetPos())
-        dmg:SetDamageType(DMG_CLUB)
+        --explosion
+        local targs = {}
+        for _,ent in pairs(ents.FindInSphere(tr.HitPos, SWEP.Primary.ExpRadius))
 
-        ent:DispatchTraceAttack(dmg, eye + own:GetAimVector()*5, pos)
 
     end
 

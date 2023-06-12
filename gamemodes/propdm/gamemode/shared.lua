@@ -4,6 +4,7 @@ GM.Email = "N/A"
 GM.Website = "N/A"
 
 AddCSLuaFile()
+DeriveGamemode("sandbox")
 
 local p = 250
 local s = 75
