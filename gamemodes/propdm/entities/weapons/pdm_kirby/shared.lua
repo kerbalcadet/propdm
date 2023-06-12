@@ -1,9 +1,4 @@
 -- Variables that are used on both client and server
-if CLIENT then
-	include("cl_init.lua")
-	include("cl_viewscreen.lua")
-end
-
 SWEP.PrintName		= "Kirby"
 SWEP.Category = "Prop Deathmatch"
 SWEP.ViewModel		= "models/weapons/c_toolgun.mdl"
@@ -18,57 +13,76 @@ SWEP.Spawnable		= true
 util.PrecacheModel( SWEP.ViewModel )
 util.PrecacheModel( SWEP.WorldModel )
 
--- Todo, make/find a better sound.
-SWEP.ShootSound = Sound( "Airboat.FireGunRevDown" )
+SWEP.Primary = {
 
-SWEP.Tool = {}
-
-SWEP.Primary.ClipSize = -1
-SWEP.Primary.DefaultClip = -1
-SWEP.Primary.Automatic = false
-SWEP.Primary.Ammo = "none"
-
-SWEP.Secondary.ClipSize = -1
-SWEP.Secondary.DefaultClip = -1
-SWEP.Secondary.Automatic = false
-SWEP.Secondary.Ammo = "none"
+}
+SWEP.Secondary = {
+	Range = 400,
+	Time = 0,	--last time the right mouse button changed
+	Spool = 0,
+	SuckPower = 50000,
+	Range = 500
+}
 
 SWEP.CanHolster = true
 SWEP.CanDeploy = true
 
-SWEP.Sucking = false
+SWEP.Sucking = false	
 
 function SWEP:Initialize()
-
 	self:SetHoldType( "revolver" )
-
-	self.Primary = {
-		ClipSize = -1,
-		DefaultClip = -1,
-		Automatic = false,
-		Ammo = "none"
-	}
-
-	self.Secondary = {
-		ClipSize = -1,
-		DefaultClip = -1,
-		Automatic = false,
-		Ammo = "none"
-	}
-
 end
 
+if SERVER then
+
 function SWEP:Think()
-	--suck behavior
-	if self.Sucking and not input.IsMouseDown("MOUSE_RIGHT") then self.Sucking = false end
+	--spool up/down behavior
+	if self.Owner:KeyDown(IN_ATTACK2) then
+		if not self.Sucking then 
+			self.Sucking = true
+			self.Secondary.Time = CurTime()
+		end
 
+		local t = CurTime() - self.Secondary.Time
+		self.Secondary.Spool = math.Clamp(t, 0, 1)
+	
+	else
+		if self.Sucking then
+			self.Sucking = false 
+			self.Secondary.Time = CurTime()
+		end
 
+		local t = CurTime() - self.Secondary.Time
+		self.Secondary.Spool = math.Clamp(1 - t*2, 0, 1)
+	end
 
+	--actual suck
+	if self.Secondary.Spool > 0 then
+
+		
+		local pos = self.Owner:EyePos()
+		local range = self.Secondary.Range*self.Secondary.Spool
+		for _, ent in pairs(ents.FindInCone(pos, self.Owner:EyeAngles():Forward(), range, 0.2)) do
+			local phys = ent:GetPhysicsObject()
+			if not ent:IsSolid() or not phys:IsValid() or ent:IsPlayer() then continue end
+
+			local diff = pos - ent:GetPos()
+			local dir = diff:GetNormalized()
+			local distsq = math.Clamp(diff:LengthSqr()/144, 0.5, 100)	--feet bc why not
+			
+			local force = (dir/distsq)*self.Secondary.SuckPower*self.Secondary.Spool
+			print(force:Dot(dir))
+
+			phys:ApplyForceCenter(force)
+		end
+	end
+
+	--yada yada yada
 	self:NextThink(CurTime())
 	return true
 end
 
 function SWEP:SecondaryAttack()
-	self.Sucking = true
-	
+end
+
 end

@@ -1,3 +1,6 @@
+include("cl_viewscreen.lua")
+include("shared.lua")
+
 
 --[[### thanks garry ###]]--
 
