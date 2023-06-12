@@ -1,11 +1,14 @@
 -- Variables that are used on both client and server
+if CLIENT then
+	include("cl_init.lua")
+	include("cl_viewscreen.lua")
+end
 
 SWEP.PrintName		= "Kirby"
-SWEP.Purpose		= "fwoooooooosh"
 SWEP.Category = "Prop Deathmatch"
 SWEP.ViewModel		= "models/weapons/c_toolgun.mdl"
 SWEP.WorldModel		= "models/weapons/w_toolgun.mdl"
-SWEP.Slot = 1
+SWEP.Slot = 5
 SWEP.SlotPos = 1
 
 SWEP.UseHands		= true
@@ -33,6 +36,8 @@ SWEP.Secondary.Ammo = "none"
 SWEP.CanHolster = true
 SWEP.CanDeploy = true
 
+SWEP.Sucking = false
+
 function SWEP:Initialize()
 
 	self:SetHoldType( "revolver" )
@@ -51,4 +56,19 @@ function SWEP:Initialize()
 		Ammo = "none"
 	}
 
+end
+
+function SWEP:Think()
+	--suck behavior
+	if self.Sucking and not input.IsMouseDown("MOUSE_RIGHT") then self.Sucking = false end
+
+
+
+	self:NextThink(CurTime())
+	return true
+end
+
+function SWEP:SecondaryAttack()
+	self.Sucking = true
+	
 end
