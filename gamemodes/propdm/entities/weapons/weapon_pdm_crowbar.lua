@@ -92,10 +92,21 @@ function SWEP:DelayedAttack()   --explosion doesn't hit the second you click
     local ef = EffectData()
     ef:SetOrigin(tr.HitPos)
     ef:SetNormal(tr.Normal)
-    ef:SetMagnitude(1)
-    ef:SetScale(2)
-    ef:SetRadius(200)
-    util.Effect("Sparks", ef)
+    
+    if tr.Hit then  --sparks
+        ef:SetMagnitude(1)
+        ef:SetScale(2)
+        ef:SetRadius(100)
+        util.Effect("cball_explode", ef)
+    end
+
+    ef:SetScale(100)
+    util.Effect("ThumperDust", ef)
+
+    ef:SetEntity(own:GetViewModel())
+    ef:SetAngles(own:EyeAngles())
+    ef:SetAttachment(1)
+    util.Effect("AirboatMuzzleFlash", ef)
 
     if SERVER then
         own:SetAnimation(PLAYER_ATTACK1)
