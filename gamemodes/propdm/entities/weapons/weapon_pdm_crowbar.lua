@@ -20,12 +20,15 @@ SWEP.UseHands = true
 
 SWEP.Primary.Damage = 0
 SWEP.Primary.Range = 100
-SWEP.Primary.ExpRadius = 500
+SWEP.Primary.ExpRadius = 750
+SWEP.Primary.ExpPower = 300000
+SWEP.PlyWeight = 1000
 
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true 
-SWEP.Primary.Delay = 0.4
+SWEP.Primary.Delay = 2
+SWEP.Primary.AttackDelay = 0.15
 SWEP.Primary.Ammo = "none"
 
 function SWEP:Initialize()
@@ -57,12 +60,17 @@ end
 
 function SWEP:PrimaryAttack()
     self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
-
     if not IsValid(self:GetOwner()) then return end
+    self:SendWeaponAnim(ACT_VM_MISSCENTER)
 
+    timer.Create(tostring(self), self.Primary.AttackDelay, 1, function() 
+        self:DelayedAttack() 
+    end)
+end
 
+function SWEP:DelayedAttack()   --explosion doesn't hit the second you click
     
-
+    --trace
     local own = self:GetOwner()
     own:LagCompensation(true)
     local eye = own:GetShootPos()
@@ -75,36 +83,43 @@ function SWEP:PrimaryAttack()
         tr = util.TraceLine({start = eye, endpos = pos, filter = own, mask = MASK_SHOT})
     end
     local ent = tr.Entity
+    
+    --sound
+    local num = math.random(4)
+    self:EmitSound("weapons/physcannon/superphys_launch"..num..".wav")
 
-    if tr.Hit then
-        self:SendWeaponAnim(ACT_VM_HITCENTER)
-        self:EmitSound("Weapon_Crowbar.Melee_Hit")
-
-        if SERVER then
-            local ef = EffectData()
-            ef:SetOrigin(tr.HitPos)
-            ef:SetNormal(tr.Normal)
-            util.Effect("Impact", ef)
-        end
-    else
-        self:EmitSound("Weapon_Crowbar.Single")
-        self:SendWeaponAnim(ACT_VM_MISSCENTER)
-    end
-
+    --effect
+    local ef = EffectData()
+    ef:SetOrigin(tr.HitPos)
+    ef:SetNormal(tr.Normal)
+    ef:SetMagnitude(1)
+    ef:SetScale(2)
+    ef:SetRadius(200)
+    util.Effect("Sparks", ef)
 
     if SERVER then
         own:SetAnimation(PLAYER_ATTACK1)
 
-        --no hit
-        if tr.HitWorld or not tr.Entity:IsValid() then return end
+
 
         --explosion
-        for _,ent in pairs(ents.FindInSphere(tr.HitPos, SWEP.Primary.ExpRadius)) do
-            if not ent:IsSolid() then continue end
+        local pos = tr.HitPos
+        for _,ent in pairs(ents.FindInSphere(pos, self.Primary.ExpRadius)) do
+            local phys = ent:GetPhysicsObject()
+            if not ent:IsSolid() or not phys:IsValid() then continue end
 
-
+            local diff = (ent:GetPos() - pos):GetNormalized()
+            local dir = diff:GetNormalized()
+            local distsq = diff:LengthSqr()
+            
+            local force = (dir/distsq)*self.Primary.ExpPower
+            
+            if(ent:IsPlayer()) then     --applyforce doesn't work for players
+                ent:SetVelocity(ent:GetVelocity() + force/self.PlyWeight)
+            else
+                phys:ApplyForceCenter(force)
+            end
         end
-
         
     end
 
