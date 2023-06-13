@@ -54,7 +54,6 @@ hook.Remove("EntityTakeDamage", "kirbypropdamage")
 hook.Add("EntityTakeDamage", "kirbypropdamage", function(ent, dmg)
 	if not ent:IsPlayer() or not (ent:GetActiveWeapon():GetClass() == "pdm_kirby") or not (dmg:GetDamageType() == 1) then return end
 
-	print(ent:GetVelocity():LengthSqr())
 	if ent:GetVelocity():LengthSqr() < 12000 then
 		return true
 	else
