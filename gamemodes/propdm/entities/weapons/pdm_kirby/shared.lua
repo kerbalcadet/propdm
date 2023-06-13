@@ -15,9 +15,12 @@ util.PrecacheModel( SWEP.WorldModel )
 
 SWEP.Primary = {
 	DefaultClip = -1,
-	Automatic = false,
+	Automatic = true,
 	Ammo = "none",
 	ClipSize = -1,
+
+	SpeedMul = 60000,	--divided by object weight to get speed on firing
+	RateMul = 1/100	--multiplied by object weight to get delay after firing
 }
 SWEP.Secondary = {
 	DefaultClip = -1,
@@ -43,7 +46,15 @@ function SWEP:Initialize()
 	self.Sound2 = CreateSound(self, "ambient/levels/canals/windmill_wind_loop1.wav")
 end
 
+--[[==SERVER==]]--
+
 if SERVER then
+
+function SWEP:OnRemove()
+	self.Sound1:Stop()
+	self.Sound2:Stop()
+	self.Owner.KirbyInv = {}
+end
 
 function SWEP:TryAddInv(ent)
 	local own = self.Owner
@@ -67,8 +78,10 @@ function SWEP:TryAddInv(ent)
 end
 
 function SWEP:Think()
+	local rclick = self.Owner:KeyDown(IN_ATTACK2)
+
 	--spool up/down behavior
-	if self.Owner:KeyDown(IN_ATTACK2) then
+	if rclick then
 		if not self.Sucking then 
 			self.Sucking = true
 			self.Secondary.Time = CurTime()
@@ -106,9 +119,9 @@ function SWEP:Think()
 			local force = (dir/distsq)*self.Secondary.SuckPower*self.Secondary.Spool
 			phys:ApplyForceCenter(force)
 		
-			if ent == self.Owner:GetTouchTrace().Entity then self:TryAddInv(ent) end
+			if ent == self.Owner:GetTouchTrace().Entity and rclick then self:TryAddInv(ent) end
 		end
-	elseif not self.Owner:Alive() or not self.Owner:KeyDown(IN_ATTACK2) then
+	elseif not rclick then
 		self.Sound1:Stop()
 	end
 
@@ -140,14 +153,20 @@ function SWEP:PrimaryAttack()
 		ent:PhysicsInit(SOLID_VPHYSICS)
 		ent:SetSolid(SOLID_VPHYSICS)
 		
-		ent:SetPos(self.Owner:GetShootPos() + self.Owner:GetForward()*30)
+		dir = self.Owner:GetForward()
+		ent:SetPos(self.Owner:GetShootPos() + dir*30)	--change to depend on bounding box later
 		ent:Spawn()
 
+		local phys = ent:GetPhysicsObject()
+		local mass = phys:GetMass()
+		phys:Wake()
+		phys:SetVelocity(dir*self.Primary.SpeedMul/mass)
+
 		table.remove(self.Owner.KirbyInv)
+		self:SetNextPrimaryFire(CurTime() + mass*self.Primary.RateMul)
 	end
 
 	self:EmitSound("garrysmod/balloon_pop_cute.wav")
-	self:SetNextPrimaryFire(CurTime() + 1)
 end
 
 function SWEP:SecondaryAttack()
