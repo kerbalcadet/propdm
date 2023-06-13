@@ -11,6 +11,7 @@ function ENT:Initialize()
     self:SetModel("models/Combine_Helicopter.mdl")
     self:PhysicsInitStatic(SOLID_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
+    self:SetPos(ents.FindByClass("pdm_spawnzone")[1]:OBBCenter(), true)
 
     self:EmitSound("npc/attack_helicopter/aheli_rotor_loop1.wav", 400, 100, 0.2)
     self:ResetSequence("idle")
@@ -23,22 +24,12 @@ function ENT:Think()
     return true
 end
 
-function ENT:test()
-    local v1, v2 = ents.FindByClass("pdm_spawnzone")[1]:GetCollisionBounds()
-    local vdiff = v2 - v1
-    local vnew = Vector(v1.x + math.random(vdiff.x), v1.y + math.random(vdiff.y), v1.z + math.random(vdiff.z))
-
-    print(v1)
-    print(v2)
-    print(vnew)
-end
 function ENT:SpawnProp(num)
     --test move spawner
     local v1, v2 = ents.FindByClass("pdm_spawnzone")[1]:GetCollisionBounds()
     local vdiff = v2 - v1
     local vnew = Vector(v1.x + math.random(vdiff.x), v1.y + math.random(vdiff.y), v1.z + math.random(vdiff.z))
 
-    print(vnew:Length())
     self:SetPos(vnew)
 
     timer.Create(tostring(self).."spawn", 1/PDM_SPAWNRATE, num, function()
