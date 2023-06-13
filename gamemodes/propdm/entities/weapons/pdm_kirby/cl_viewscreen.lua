@@ -1,7 +1,6 @@
 local matScreen = Material( "models/weapons/v_toolgun/screen" )
 local txBackground = surface.GetTextureID( "models/weapons/v_toolgun/screen_bg" )
 local TEX_SIZE = 256
-
 -- GetRenderTarget returns the texture if it exists, or creates it if it doesn't
 local RTTexture = GetRenderTarget( "GModToolgunScreen", TEX_SIZE, TEX_SIZE )
 

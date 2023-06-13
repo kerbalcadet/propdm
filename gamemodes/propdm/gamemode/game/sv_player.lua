@@ -8,6 +8,4 @@ function GM:PlayerSpawn(ply)
     ply:Give("pdm_kirby")
     ply:SetModel("models/player/hostage/hostage_04.mdl")
     ply:SetupHands()
-
-    print("test")
 end

@@ -1,13 +1,20 @@
+AddCSLuaFile()
+AddCSLuaFile("cl_init.lua")
+AddCSLuaFile("cl_viewscreen.lua")
+
 -- Variables that are used on both client and server
-SWEP.PrintName		= "Kirby"
-SWEP.Category = "Prop Deathmatch"
+if CLIENT then
+	SWEP.PrintName		= "Kirby"
+	SWEP.Category = "Prop Deathmatch"
+	SWEP.Slot = 1
+	SWEP.SlotPos = 1
+	SWEP.UseHands		= true
+	SWEP.Spawnable		= true
+end
+
+SWEP.Base = "weapon_base"
 SWEP.ViewModel		= "models/weapons/c_toolgun.mdl"
 SWEP.WorldModel		= "models/weapons/w_toolgun.mdl"
-SWEP.Slot = 1
-SWEP.SlotPos = 1
-
-SWEP.UseHands		= true
-SWEP.Spawnable		= true
 
 -- Be nice, precache the models
 util.PrecacheModel( SWEP.ViewModel )
@@ -47,7 +54,6 @@ function SWEP:Initialize()
 end
 
 --[[==SERVER==]]--
-
 if SERVER then
 
 hook.Remove("EntityTakeDamage", "kirbypropdamage")
