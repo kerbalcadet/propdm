@@ -13,8 +13,6 @@ cvars.AddChangeCallback( "gmod_toolmode", function( name, old, new )
 	spawnmenu.ActivateTool( new, true )
 end, "gmod_toolmode_panel" )
 
-SWEP.Slot			= 5
-SWEP.SlotPos		= 6
 SWEP.DrawAmmo		= false
 SWEP.DrawCrosshair	= true
 

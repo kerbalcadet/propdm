@@ -3,7 +3,7 @@ SWEP.PrintName		= "Kirby"
 SWEP.Category = "Prop Deathmatch"
 SWEP.ViewModel		= "models/weapons/c_toolgun.mdl"
 SWEP.WorldModel		= "models/weapons/w_toolgun.mdl"
-SWEP.Slot = 5
+SWEP.Slot = 1
 SWEP.SlotPos = 1
 
 SWEP.UseHands		= true
@@ -28,7 +28,7 @@ SWEP.Secondary = {
 	Ammo = "none",
 	ClipSize = -1,
 
-	Range = 400,
+	Range = 100,
 	Time = 0,	--last time the right mouse button changed
 	Spool = 0,
 	SuckPower = 50000,
@@ -49,6 +49,18 @@ end
 --[[==SERVER==]]--
 
 if SERVER then
+
+hook.Remove("EntityTakeDamage", "kirbypropdamage")
+hook.Add("EntityTakeDamage", "kirbypropdamage", function(ent, dmg)
+	if not ent:IsPlayer() or not (ent:GetActiveWeapon():GetClass() == "pdm_kirby") or not (dmg:GetDamageType() == 1) then return end
+
+	print(ent:GetVelocity():LengthSqr())
+	if ent:GetVelocity():LengthSqr() < 12000 then
+		return true
+	else
+		dmg:ScaleDamage(0.5)
+	end
+end)
 
 function SWEP:OnRemove()
 	self.Sound1:Stop()
@@ -77,6 +89,10 @@ function SWEP:TryAddInv(ent)
 	ent:Remove()
 end
 
+end
+
+
+--[[SHARED]]--
 function SWEP:Think()
 	local rclick = self.Owner:KeyDown(IN_ATTACK2)
 
@@ -103,10 +119,13 @@ function SWEP:Think()
 		self.Secondary.Spool = math.Clamp(1 - t*2, 0, 1)
 	end
 
+	local spool = self.Secondary.Spool
+
+	if SERVER then
 	--actual suck
-	if self.Secondary.Spool > 0 then
+	if spool > 0 then
 		local pos = self.Owner:EyePos()
-		local range = self.Secondary.Range*self.Secondary.Spool
+		local range = self.Secondary.Range*spool
 		for _, ent in pairs(ents.FindInCone(pos, self.Owner:EyeAngles():Forward(), range, 0.8)) do
 			local phys = ent:GetPhysicsObject()
 			if not ent:IsSolid() or not phys:IsValid() or ent:IsPlayer() then continue end
@@ -116,7 +135,7 @@ function SWEP:Think()
 			local distsq = math.Clamp(diff:LengthSqr()/144, 0.5, 100)	--feet bc why not
 			
 			--apply suction force
-			local force = (dir/distsq)*self.Secondary.SuckPower*self.Secondary.Spool
+			local force = (dir/distsq)*self.Secondary.SuckPower*spool
 			phys:ApplyForceCenter(force)
 		
 			if ent == self.Owner:GetTouchTrace().Entity and rclick then self:TryAddInv(ent) end
@@ -125,8 +144,15 @@ function SWEP:Think()
 		self.Sound1:Stop()
 	end
 
-	self.Sound1:ChangeVolume(self.Secondary.Spool)
-	self.Sound2:ChangeVolume(self.Secondary.Spool)
+	end
+
+
+	self.Sound1:ChangeVolume(spool)
+	self.Sound2:ChangeVolume(spool)
+
+	if CLIENT and spool > 0 then
+		util.ScreenShake(LocalPlayer():GetPos(), spool/2, 100, 0.1, 10)
+	end
 
 	--yada yada yada
 	self:NextThink(CurTime())
@@ -134,7 +160,6 @@ function SWEP:Think()
 end
 
 
-end
 
 
 
