@@ -4,7 +4,7 @@ if CLIENT then
     SWEP.PrintName = "Normal Crowbar"
     SWEP.Purpose = "Quite repulsive"
     SWEP.Category = "Prop Deathmatch"
-    SWEP.ViewModelFOV = 55
+    SWEP.ViewModelFOV = 40
     SWEP.Weight = 5
     SWEP.Slot = 0
     SWEP.SlotPos = 1
@@ -21,7 +21,7 @@ SWEP.UseHands = true
 SWEP.Primary.Damage = 0
 SWEP.Primary.Range = 100
 SWEP.Primary.ExpRadius = 200
-SWEP.Primary.ExpPower = 6000000
+SWEP.Primary.ExpPower = 10000000
 SWEP.PlyWeight = 4000
 
 SWEP.Primary.ClipSize = -1

@@ -19,8 +19,8 @@ SWEP.Primary = {
 	Ammo = "none",
 	ClipSize = -1,
 
-	SpeedMul = 60000,	--divided by object weight to get speed on firing
-	RateMul = 1/100	--multiplied by object weight to get delay after firing
+	SpeedMul = 100000,	--divided by object weight to get speed on firing
+	RateMul = 1/60	--multiplied by object weight to get delay after firing
 }
 SWEP.Secondary = {
 	DefaultClip = -1,
