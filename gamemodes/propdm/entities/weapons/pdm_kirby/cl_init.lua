@@ -1,8 +1,8 @@
+include("cl_viewscreen.lua")
+include("shared.lua")
+
 
 --[[### thanks garry ###]]--
-
-include("shared.lua")
-include("cl_viewscreen.lua")
 
 local gmod_drawhelp = CreateClientConVar( "gmod_drawhelp", "1", true, false, "Should the tool HUD be displayed when the tool gun is active?" )
 local gmod_toolmode = CreateClientConVar( "gmod_toolmode", "rope", true, true )
@@ -13,8 +13,6 @@ cvars.AddChangeCallback( "gmod_toolmode", function( name, old, new )
 	spawnmenu.ActivateTool( new, true )
 end, "gmod_toolmode_panel" )
 
-SWEP.Slot			= 5
-SWEP.SlotPos		= 6
 SWEP.DrawAmmo		= false
 SWEP.DrawCrosshair	= true
 

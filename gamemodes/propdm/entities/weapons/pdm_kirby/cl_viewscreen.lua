@@ -56,7 +56,9 @@ function SWEP:RenderScreen()
 
 		-- Give our toolmode the opportunity to override the drawing
 
-		local mouth = (input.IsMouseDown(MOUSE_LEFT) or input.IsMouseDown(MOUSE_RIGHT)) and "0" or "_"
+		local m1 = input.IsMouseDown(MOUSE_LEFT)
+		local m2 = input.IsMouseDown(MOUSE_RIGHT)
+		local mouth = (m1 or m2) and "0" or "_"
 		surface.SetFont( "GModToolScreen" )
 		DrawScrollingText( "(つ -‘ "..mouth.." ‘- )つ", 104, TEX_SIZE )
 
