@@ -181,10 +181,13 @@ function KirbyFireProp(tab, pos, dir, velmul)
 	ent:Spawn()
 
 	local phys = ent:GetPhysicsObject()
+	local physentity = phys	--what velocity is applied to
+	if string.sub(tab.class, 1, 3) == "npc" then physentity = ent end
+
 	local mass = tab.mass
 	phys:SetMass(mass)
 	phys:Wake()
-	phys:SetVelocity(dir*velmul/mass)
+	physentity:SetVelocity(dir*velmul/mass)
 end
 
 end
@@ -231,6 +234,7 @@ function SWEP:Think()
 			for _, ent in pairs(ents.FindInCone(pos, own:EyeAngles():Forward(), range, 0.8)) do
 				local phys = ent:GetPhysicsObject()
 				if not ent:IsSolid() or not phys:IsValid() or ent:IsPlayer() then continue end
+				if ent:GetVelocity():LengthSqr() > 24000 then continue end	--prevent super speed
 
 				local diff = pos - ent:GetPos()
 				local dir = diff:GetNormalized()
