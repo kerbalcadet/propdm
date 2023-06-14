@@ -50,8 +50,8 @@ SWEP.Secondary = {
 	Range = 100,
 	Time = 0,	--last time the right mouse button changed
 	Spool = 0,
-	SuckPower = 100000,
-	MaxVelSqr = 30000,
+	SuckPower = 150000,
+	MaxVelSqr = 25000,
 	Range = 500,
 }
 

@@ -1298,7 +1298,7 @@
 		"258"
 		{
 			"type"		"model"
-			"model"		"models/props_wasteland/medbridge_base01.mdl"
+			"model"		"models/props_wasteland/light_spotlight01_lamp.mdl"
 		}
 		"259"
 		{
