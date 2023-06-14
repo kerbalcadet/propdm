@@ -10,7 +10,7 @@ end
 hook.Remove("EntityFireBullets", "Propageddon")
 hook.Add("EntityFireBullets", "Propageddon", function(v,bullet)
 	if v:IsNPC() and v:GetClass() == "npc_helicopter" and SERVER then
-			if math.random(100) < 30 then
+			if math.random(100) < 50 then
                 local tab = table.Random(PDM_PROPS)
                 local ent = ents.Create("prop_physics")
 
@@ -34,7 +34,7 @@ hook.Add("EntityFireBullets", "Propageddon", function(v,bullet)
                 --despawning
                 timer.Create(tostring(ent).."desp",PDM_DESPTIME,1, function()
                     if not IsValid(ent) then return end
-                    ent:Dissolve(false, 1, self:GetPos())
+                    ent:Dissolve(false, 1, ent:GetPos())
                 end)
             end
 		return false

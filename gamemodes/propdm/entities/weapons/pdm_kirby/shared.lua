@@ -83,7 +83,7 @@ end)
 hook.Remove("PlayerDeath", "kirbyexplode")
 hook.Add("PlayerDeath", "kirbyexplode", function(ply, inf, att)
 	if not ply.KirbyInv then return end
-	if #ply.KirbyInv == 0 and #ply.KirbyQueue == 0 then return end
+	if #ply.KirbyInv == 0 and #ply.KirbyQueue == 0 then ply:KirbyPlayerInit() return end
 
 	local queue = ply.KirbyInv
 	table.Add(queue, ply.KirbyQueue)
