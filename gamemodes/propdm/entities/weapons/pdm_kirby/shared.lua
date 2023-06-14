@@ -61,6 +61,7 @@ function SWEP:Initialize()
 	self.Sound2 = CreateSound(self, "ambient/levels/canals/windmill_wind_loop1.wav")
 	self.Sound3 = CreateSound(self, "garrysmod/balloon_pop_cute.wav")
 	self.Sound4 = CreateSound(self, "ambient.steam01")
+	self.Sound5 = CreateSound(self, "weapons/ar2/fire1.wav")
 end
 
 --[[==SERVER==]]--
@@ -83,7 +84,8 @@ function SWEP:Equip(own)
 	if not own.KirbyInv then
 		own.KirbyInv = {}
 		own.KirbyQueue = {}
-		own.KirbyQWeight = 0
+		own.KirbyQWeight = 0	--weight of items in fire queue
+		own.KirbyWeight = 0		--total weight
 	end
 end
 
@@ -142,13 +144,17 @@ function SWEP:FireProp()
 
 	if not own:Alive() or not queue or table.IsEmpty(queue) then return end
 
+	self.Sound5:Stop()
+	self.Sound5:Play()
+	self.Sound5:ChangePitch(70)
+
 	local tab = queue[#queue]
 	local ent = ents.Create(tab.class)
 	ent:SetModel(tab.mdl)
 	ent:PhysicsInit(SOLID_VPHYSICS)
 	ent:SetSolid(SOLID_VPHYSICS)
 	
-	dir = own:GetForward()
+	dir = own:EyeAngles():Forward()
 	ent:SetPos(own:GetShootPos() + dir*30)	--change to depend on bounding box later
 	ent:Spawn()
 
