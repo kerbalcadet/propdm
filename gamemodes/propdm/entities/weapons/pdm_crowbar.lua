@@ -22,7 +22,7 @@ SWEP.Primary.Damage = 0
 SWEP.Primary.Range = 100
 SWEP.Primary.ExpRadius = 200
 SWEP.Primary.ExpPower = 10000000
-SWEP.PlyWeight = 4000
+SWEP.PlyWeight = 2000
 
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1
@@ -62,6 +62,7 @@ function SWEP:PrimaryAttack()
     self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
     if not IsValid(self:GetOwner()) then return end
     self:SendWeaponAnim(ACT_VM_MISSCENTER)
+    self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 
     timer.Create(tostring(self), self.Primary.AttackDelay, 1, function() 
         self:DelayedAttack() 
@@ -109,7 +110,7 @@ function SWEP:DelayedAttack()   --explosion doesn't hit the second you click
     util.Effect("AirboatMuzzleFlash", ef)
 
     if SERVER then
-        own:SetAnimation(PLAYER_ATTACK1)
+
 
         util.ScreenShake(tr.HitPos, 3, 1, 0.75, 500)
 
@@ -120,7 +121,7 @@ function SWEP:DelayedAttack()   --explosion doesn't hit the second you click
             local phys = ent:GetPhysicsObject()
             if not ent:IsSolid() or not phys:IsValid() then continue end
 
-            local diff = ent:GetPos() - pos
+            local diff = ent:GetPos() + phys:GetMassCenter() - pos
             local dir = diff:GetNormalized()
             local distsq = math.Clamp(diff:LengthSqr()/144, 0.5, 100)	--feet bc why not
 
@@ -136,4 +137,7 @@ function SWEP:DelayedAttack()   --explosion doesn't hit the second you click
         
     end
 
+end
+
+function SWEP:SecondaryAttack()
 end
