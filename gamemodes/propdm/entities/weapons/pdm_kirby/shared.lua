@@ -80,25 +80,45 @@ hook.Add("EntityTakeDamage", "kirbypropdamage", function(ent, dmg)
 	end
 end)
 
-function SWEP:PlayerInit()
-	local own = self:GetOwner()
-	own.KirbyInv = {}
-	own.KirbyQueue = {}
-	own.KirbyQWeight = 0	--weight of items in fire queue
-	own.KirbyWeight = 0		--total weight
+hook.Remove("PlayerDeath", "kirbyexplode")
+hook.Add("PlayerDeath", "kirbyexplode", function(ply, inf, att)
+	if not ply.KirbyInv then return end
+	if not #ply.KirbyInv and not #ply.KirbyQueue then return end
+
+	local queue = ply.KirbyInv
+	table.Add(queue, ply.KirbyQueue)
+
+	local pos = ply:GetPos() + Vector(0,0,50)
+	timer.Create(tostring(ply).."kirbyexplode", 0.1, #queue, function()
+		local tab = queue[#queue]
+		local dir = VectorRand()
+		dir.z = math.Clamp(dir.z, -0.2, 0.2)
+
+		KirbyFireProp(tab, pos, dir, 100000)
+		table.remove(queue)
+		ply:EmitSound("phx/explode00.wav", 100, 100, 1)
+	end)
+
+	ply:KirbyPlayerInit()
+end)
+
+function PLAYER:KirbyPlayerInit()
+	self.KirbyInv = {}
+	self.KirbyQueue = {}
+	self.KirbyQWeight = 0	--weight of items in fire queue
+	self.KirbyWeight = 0		--total weight
 end
 
 --initialize inventory
 function SWEP:Equip(own)
 	if not own.KirbyInv then
-		self:PlayerInit()
+		own:KirbyPlayerInit()
 	end
 end
 
 function SWEP:OnRemove()
 	self.Sound1:Stop()
 	self.Sound2:Stop()
-	self:PlayerInit()
 end
 
 function SWEP:TryAddInv(ent)
@@ -151,37 +171,20 @@ function SWEP:ChangeMoveSpeed()
 	own:SetRunSpeed(400 - own.KirbyWeight*self.MovePenaltyMul)
 end
 
---fire next prop from kirby queue
-function SWEP:FireProp()
-	local own = self:GetOwner()
-	local queue = own.KirbyQueue
-
-	if not own:Alive() or not queue or table.IsEmpty(queue) then return end
-
-	self.Sound5:Stop()
-	self.Sound5:Play()
-	self.Sound5:ChangePitch(70)
-
-	local tab = queue[#queue]
+--fire prop from entity table
+function KirbyFireProp(tab, pos, dir, velmul)
 	local ent = ents.Create(tab.class)
 	ent:SetModel(tab.mdl)
 	ent:PhysicsInit(SOLID_VPHYSICS)
 	ent:SetSolid(SOLID_VPHYSICS)
-	
-	dir = own:EyeAngles():Forward()
-	ent:SetPos(own:GetShootPos() + dir*30)	--change to depend on bounding box later
+	ent:SetPos(pos)	--change to depend on bounding box later
 	ent:Spawn()
 
 	local phys = ent:GetPhysicsObject()
 	local mass = tab.mass
 	phys:SetMass(mass)
 	phys:Wake()
-	phys:SetVelocity(dir*self.Primary.SpeedMul/mass)
-
-	table.remove(own.KirbyQueue)
-
-	own.KirbyWeight = own.KirbyWeight - mass
-	self:ChangeMoveSpeed()
+	phys:SetVelocity(dir*velmul/mass)
 end
 
 end
@@ -310,10 +313,22 @@ function SWEP:Think()
 		own.KirbyQWeight = 0
 		local title = tostring(self).."shoot"
 
+		--timer to repeat firing logic
 		timer.Create(title, self.Primary.FireDelay, #own.KirbyQueue, function()
 			if not IsValid(self) or not own:Alive() then return end
 			
-			self:FireProp()
+			local queue = own.KirbyQueue
+			local dir = own:EyeAngles():Forward()
+			local tab = queue[#queue]
+			
+			self.Sound5:Stop()
+			self.Sound5:Play()
+			self.Sound5:ChangePitch(70)
+			KirbyFireProp(tab, own:GetShootPos() + dir*30, dir, self.Primary.SpeedMul)
+			table.remove(queue)
+			own.KirbyWeight = own.KirbyWeight - tab.mass
+			self:ChangeMoveSpeed()
+			
 			if timer.RepsLeft(title) == 0 then
 				self.Primary.Shooting = false
 			end
