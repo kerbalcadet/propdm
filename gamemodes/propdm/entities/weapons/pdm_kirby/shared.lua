@@ -20,15 +20,23 @@ SWEP.WorldModel		= "models/weapons/w_toolgun.mdl"
 util.PrecacheModel( SWEP.ViewModel )
 util.PrecacheModel( SWEP.WorldModel )
 
+SWEP.MaxWeight = 500
 SWEP.Primary = {
 	DefaultClip = -1,
 	Automatic = true,
 	Ammo = "none",
 	ClipSize = -1,
 
-	Active = false,
+	MaxWeightPer = 100, -- max weight to have multiple things fire at once
 	SpeedMul = 100000,	--divided by object weight to get speed on firing
-	RateMul = 1/60	--multiplied by object weight to get delay after firing
+	FireDelay = 0.1, 	--delay between each shot
+	Active = false,
+	Shooting = false,
+	Cooldown = false,
+	Time = 0,
+	Queue = {},
+	QueueWeight = 0
+
 }
 SWEP.Secondary = {
 	DefaultClip = -1,
@@ -42,7 +50,6 @@ SWEP.Secondary = {
 	Spool = 0,
 	SuckPower = 50000,
 	Range = 500,
-	MaxWeight = 200
 }
 
 SWEP.CanHolster = true
@@ -53,6 +60,7 @@ function SWEP:Initialize()
 	self.Sound1 = CreateSound(self, "physics/nearmiss/whoosh_large1.wav")
 	self.Sound2 = CreateSound(self, "ambient/levels/canals/windmill_wind_loop1.wav")
 	self.Sound3 = CreateSound(self, "garrysmod/balloon_pop_cute.wav")
+	self.Sound4 = CreateSound(self, "ambient.steam01")
 end
 
 --[[==SERVER==]]--
@@ -70,26 +78,32 @@ hook.Add("EntityTakeDamage", "kirbypropdamage", function(ent, dmg)
 	end
 end)
 
+--initialize inventory
+function SWEP:Equip(own)
+	if not own.KirbyInv then
+		own.KirbyInv = {}
+		own.KirbyQueue = {}
+		own.KirbyQWeight = 0
+	end
+end
 
 function SWEP:OnRemove()
 	self.Sound1:Stop()
 	self.Sound2:Stop()
-	self.Owner.KirbyInv = {}
+	self:GetOwner().KirbyInv = {}
 end
 
 function SWEP:TryAddInv(ent)
-	local own = self.Owner
-	if not own.KirbyInv then 
-		own.KirbyInv = {} 
-		own.KirbyInvWeight = 0 
-	end
+	local own = self:GetOwner()
 
 	local phys = ent:GetPhysicsObject()
-	if not phys or not phys:IsValid() or phys:GetMass() > self.Secondary.MaxWeight then return end 
+	if not phys or not phys:IsValid() or phys:GetMass() > self.MaxWeight then return end 
 	--TODO: change to be total weight
 
+	if ent:GetClass() == "fakeground" then return end	--some addon I think? causing issues.
+
 	local class = ent:GetClass()
-	local mass = ent:GetMass()
+	local mass = phys:GetMass()
 	local mdl = ent:GetModel()
 	local keyval = ent:GetKeyValues()
 	
@@ -97,15 +111,46 @@ function SWEP:TryAddInv(ent)
 	table.insert(own.KirbyInv, tab)
 
 	self.Sound3:Stop()
+	self.Sound3:ChangePitch(100)
 	self.Sound3:Play()
 	ent:Remove()
 end
 
 end
 
+--fire next prop from kirby queue
+function SWEP:FireProp()
+	local own = self:GetOwner()
+	local queue = own.KirbyQueue
+
+	if not own:Alive() or not queue or table.IsEmpty(queue) then return end
+
+	local tab = queue[#queue]
+	local ent = ents.Create(tab.class)
+	ent:SetModel(tab.mdl)
+	ent:PhysicsInit(SOLID_VPHYSICS)
+	ent:SetSolid(SOLID_VPHYSICS)
+	
+	dir = own:GetForward()
+	ent:SetPos(own:GetShootPos() + dir*30)	--change to depend on bounding box later
+	ent:Spawn()
+
+	local phys = ent:GetPhysicsObject()
+	local mass = tab.mass
+	phys:SetMass(mass)
+	phys:Wake()
+	phys:SetVelocity(dir*self.Primary.SpeedMul/mass)
+
+	table.remove(own.KirbyQueue)
+end
+
 --[[SHARED]]--
 function SWEP:Think()
-	local rclick = self.Owner:KeyDown(IN_ATTACK2)
+	local own = self:GetOwner()
+
+	--[[== SECONDARY FIRE ==]]--
+
+	local rclick = own:KeyDown(IN_ATTACK2)
 
 	--spool up/down behavior
 	if rclick then
@@ -130,14 +175,14 @@ function SWEP:Think()
 		self.Secondary.Spool = math.Clamp(1 - t*2, 0, 1)
 	end
 
-	local spool = self.Secondary.Spool
+	local rspool = self.Secondary.Spool
 
 	--actual suck
-	if spool > 0 then
+	if rspool > 0 then
 		if SERVER then
-			local pos = self.Owner:EyePos()
-			local range = self.Secondary.Range*spool
-			for _, ent in pairs(ents.FindInCone(pos, self.Owner:EyeAngles():Forward(), range, 0.8)) do
+			local pos = own:EyePos()
+			local range = self.Secondary.Range*rspool
+			for _, ent in pairs(ents.FindInCone(pos, own:EyeAngles():Forward(), range, 0.8)) do
 				local phys = ent:GetPhysicsObject()
 				if not ent:IsSolid() or not phys:IsValid() or ent:IsPlayer() then continue end
 
@@ -146,10 +191,10 @@ function SWEP:Think()
 				local distsq = math.Clamp(diff:LengthSqr()/144, 0.5, 100)	--feet bc why not
 				
 				--apply suction force
-				local force = (dir/distsq)*self.Secondary.SuckPower*spool
+				local force = (dir/distsq)*self.Secondary.SuckPower*rspool
 				phys:ApplyForceCenter(force)
 			
-				if ent == self.Owner:GetTouchTrace().Entity and rclick then self:TryAddInv(ent) end
+				if ent == own:GetTouchTrace().Entity and rclick then self:TryAddInv(ent) end
 			end
 		end
 	elseif not rclick then
@@ -157,12 +202,85 @@ function SWEP:Think()
 	end
 
 
-	self.Sound1:ChangeVolume(spool)
-	self.Sound2:ChangeVolume(spool)
+	self.Sound1:ChangeVolume(rspool)
+	self.Sound2:ChangeVolume(rspool)
 
 	--screen shake effect
-	if CLIENT and spool > 0 then
-		util.ScreenShake(LocalPlayer():GetPos(), spool/2, 100, 0.1, 10)
+	if CLIENT and rspool > 0 then
+		util.ScreenShake(LocalPlayer():GetPos(), rspool/2, 100, 0.1, 10)
+	end
+
+
+	--[[== PRIMARY FIRE ==]]--
+	
+	--spool up/down behavior
+	local lclick = own:KeyDown(IN_ATTACK)
+	if lclick and not self.Primary.Cooldown then
+		if not self.Primary.Active then 
+			self.Primary.Active = true
+			self.Primary.Time = CurTime()
+
+			self.Sound4:ChangeVolume(0)
+			self.Sound4:Play()
+		end
+
+		local t = CurTime() - self.Primary.Time
+		self.Primary.Spool = math.Clamp(t/2, 0, 1)
+	
+	else
+		if self.Primary.Active then
+			self.Primary.Active = false 
+			self.Primary.Cooldown = true
+			self.Primary.Time = CurTime()
+		
+		elseif self.Primary.Spool == 0 then
+			self.Primary.Cooldown = false
+		end
+		
+		local t = CurTime() - self.Primary.Time
+		self.Primary.Spool = math.Clamp(1 - t*2, 0, 1)
+	end
+
+	local lspool = self.Primary.Spool
+
+	self.Sound4:ChangeVolume(lspool)
+	self.Sound4:ChangePitch(80 + 40*lspool)
+
+
+	--firing behavior
+	if SERVER then
+
+	--add props to shoot queue
+	if lclick and not self.Primary.Cooldown and own.KirbyInv and not table.IsEmpty(own.KirbyInv) then
+		local next = own.KirbyInv[#own.KirbyInv]
+		local maxw = lspool*self.Primary.MaxWeightPer	
+		if maxw > own.KirbyQWeight + next.mass then
+			self.Sound3:ChangePitch(60)
+			self.Sound3:Stop()
+			self.Sound3:Play()	
+			
+			table.insert(own.KirbyQueue, next)
+			own.KirbyQWeight = own.KirbyQWeight + next.mass
+
+			--remove prop from inventory
+			table.remove(own.KirbyInv)
+		end
+	--actual shooting!
+	elseif self.Primary.Cooldown and not self.Primary.Shooting and own.KirbyQueue and not table.IsEmpty(own.KirbyQueue) then
+		self.Primary.Shooting = true
+		own.KirbyQWeight = 0
+		local title = tostring(self).."shoot"
+
+		timer.Create(title, self.Primary.FireDelay, #own.KirbyQueue, function()
+			if not IsValid(self) or not own:Alive() then return end
+			
+			self:FireProp()
+			if timer.RepsLeft(title) == 0 then
+				self.Primary.Shooting = false
+			end
+		end)
+	end
+
 	end
 
 	--yada yada yada
@@ -175,36 +293,6 @@ end
 
 
 function SWEP:PrimaryAttack()
-	if not SERVER then return end
-
-	self.Sound3:Stop()
-	self.Sound3:Play()
-	
-	local inv = self.Owner.KirbyInv
-	if not inv or table.IsEmpty(inv) then
-		self:SetNextPrimaryFire(CurTime() + 0.5)
-		return
-	end
-
-	local tab = inv[#inv]
-	
-	local ent = ents.Create(tab.class)
-	ent:SetModel(tab.mdl)
-	ent:PhysicsInit(SOLID_VPHYSICS)
-	ent:SetSolid(SOLID_VPHYSICS)
-	
-	dir = self.Owner:GetForward()
-	ent:SetPos(self.Owner:GetShootPos() + dir*30)	--change to depend on bounding box later
-	ent:Spawn()
-
-	local phys = ent:GetPhysicsObject()
-	local mass = phys:GetMass()
-	phys:Wake()
-	phys:SetVelocity(dir*self.Primary.SpeedMul/mass)
-
-	table.remove(self.Owner.KirbyInv)
-	self:SetNextPrimaryFire(CurTime() + mass*self.Primary.RateMul)
-
 end
 
 
