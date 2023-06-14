@@ -111,7 +111,6 @@ function SWEP:TryAddInv(ent)
 	table.insert(own.KirbyInv, tab)
 
 	self.Sound3:Stop()
-	self.Sound3:ChangePitch(100)
 	self.Sound3:Play()
 	ent:Remove()
 end
@@ -255,9 +254,10 @@ function SWEP:Think()
 		local next = own.KirbyInv[#own.KirbyInv]
 		local maxw = lspool*self.Primary.MaxWeightPer	
 		if maxw > own.KirbyQWeight + next.mass then
-			self.Sound3:ChangePitch(60)
 			self.Sound3:Stop()
 			self.Sound3:Play()	
+			self.Sound3:ChangePitch(60)
+
 			
 			table.insert(own.KirbyQueue, next)
 			own.KirbyQWeight = own.KirbyQWeight + next.mass
