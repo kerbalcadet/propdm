@@ -31,6 +31,10 @@ SWEP.Primary.Delay = 1.5
 SWEP.Primary.AttackDelay = 0.15
 SWEP.Primary.Ammo = "none"
 
+SWEP.Secondary.ClipSize = -1
+SWEP.Secondary.DefaultClip = -1
+SWEP.Secondary.Ammo = "none"
+
 function SWEP:Initialize()
     self:SetHoldType("melee")   --for some reason this doesn't work in the field
 end

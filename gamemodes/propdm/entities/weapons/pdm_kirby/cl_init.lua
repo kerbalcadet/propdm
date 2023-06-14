@@ -2,7 +2,6 @@ include("shared.lua")
 include("cl_viewscreen.lua")
 
 --[[### thanks garry ###]]--
-SWEP.DrawAmmo		= false
 SWEP.DrawCrosshair	= true
 
 SWEP.WepSelectIcon = surface.GetTextureID( "vgui/gmod_tool" )
@@ -33,6 +32,7 @@ surface.CreateFont( "GModToolHelp", {
 --[[---------------------------------------------------------
 	Draws the help on the HUD (disabled if gmod_drawhelp is 0)
 -----------------------------------------------------------]]
+
 function SWEP:DrawHUD()
 	-- This could probably all suck less than it already does
 

@@ -9,4 +9,6 @@ function GM:PlayerSpawn(ply)
     ply:Give("pdm_kirby")
     ply:SetModel("models/player/hostage/hostage_04.mdl")
     ply:SetupHands()
+    ply:SetWalkSpeed(200)
+    ply:SetRunSpeed(400)
 end
