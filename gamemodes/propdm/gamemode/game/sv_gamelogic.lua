@@ -7,9 +7,10 @@ function RoundStart()
     end
 end
 
+hook.Remove("EntityFireBullets", "Propageddon")
 hook.Add("EntityFireBullets", "Propageddon", function(v,bullet)
 	if v:IsNPC() and v:GetClass() == "npc_helicopter" and SERVER then
-			if math.random(100) < 25 then
+			if math.random(100) < 30 then
                 local tab = table.Random(PDM_PROPS)
                 local ent = ents.Create("prop_physics")
 
@@ -17,7 +18,8 @@ hook.Add("EntityFireBullets", "Propageddon", function(v,bullet)
                 ent:SetPos(bullet.Src + bullet.Dir * 32)
                 ent:Spawn()
                 local phys = ent:GetPhysicsObject()
-                phys:SetMass(tab.weight)
+
+                if not IsValid(phys) then return end
                 ent:SetAngles(AngleRand())
                 ent:SetOwner(v)
 
