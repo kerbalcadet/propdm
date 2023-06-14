@@ -115,6 +115,24 @@ function SWEP:TryAddInv(ent)
 	ent:Remove()
 end
 
+--add entity table to kirbyqueue 
+function SWEP:AddQueue(tab, heavy)
+	local heavy = heavy or false
+	local pitch = heavy and 40 or 60
+	local own = self:GetOwner()
+	
+	self.Sound3:Stop()
+	self.Sound3:Play()	
+	self.Sound3:ChangePitch(pitch)
+
+	
+	table.insert(own.KirbyQueue, tab)
+	own.KirbyQWeight = own.KirbyQWeight + tab.mass
+
+	--remove prop from inventory
+	table.remove(own.KirbyInv)
+end
+
 end
 
 --fire next prop from kirby queue
@@ -253,18 +271,13 @@ function SWEP:Think()
 	if lclick and not self.Primary.Cooldown and own.KirbyInv and not table.IsEmpty(own.KirbyInv) then
 		local next = own.KirbyInv[#own.KirbyInv]
 		local maxw = lspool*self.Primary.MaxWeightPer	
-		if maxw > own.KirbyQWeight + next.mass then
-			self.Sound3:Stop()
-			self.Sound3:Play()	
-			self.Sound3:ChangePitch(60)
-
-			
-			table.insert(own.KirbyQueue, next)
-			own.KirbyQWeight = own.KirbyQWeight + next.mass
-
-			--remove prop from inventory
-			table.remove(own.KirbyInv)
+		
+		if (maxw + 10> own.KirbyQWeight + next.mass) then	--several light props
+			self:AddQueue(next)
+		elseif lspool == 1 and #own.KirbyQueue == 0 then	--one single heavy prop
+			self:AddQueue(next, true)
 		end
+
 	--actual shooting!
 	elseif self.Primary.Cooldown and not self.Primary.Shooting and own.KirbyQueue and not table.IsEmpty(own.KirbyQueue) then
 		self.Primary.Shooting = true
