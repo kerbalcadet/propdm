@@ -26,6 +26,7 @@ SWEP.Primary = {
 	Ammo = "none",
 	ClipSize = -1,
 
+	Active = false,
 	SpeedMul = 100000,	--divided by object weight to get speed on firing
 	RateMul = 1/60	--multiplied by object weight to get delay after firing
 }
@@ -35,6 +36,7 @@ SWEP.Secondary = {
 	Ammo = "none",
 	ClipSize = -1,
 
+	Active = false,
 	Range = 100,
 	Time = 0,	--last time the right mouse button changed
 	Spool = 0,
@@ -45,17 +47,18 @@ SWEP.Secondary = {
 
 SWEP.CanHolster = true
 SWEP.CanDeploy = true
-SWEP.Sucking = false	
 
 function SWEP:Initialize()
 	self:SetHoldType( "revolver" )
 	self.Sound1 = CreateSound(self, "physics/nearmiss/whoosh_large1.wav")
 	self.Sound2 = CreateSound(self, "ambient/levels/canals/windmill_wind_loop1.wav")
+	self.Sound3 = CreateSound(self, "garrysmod/balloon_pop_cute.wav")
 end
 
 --[[==SERVER==]]--
 if SERVER then
 
+--lessen self damage in hook
 hook.Remove("EntityTakeDamage", "kirbypropdamage")
 hook.Add("EntityTakeDamage", "kirbypropdamage", function(ent, dmg)
 	if not ent:IsPlayer() or not (ent:GetActiveWeapon():GetClass() == "pdm_kirby") or not (dmg:GetDamageType() == 1) then return end
@@ -66,6 +69,7 @@ hook.Add("EntityTakeDamage", "kirbypropdamage", function(ent, dmg)
 		dmg:ScaleDamage(0.5)
 	end
 end)
+
 
 function SWEP:OnRemove()
 	self.Sound1:Stop()
@@ -85,17 +89,19 @@ function SWEP:TryAddInv(ent)
 	--TODO: change to be total weight
 
 	local class = ent:GetClass()
+	local mass = ent:GetMass()
 	local mdl = ent:GetModel()
 	local keyval = ent:GetKeyValues()
 	
-	local tab = {class=class, mdl=mdl, keyval=keyval}
+	local tab = {class=class, mass=mass, mdl=mdl, keyval=keyval}
 	table.insert(own.KirbyInv, tab)
-	self:EmitSound("garrysmod/balloon_pop_cute.wav")
+
+	self.Sound3:Stop()
+	self.Sound3:Play()
 	ent:Remove()
 end
 
 end
-
 
 --[[SHARED]]--
 function SWEP:Think()
@@ -103,8 +109,8 @@ function SWEP:Think()
 
 	--spool up/down behavior
 	if rclick then
-		if not self.Sucking then 
-			self.Sucking = true
+		if not self.Secondary.Active then 
+			self.Secondary.Active = true
 			self.Secondary.Time = CurTime()
 
 			self.Sound1:Play()
@@ -115,8 +121,8 @@ function SWEP:Think()
 		self.Secondary.Spool = math.Clamp(t*2, 0, 1)
 	
 	else
-		if self.Sucking then
-			self.Sucking = false 
+		if self.Secondary.Active then
+			self.Secondary.Active = false 
 			self.Secondary.Time = CurTime()
 		end
 
@@ -126,35 +132,35 @@ function SWEP:Think()
 
 	local spool = self.Secondary.Spool
 
-	if SERVER then
 	--actual suck
 	if spool > 0 then
-		local pos = self.Owner:EyePos()
-		local range = self.Secondary.Range*spool
-		for _, ent in pairs(ents.FindInCone(pos, self.Owner:EyeAngles():Forward(), range, 0.8)) do
-			local phys = ent:GetPhysicsObject()
-			if not ent:IsSolid() or not phys:IsValid() or ent:IsPlayer() then continue end
+		if SERVER then
+			local pos = self.Owner:EyePos()
+			local range = self.Secondary.Range*spool
+			for _, ent in pairs(ents.FindInCone(pos, self.Owner:EyeAngles():Forward(), range, 0.8)) do
+				local phys = ent:GetPhysicsObject()
+				if not ent:IsSolid() or not phys:IsValid() or ent:IsPlayer() then continue end
 
-			local diff = pos - ent:GetPos()
-			local dir = diff:GetNormalized()
-			local distsq = math.Clamp(diff:LengthSqr()/144, 0.5, 100)	--feet bc why not
+				local diff = pos - ent:GetPos()
+				local dir = diff:GetNormalized()
+				local distsq = math.Clamp(diff:LengthSqr()/144, 0.5, 100)	--feet bc why not
+				
+				--apply suction force
+				local force = (dir/distsq)*self.Secondary.SuckPower*spool
+				phys:ApplyForceCenter(force)
 			
-			--apply suction force
-			local force = (dir/distsq)*self.Secondary.SuckPower*spool
-			phys:ApplyForceCenter(force)
-		
-			if ent == self.Owner:GetTouchTrace().Entity and rclick then self:TryAddInv(ent) end
+				if ent == self.Owner:GetTouchTrace().Entity and rclick then self:TryAddInv(ent) end
+			end
 		end
 	elseif not rclick then
 		self.Sound1:Stop()
-	end
-
 	end
 
 
 	self.Sound1:ChangeVolume(spool)
 	self.Sound2:ChangeVolume(spool)
 
+	--screen shake effect
 	if CLIENT and spool > 0 then
 		util.ScreenShake(LocalPlayer():GetPos(), spool/2, 100, 0.1, 10)
 	end
@@ -169,36 +175,38 @@ end
 
 
 function SWEP:PrimaryAttack()
+	if not SERVER then return end
+
+	self.Sound3:Stop()
+	self.Sound3:Play()
+	
 	local inv = self.Owner.KirbyInv
 	if not inv or table.IsEmpty(inv) then
 		self:SetNextPrimaryFire(CurTime() + 0.5)
 		return
 	end
+
+	local tab = inv[#inv]
 	
-	if SERVER then
-		local tab = inv[#inv]
-		
-		local ent = ents.Create(tab.class)
-		ent:SetModel(tab.mdl)
-		ent:PhysicsInit(SOLID_VPHYSICS)
-		ent:SetSolid(SOLID_VPHYSICS)
-		
-		dir = self.Owner:GetForward()
-		ent:SetPos(self.Owner:GetShootPos() + dir*30)	--change to depend on bounding box later
-		ent:Spawn()
+	local ent = ents.Create(tab.class)
+	ent:SetModel(tab.mdl)
+	ent:PhysicsInit(SOLID_VPHYSICS)
+	ent:SetSolid(SOLID_VPHYSICS)
+	
+	dir = self.Owner:GetForward()
+	ent:SetPos(self.Owner:GetShootPos() + dir*30)	--change to depend on bounding box later
+	ent:Spawn()
 
-		local phys = ent:GetPhysicsObject()
-		local mass = phys:GetMass()
-		phys:Wake()
-		phys:SetVelocity(dir*self.Primary.SpeedMul/mass)
+	local phys = ent:GetPhysicsObject()
+	local mass = phys:GetMass()
+	phys:Wake()
+	phys:SetVelocity(dir*self.Primary.SpeedMul/mass)
 
-		table.remove(self.Owner.KirbyInv)
-		self:SetNextPrimaryFire(CurTime() + mass*self.Primary.RateMul)
-	end
+	table.remove(self.Owner.KirbyInv)
+	self:SetNextPrimaryFire(CurTime() + mass*self.Primary.RateMul)
 
-	self:EmitSound("garrysmod/balloon_pop_cute.wav")
 end
 
-function SWEP:SecondaryAttack()
 
+function SWEP:SecondaryAttack()
 end
