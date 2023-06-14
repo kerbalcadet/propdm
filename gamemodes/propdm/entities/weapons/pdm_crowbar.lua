@@ -131,20 +131,19 @@ function SWEP:DelayedAttack()   --explosion doesn't hit the second you click
 
             
             local force = (dir/distsq)*self.Primary.ExpPower
-            
-            if(ent:IsPlayer()) then     --applyforce doesn't work for players
-                
-                if ent != own then
-                    local dmg = DamageInfo()
-                    dmg:SetDamage(self.Primary.Damage)
-                    dmg:SetInflictor(self)
-                    dmg:SetAttacker(own)
-                    ent:TakeDamageInfo(dmg)
-                end
 
+            if(ent:IsPlayer()) then     --applyforce doesn't work for players
                 ent:SetVelocity(ent:GetVelocity() + force/self.PlyWeight)
             else
                 phys:ApplyForceCenter(force)
+            end
+
+            if ent != own then
+                local dmg = DamageInfo()
+                dmg:SetDamage(self.Primary.Damage)
+                dmg:SetInflictor(self)
+                dmg:SetAttacker(own)
+                ent:TakeDamageInfo(dmg)
             end
         end
         

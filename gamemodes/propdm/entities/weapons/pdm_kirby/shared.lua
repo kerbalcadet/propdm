@@ -29,7 +29,7 @@ SWEP.Primary = {
 	ClipSize = 20,
 
 	MaxWeightPer = 400, -- max weight to have multiple things fire at once
-	BaseSpeed = 1500,
+	BaseSpeed = 2000,
 	SpeedMul = 20000,	--divided by object weight to get speed on firing
 	FireDelay = 0.1, 	--delay between each shot
 	Active = false,
@@ -41,10 +41,10 @@ SWEP.Primary = {
 
 }
 SWEP.Secondary = {
-	DefaultClip = -1,
-	Automatic = false,
-	Ammo = "none",
-	ClipSize = -1,
+	DefaultClip = 0,
+	ClipSize = 1,
+	Automatic = true,
+	Ammo = "props",
 
 	Active = false,
 	Range = 100,
@@ -67,7 +67,8 @@ function SWEP:Initialize()
 end
 
 function SWEP:SetupDataTables()
-	self:NetworkVar("Int", 31, "KirbyProps")
+	self:NetworkVar("Int", 31, "KirbyQueue")
+	self:NetworkVar("Int", 30, "KirbyProps")
 end
 
 
@@ -80,9 +81,8 @@ if CLIENT then
 function SWEP:CustomAmmoDisplay()
 	local ad = {}
 	ad.Draw = true
-	ad.PrimaryClip = self:GetNetworkedVar("KirbyProps") or 0
-	ad.PrimaryAmmo = -1
-	ad.SecondaryAmmo = -1
+	ad.PrimaryClip = self:GetKirbyQueue() or 0
+	ad.PrimaryAmmo = self:GetKirbyProps() or 0
 
 	return ad
 end
@@ -92,16 +92,16 @@ end
 --[[==SERVER==]]--
 if SERVER then
 
---lessen self damage in hook
+--attribute dmg
+
+
+
 hook.Remove("EntityTakeDamage", "kirbypropdamage")
 hook.Add("EntityTakeDamage", "kirbypropdamage", function(ent, dmg)
-	if not ent:IsPlayer() or not (ent:GetActiveWeapon():GetClass() == "pdm_kirby") or not (dmg:GetDamageType() == 1) then return end
+	if not ent:IsPlayer() or not (dmg:GetDamageType() == 1) then return end
 
-	if ent:GetVelocity():LengthSqr() < 12000 then
-		return true
-	else
-		dmg:ScaleDamage(0.5)
-	end
+	local inf = dmg:GetInflictor()
+	if inf.Attacker then dmg:SetAttacker(inf.Attacker) end
 end)
 
 hook.Remove("PlayerDeath", "kirbyexplode")
@@ -118,7 +118,7 @@ hook.Add("PlayerDeath", "kirbyexplode", function(ply, inf, att)
 		local dir = VectorRand()
 		dir.z = math.Clamp(dir.z, -0.2, 0.2)
 
-		KirbyFireProp(tab, pos, dir, 2000)
+		KirbyFireProp(tab, pos, dir, 2000, ply)
 		table.remove(queue)
 		ply:EmitSound("phx/explode00.wav", 100, 100, 1)
 	end)
@@ -162,7 +162,7 @@ function SWEP:TryAddInv(ent)
 	
 	local tab = {class=class, mass=mass, mdl=mdl, keyval=keyval}
 	table.insert(own.KirbyInv, tab)
-	self:SetNetworkedVar("KirbyProps", #own.KirbyInv)
+	self:SetKirbyProps(#own.KirbyInv)
 	
 	own.KirbyWeight = own.KirbyWeight + mass
 	own:ChangeMoveSpeed()
@@ -188,7 +188,8 @@ function SWEP:AddQueue(tab, heavy)
 
 	--remove prop from inventory
 	table.remove(own.KirbyInv)
-	self:SetNetworkedVar("KirbyProps", #own.KirbyInv)
+	self:SetKirbyProps(#own.KirbyInv)
+	self:SetKirbyQueue(#own.KirbyQueue)
 end
 
 --adjust player movement speed
@@ -198,7 +199,7 @@ function PLAYER:ChangeMoveSpeed()
 end
 
 --fire prop from entity table
-function KirbyFireProp(tab, pos, dir, vel)
+function KirbyFireProp(tab, pos, dir, vel, att)
 	local ent = ents.Create(tab.class)
 	ent:SetModel(tab.mdl)
 	ent:PhysicsInit(SOLID_VPHYSICS)
@@ -214,6 +215,8 @@ function KirbyFireProp(tab, pos, dir, vel)
 	phys:SetMass(mass)
 	phys:Wake()
 	physentity:SetVelocity(dir*vel)
+
+	ent.Attacker = att
 end
 
 end
@@ -354,8 +357,11 @@ function SWEP:Think()
 			self.Sound5:Stop()
 			self.Sound5:Play()
 			self.Sound5:ChangePitch(70)
-			KirbyFireProp(tab, own:GetShootPos() + dir*30, dir, self.Primary.BaseSpeed + self.Primary.SpeedMul/tab.mass)
+			KirbyFireProp(tab, own:GetShootPos() + dir*30, dir, self.Primary.BaseSpeed + self.Primary.SpeedMul/tab.mass, own)
+			
 			table.remove(queue)
+			self:SetKirbyQueue(#queue)
+
 			own.KirbyWeight = own.KirbyWeight - tab.mass
 			own:ChangeMoveSpeed()
 			

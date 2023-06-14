@@ -473,27 +473,27 @@
 		"93"
 		{
 			"type"		"model"
-			"model"		"models/props_canal/canal_bridge01.mdl"
+			"model"		"models/props_c17/oildrum001_explosive.mdl"
 		}
 		"94"
 		{
 			"type"		"model"
-			"model"		"models/props_canal/canal_bridge02.mdl"
+			"model"		"models/props_c17/oildrum001_explosive.mdl"
 		}
 		"95"
 		{
 			"type"		"model"
-			"model"		"models/props_canal/canal_bridge03a.mdl"
+			"model"		"models/props_c17/oildrum001_explosive.mdl"
 		}
 		"96"
 		{
 			"type"		"model"
-			"model"		"models/props_canal/canal_bridge03b.mdl"
+			"model"		"models/props_c17/oildrum001_explosive.mdl"
 		}
 		"97"
 		{
 			"type"		"model"
-			"model"		"models/props_canal/canal_bridge04.mdl"
+			"model"		"models/props_c17/oildrum001_explosive.mdl"
 		}
 		"98"
 		{
