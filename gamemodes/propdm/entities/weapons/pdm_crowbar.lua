@@ -69,13 +69,12 @@ function SWEP:PrimaryAttack()
     self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 
     timer.Create(tostring(self), self.Primary.AttackDelay, 1, function() 
+        if not self or not IsValid(self) or not self:GetOwner():Alive() then return end
         self:DelayedAttack() 
     end)
 end
 
 function SWEP:DelayedAttack()   --explosion doesn't hit the second you click
-    if not self or not IsValid(self) or not self:GetOwner():Alive() then return end
-    
     --trace
     local own = self:GetOwner()
     own:LagCompensation(true)

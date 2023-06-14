@@ -10,7 +10,7 @@ end
 hook.Remove("EntityFireBullets", "Propageddon")
 hook.Add("EntityFireBullets", "Propageddon", function(v,bullet)
 	if v:IsNPC() and v:GetClass() == "npc_helicopter" and SERVER then
-			if math.random(100) < 35 then
+			if math.random(100) < 45 then
                 local tab = table.Random(PDM_PROPS)
                 local ent = ents.Create("prop_physics")
 
@@ -19,7 +19,10 @@ hook.Add("EntityFireBullets", "Propageddon", function(v,bullet)
                 ent:Spawn()
                 local phys = ent:GetPhysicsObject()
 
-                if not IsValid(phys) or ent:GetMoveType() ~= MOVETYPE_VPHYSICS then return end
+                if not IsValid(phys) or not ent:IsSolid() or ent:GetMoveType() ~= MOVETYPE_VPHYSICS then return end
+
+                
+                
                 ent:SetAngles(AngleRand())
                 ent:SetOwner(v)
                 ent.Attacker = v
@@ -29,7 +32,8 @@ hook.Add("EntityFireBullets", "Propageddon", function(v,bullet)
                 local vel = Vector(3000,3000,-3000)*vr
                 vel.z = Vector(3000,3000,-3000).z
                 phys:SetVelocity(vel)
-                
+
+
                 v:EmitSound("garrysmod/balloon_pop_cute.wav", 400, 100, 0.4)
 
                 --despawning

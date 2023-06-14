@@ -227,6 +227,11 @@ function KirbyFireProp(tab, pos, dir, vel, att)
 	phys:Wake()
 	physentity:SetVelocity(dir*vel)
 
+	--weaken explosive props
+	local exp = ent:GetKeyValues().ExplodeDamage
+	if exp and exp > 0 then ent:SetHealth(1) end
+
+
 	ent.Attacker = att
 end
 
