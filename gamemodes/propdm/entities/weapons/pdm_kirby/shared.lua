@@ -28,6 +28,7 @@ SWEP.Primary = {
 	Ammo = "props",
 	ClipSize = 20,
 
+	SpoolTime = 0.75,	--time to reach max firing capacity
 	MaxWeightPer = 400, -- max weight to have multiple things fire at once
 	BaseSpeed = 1000,
 	SpeedMul = 30000,	--divided by object weight to get speed on firing
@@ -151,6 +152,9 @@ end
 function SWEP:OnRemove()
 	self.Sound1:Stop()
 	self.Sound2:Stop()
+	self.Sound3:Stop()
+	self.Sound4:Stop()
+	self.Sound5:Stop()
 end
 
 function SWEP:TryAddInv(ent)
@@ -311,7 +315,7 @@ function SWEP:Think()
 		end
 
 		local t = CurTime() - self.Primary.Time
-		self.Primary.Spool = math.Clamp(t, 0, 1)
+		self.Primary.Spool = math.Clamp(t/self.Primary.SpoolTime, 0, 1)
 	
 	else
 		if self.Primary.Active then
