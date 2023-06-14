@@ -20,7 +20,7 @@ SWEP.WorldModel		= "models/weapons/w_toolgun.mdl"
 util.PrecacheModel( SWEP.ViewModel )
 util.PrecacheModel( SWEP.WorldModel )
 
-SWEP.MaxWeight = 500
+SWEP.MaxTotWeight = 400
 SWEP.MovePenaltyMul = 0.5	--multiplied by inventory weight to get movespeed penalty
 SWEP.Primary = {
 	DefaultClip = -1,
@@ -28,7 +28,7 @@ SWEP.Primary = {
 	Ammo = "none",
 	ClipSize = -1,
 
-	MaxWeightPer = 200, -- max weight to have multiple things fire at once
+	MaxWeightPer = 300, -- max weight to have multiple things fire at once
 	SpeedMul = 100000,	--divided by object weight to get speed on firing
 	FireDelay = 0.1, 	--delay between each shot
 	Active = false,
@@ -275,7 +275,7 @@ function SWEP:Think()
 		end
 
 		local t = CurTime() - self.Primary.Time
-		self.Primary.Spool = math.Clamp(t/2, 0, 1)
+		self.Primary.Spool = math.Clamp(t, 0, 1)
 	
 	else
 		if self.Primary.Active then
