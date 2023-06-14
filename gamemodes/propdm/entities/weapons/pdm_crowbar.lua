@@ -18,11 +18,11 @@ SWEP.WorldModel = "models/weapons/w_crowbar.mdl"
 SWEP.ViewModel = "models/weapons/v_crowbar.mdl"
 SWEP.UseHands = true
 
-SWEP.Primary.Damage = 0
+SWEP.Primary.Damage = 25
 SWEP.Primary.Range = 100
 SWEP.Primary.ExpRadius = 200
 SWEP.Primary.ExpPower = 12000000
-SWEP.PlyWeight = 2400
+SWEP.PlyWeight = 1800
 
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1
@@ -133,6 +133,15 @@ function SWEP:DelayedAttack()   --explosion doesn't hit the second you click
             local force = (dir/distsq)*self.Primary.ExpPower
             
             if(ent:IsPlayer()) then     --applyforce doesn't work for players
+                
+                if ent != own then
+                    local dmg = DamageInfo()
+                    dmg:SetDamage(self.Primary.Damage)
+                    dmg:SetInflictor(self)
+                    dmg:SetAttacker(own)
+                    ent:TakeDamageInfo(dmg)
+                end
+
                 ent:SetVelocity(ent:GetVelocity() + force/self.PlyWeight)
             else
                 phys:ApplyForceCenter(force)

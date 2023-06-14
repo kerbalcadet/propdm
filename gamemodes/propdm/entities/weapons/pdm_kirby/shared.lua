@@ -29,8 +29,8 @@ SWEP.Primary = {
 	ClipSize = 20,
 
 	MaxWeightPer = 400, -- max weight to have multiple things fire at once
-	BaseSpeed = 1000,
-	SpeedMul = 15000,	--divided by object weight to get speed on firing
+	BaseSpeed = 1500,
+	SpeedMul = 20000,	--divided by object weight to get speed on firing
 	FireDelay = 0.1, 	--delay between each shot
 	Active = false,
 	Shooting = false,
