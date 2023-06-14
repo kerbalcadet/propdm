@@ -22,7 +22,7 @@ SWEP.Primary.Damage = 25
 SWEP.Primary.Range = 100
 SWEP.Primary.ExpRadius = 200
 SWEP.Primary.ExpPower = 12000000
-SWEP.PlyWeight = 1800
+SWEP.PlyWeight = 3000
 
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1

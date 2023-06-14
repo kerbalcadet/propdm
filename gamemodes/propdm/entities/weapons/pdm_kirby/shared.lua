@@ -29,8 +29,8 @@ SWEP.Primary = {
 	ClipSize = 20,
 
 	MaxWeightPer = 400, -- max weight to have multiple things fire at once
-	BaseSpeed = 2000,
-	SpeedMul = 20000,	--divided by object weight to get speed on firing
+	BaseSpeed = 1000,
+	SpeedMul = 30000,	--divided by object weight to get speed on firing
 	FireDelay = 0.1, 	--delay between each shot
 	Active = false,
 	Shooting = false,
@@ -50,7 +50,8 @@ SWEP.Secondary = {
 	Range = 100,
 	Time = 0,	--last time the right mouse button changed
 	Spool = 0,
-	SuckPower = 50000,
+	SuckPower = 100000,
+	MaxVelSqr = 30000,
 	Range = 500,
 }
 
@@ -269,7 +270,7 @@ function SWEP:Think()
 			for _, ent in pairs(ents.FindInCone(pos, own:EyeAngles():Forward(), range, 0.8)) do
 				local phys = ent:GetPhysicsObject()
 				if not ent:IsSolid() or not phys:IsValid() or ent:IsPlayer() then continue end
-				if ent:GetVelocity():LengthSqr() > 24000 then continue end	--prevent super speed
+				if ent:GetVelocity():LengthSqr() > self.Secondary.MaxVelSqr then continue end	--prevent super speed
 
 				local diff = pos - ent:GetPos()
 				local dir = diff:GetNormalized()
