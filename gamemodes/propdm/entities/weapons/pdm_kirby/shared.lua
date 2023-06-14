@@ -21,6 +21,7 @@ util.PrecacheModel( SWEP.ViewModel )
 util.PrecacheModel( SWEP.WorldModel )
 
 SWEP.MaxWeight = 500
+SWEP.MovePenaltyMul = 0.5	--multiplied by inventory weight to get movespeed penalty
 SWEP.Primary = {
 	DefaultClip = -1,
 	Automatic = true,
@@ -111,6 +112,9 @@ function SWEP:TryAddInv(ent)
 	
 	local tab = {class=class, mass=mass, mdl=mdl, keyval=keyval}
 	table.insert(own.KirbyInv, tab)
+	
+	own.KirbyWeight = own.KirbyWeight + mass
+	self:ChangeMoveSpeed()
 
 	self.Sound3:Stop()
 	self.Sound3:Play()
@@ -135,6 +139,11 @@ function SWEP:AddQueue(tab, heavy)
 	table.remove(own.KirbyInv)
 end
 
+--adjust player movement speed
+function SWEP:ChangeMoveSpeed()
+	local own = self:GetOwner()
+	own:SetWalkSpeed(200 - own.KirbyWeight*self.MovePenaltyMul)
+	own:SetRunSpeed(400 - own.KirbyWeight*self.MovePenaltyMul)
 end
 
 --fire next prop from kirby queue
@@ -165,7 +174,13 @@ function SWEP:FireProp()
 	phys:SetVelocity(dir*self.Primary.SpeedMul/mass)
 
 	table.remove(own.KirbyQueue)
+
+	own.KirbyWeight = own.KirbyWeight - mass
+	self:ChangeMoveSpeed()
 end
+
+end
+
 
 --[[SHARED]]--
 function SWEP:Think()
