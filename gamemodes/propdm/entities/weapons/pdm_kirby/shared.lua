@@ -20,7 +20,7 @@ SWEP.WorldModel		= "models/weapons/w_toolgun.mdl"
 util.PrecacheModel( SWEP.ViewModel )
 util.PrecacheModel( SWEP.WorldModel )
 
-SWEP.MaxTotWeight = 400
+SWEP.MaxWeight = 400
 SWEP.MovePenaltyMul = 0.5	--multiplied by inventory weight to get movespeed penalty
 SWEP.Primary = {
 	DefaultClip = -1,
