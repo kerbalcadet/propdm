@@ -28,7 +28,7 @@ SWEP.Primary = {
 	Ammo = "none",
 	ClipSize = -1,
 
-	MaxWeightPer = 100, -- max weight to have multiple things fire at once
+	MaxWeightPer = 200, -- max weight to have multiple things fire at once
 	SpeedMul = 100000,	--divided by object weight to get speed on firing
 	FireDelay = 0.1, 	--delay between each shot
 	Active = false,
@@ -80,20 +80,25 @@ hook.Add("EntityTakeDamage", "kirbypropdamage", function(ent, dmg)
 	end
 end)
 
+function SWEP:PlayerInit()
+	local own = self:GetOwner()
+	own.KirbyInv = {}
+	own.KirbyQueue = {}
+	own.KirbyQWeight = 0	--weight of items in fire queue
+	own.KirbyWeight = 0		--total weight
+end
+
 --initialize inventory
 function SWEP:Equip(own)
 	if not own.KirbyInv then
-		own.KirbyInv = {}
-		own.KirbyQueue = {}
-		own.KirbyQWeight = 0	--weight of items in fire queue
-		own.KirbyWeight = 0		--total weight
+		self:PlayerInit()
 	end
 end
 
 function SWEP:OnRemove()
 	self.Sound1:Stop()
 	self.Sound2:Stop()
-	self:GetOwner().KirbyInv = {}
+	self:PlayerInit()
 end
 
 function SWEP:TryAddInv(ent)
