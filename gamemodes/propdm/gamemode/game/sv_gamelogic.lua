@@ -22,6 +22,7 @@ hook.Add("EntityFireBullets", "Propageddon", function(v,bullet)
                 if not IsValid(phys) or ent:GetMoveType() ~= MOVETYPE_VPHYSICS then return end
                 ent:SetAngles(AngleRand())
                 ent:SetOwner(v)
+                ent.Attacker = v
 
                 local vr = VectorRand()
                 vr.z = 0;
