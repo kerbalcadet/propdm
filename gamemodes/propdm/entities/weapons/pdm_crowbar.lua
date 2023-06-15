@@ -23,8 +23,8 @@ SWEP.Primary.Range = 100
 SWEP.Primary.ExpRadius = 200
 SWEP.Primary.ExpPower = 12*10^6
 SWEP.PlyWeight = 2000
-SWEP.Primary.ExpDmg = 25
-SWEP.Primary.DmgRadius = 100
+SWEP.Primary.ExpDmg = 40
+SWEP.Primary.DmgRadius = 200
 
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1
@@ -39,6 +39,15 @@ SWEP.Secondary.Ammo = "none"
 
 function SWEP:Initialize()
     self:SetHoldType("melee")   --for some reason this doesn't work in the field
+end
+
+if SERVER then
+    --disable self damage with crowbar
+    hook.Remove("EntityTakeDamage", "pdm_crowbar_friendly")
+    hook.Add("EntityTakeDamage", "pdm_crowbar_friendly", function(ent, dmg)
+        local class = dmg:GetInflictor():GetClass()
+        if ent:IsPlayer() and class and class == "pdm_crowbar" and ent == dmg:GetAttacker() then return true end
+    end)
 end
 
 if CLIENT then
@@ -119,6 +128,13 @@ function SWEP:DelayedAttack()   --explosion doesn't hit the second you click
         --explosion
         util.ScreenShake(tr.HitPos, 3, 1, 0.75, 500)
         PDM_GravExplode(tr.HitPos, self.Primary.ExpRadius, self.Primary.ExpPower, 5, 2400, own)        
+        
+        local dmg = DamageInfo()
+        dmg:SetDamage(self.Primary.ExpDmg)
+        dmg:SetDamageType(DMG_CRUSH)
+        dmg:SetInflictor(self)
+        dmg:SetAttacker(own)
+        util.BlastDamageInfo(dmg, tr.HitPos, self.Primary.DmgRadius)
     end
 
 end
