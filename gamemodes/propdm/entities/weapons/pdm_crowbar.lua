@@ -22,7 +22,8 @@ SWEP.Primary.Damage = 25
 SWEP.Primary.Range = 100
 SWEP.Primary.ExpRadius = 200
 SWEP.Primary.ExpPower = 12000000
-SWEP.PlyWeight = 2400
+SWEP.Primary.ExpDmg = 25
+SWEP.Primary.DmgRadius = 100
 
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1
@@ -114,39 +115,9 @@ function SWEP:DelayedAttack()   --explosion doesn't hit the second you click
     util.Effect("AirboatMuzzleFlash", ef)
 
     if SERVER then
-
-
-        util.ScreenShake(tr.HitPos, 3, 1, 0.75, 500)
-
-
         --explosion
-        local pos = tr.HitPos
-        for _,ent in pairs(ents.FindInSphere(pos, self.Primary.ExpRadius)) do
-            local phys = ent:GetPhysicsObject()
-            if not ent:IsSolid() or not phys:IsValid() then continue end
-
-            local diff = ent:GetPos() + phys:GetMassCenter() - pos
-            local dir = diff:GetNormalized()
-            local distsq = math.Clamp(diff:LengthSqr()/144, 0.5, 100)	--feet bc why not
-
-            
-            local force = (dir/distsq)*self.Primary.ExpPower
-
-            if(ent:IsPlayer()) then     --applyforce doesn't work for players
-                ent:SetVelocity(ent:GetVelocity() + force/self.PlyWeight)
-            else
-                phys:ApplyForceCenter(force)
-            end
-
-            if ent != own then
-                local dmg = DamageInfo()
-                dmg:SetDamage(self.Primary.Damage)
-                dmg:SetInflictor(self)
-                dmg:SetAttacker(own)
-                ent:TakeDamageInfo(dmg)
-            end
-        end
-        
+        util.ScreenShake(tr.HitPos, 3, 1, 0.75, 500)
+        PDM_GravExplode(tr.HitPos, self.Primary.ExpRadius, self.Primary.ExpPower, self.Primary.ExpDmg, self.Primary.DmgRadius, own, self)        
     end
 
 end

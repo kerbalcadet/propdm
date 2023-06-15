@@ -43,7 +43,7 @@ function ENT:Think()
         local pos = self:GetPos()
 
         local exp = ents.Create("env_explosion")
-        exp:SetKeyValue("magnitude", 200)
+        exp:SetKeyValue("magnitude", 100)
         exp:SetPos(pos)
         exp:Spawn()
         exp:Fire("explode","",0)

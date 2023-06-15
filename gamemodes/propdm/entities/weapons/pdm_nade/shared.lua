@@ -39,7 +39,7 @@ function SWEP:Deploy()
     timer.Simple(0.5, function()
         self.SoundPin:Play()
         self.SoundPin:ChangePitch(105)
-        self.SoundPin:ChangeVolume(0.5)
+        self.SoundPin:ChangeVolume(0.3)
     end)
 end
 
@@ -59,6 +59,7 @@ function SWEP:Think()
         self.SoundThrow:Play()
         self.SoundSpoon:Stop()
         self.SoundSpoon:Play()
+        self.SoundSpoon:ChangeVolume(0.3)
         
         if SERVER then
             timer.Simple(0.1, function()
@@ -75,7 +76,7 @@ function SWEP:Think()
                 self.SoundPin:Stop()
                 self.SoundPin:Play()
                 self.SoundPin:ChangePitch(105)
-                self.SoundPin:ChangeVolume(0.5)
+                self.SoundPin:ChangeVolume(0.3)
             end)
         end)
     end
