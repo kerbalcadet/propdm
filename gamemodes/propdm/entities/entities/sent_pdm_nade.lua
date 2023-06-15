@@ -34,10 +34,10 @@ function ENT:Initialize()
     end
 
     self.ExpTime = CurTime() + 3
-    self.GravRadius = 300
-    self.GravPwr = 40*10^6 --has to be super large because force is applied for one frame only
+    self.GravRadius = 400
+    self.GravPwr = 60*10^6 --has to be super large because force is applied for one frame only
     self.MinRad = 15 --range at which grav effects are unclamped (fall off) in ft
-    self.DmgRadius = 50
+    self.DmgRadius = 200
     self.Dmg = 50
     self.Owner = self:GetOwner()
     self.Weapon = self:GetOwner():GetActiveWeapon()
@@ -47,8 +47,16 @@ end
 
 function ENT:Think()
     if self.ExpTime < CurTime() then
+        
         local pos = self:GetPos()
         PDM_GravExplode(pos, self.GravRadius, self.GravPwr, self.MinRad, self.PlyWeight, self.Owner)
+        
+        local dmg = DamageInfo()
+        dmg:SetDamage(self.Dmg)
+        dmg:SetDamageType(DMG_BLAST)
+        dmg:SetInflictor(self.Weapon or self)
+        dmg:SetAttacker(self.Owner)
+        util.BlastDamageInfo(dmg, pos, self.DmgRadius)
         
         local exp = ents.Create("env_explosion")
         exp:SetKeyValue("magnitude", 100)

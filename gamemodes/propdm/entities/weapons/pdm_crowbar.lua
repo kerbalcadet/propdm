@@ -45,6 +45,8 @@ if SERVER then
     --disable self damage with crowbar
     hook.Remove("EntityTakeDamage", "pdm_crowbar_friendly")
     hook.Add("EntityTakeDamage", "pdm_crowbar_friendly", function(ent, dmg)
+        if not dmg:GetInflictor() then return end
+        
         local class = dmg:GetInflictor():GetClass()
         if ent:IsPlayer() and class and class == "pdm_crowbar" and ent == dmg:GetAttacker() then return true end
     end)
