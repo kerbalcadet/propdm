@@ -21,7 +21,8 @@ SWEP.UseHands = true
 SWEP.Primary.Damage = 25
 SWEP.Primary.Range = 100
 SWEP.Primary.ExpRadius = 200
-SWEP.Primary.ExpPower = 12000000
+SWEP.Primary.ExpPower = 12*10^6
+SWEP.PlyWeight = 2400
 SWEP.Primary.ExpDmg = 25
 SWEP.Primary.DmgRadius = 100
 
@@ -117,7 +118,7 @@ function SWEP:DelayedAttack()   --explosion doesn't hit the second you click
     if SERVER then
         --explosion
         util.ScreenShake(tr.HitPos, 3, 1, 0.75, 500)
-        PDM_GravExplode(tr.HitPos, self.Primary.ExpRadius, self.Primary.ExpPower, self.Primary.ExpDmg, self.Primary.DmgRadius, own, self)        
+        PDM_GravExplode(tr.HitPos, self.Primary.ExpRadius, self.Primary.ExpPower, 5, 2400, own)        
     end
 
 end

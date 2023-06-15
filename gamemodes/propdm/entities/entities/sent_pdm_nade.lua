@@ -34,14 +34,22 @@ function ENT:Initialize()
     end
 
     self.ExpTime = CurTime() + 3
+    self.GravRadius = 400
+    self.GravPwr = 30*10^6 --has to be super large because force is applied for one frame only
+    self.MinRad = 10 --range at which grav effects are unclamped (fall off) in ft
+    self.DmgRadius = 50
+    self.Dmg = 50
+    self.Owner = self:GetOwner()
+    self.Weapon = self:GetOwner():GetActiveWeapon()
+    self.ExpOffset = Vector(0,0,-100)
+    self.PlyWeight = 800
 end
 
 function ENT:Think()
     if self.ExpTime < CurTime() then
-        local range = 500
-        local dmg = 25
         local pos = self:GetPos()
-
+        PDM_GravExplode(pos, self.GravRadius, self.GravPwr, self.MinRad, self.PlyWeight, self.Owner)
+        
         local exp = ents.Create("env_explosion")
         exp:SetKeyValue("magnitude", 100)
         exp:SetPos(pos)
