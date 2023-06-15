@@ -22,7 +22,7 @@ SWEP.Primary.Damage = 25
 SWEP.Primary.Range = 100
 SWEP.Primary.ExpRadius = 200
 SWEP.Primary.ExpPower = 12*10^6
-SWEP.PlyWeight = 2400
+SWEP.PlyWeight = 2000
 SWEP.Primary.ExpDmg = 25
 SWEP.Primary.DmgRadius = 100
 

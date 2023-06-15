@@ -34,9 +34,9 @@ function ENT:Initialize()
     end
 
     self.ExpTime = CurTime() + 3
-    self.GravRadius = 400
-    self.GravPwr = 30*10^6 --has to be super large because force is applied for one frame only
-    self.MinRad = 10 --range at which grav effects are unclamped (fall off) in ft
+    self.GravRadius = 300
+    self.GravPwr = 40*10^6 --has to be super large because force is applied for one frame only
+    self.MinRad = 15 --range at which grav effects are unclamped (fall off) in ft
     self.DmgRadius = 50
     self.Dmg = 50
     self.Owner = self:GetOwner()
