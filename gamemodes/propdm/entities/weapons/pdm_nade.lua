@@ -1,7 +1,7 @@
 SWEP.PrintName = "Gravity Grenade"
 SWEP.Spawnable = true
 SWEP.Category = "Prop Deathmatch"
-SWEP.Slot = 5
+SWEP.Slot = 4
 SWEP.SlotPos = 1
 
 SWEP.UseHands = false 
@@ -194,14 +194,16 @@ function SWEP:Throw(fuse, vel)
         phys:SetAngleVelocity(VectorRand()*angvel)
     end
 
-    local clip = self:Clip1()-1
-    if clip <= 0 then
+    local clip = self:Clip1() - 1
+    local ammo = own:GetAmmoCount("grenade")
+    if ammo + clip <= 0 then
         self:Remove()
         
         local lastwep = own:GetPreviousWeapon()
         local wep = IsValid(lastwep) and lastwep or own:GetWeapons()[1]
         if wep then own:SelectWeapon(wep:GetClass()) end
     else
-        self:SetClip1(clip)
+        self:SetClip1(1)
+        own:SetAmmo(ammo - 1, "grenade")
     end
 end
