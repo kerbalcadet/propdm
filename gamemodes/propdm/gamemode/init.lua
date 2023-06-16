@@ -3,6 +3,7 @@ include("config/sv_globals.lua")
 include("game/sv_entities.lua")
 include("game/sv_gamelogic.lua")
 include("game/sv_player.lua")
+include("game/sv_props.lua")
 include("util/sv_fileutil.lua")
 
 
