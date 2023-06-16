@@ -19,13 +19,5 @@ function PDM_GravExplode(pos, rad, pwr, minrad, plyw, att)
         end
 
         ent.Attacker = att
-
-        -- if not friend or ent != own then
-        --     local dmginfo = DamageInfo()
-        --     dmginfo:SetDamage(dmg)
-        --     dmginfo:SetInflictor(inf)
-        --     dmginfo:SetAttacker(own)
-        --     ent:TakeDamageInfo(dmginfo)
-        -- end
     end
 end

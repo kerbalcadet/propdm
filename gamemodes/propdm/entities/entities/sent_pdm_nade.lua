@@ -43,6 +43,8 @@ function ENT:Initialize()
     self.Weapon = self:GetOwner():GetActiveWeapon()
     self.ExpOffset = Vector(0,0,-100)
     self.PlyWeight = 800
+
+    self.ExpSound = CreateSound(self, "BaseExplosionEffect.Sound")
 end
 
 function ENT:Think()
@@ -58,11 +60,21 @@ function ENT:Think()
         dmg:SetAttacker(self.Owner)
         util.BlastDamageInfo(dmg, pos, self.DmgRadius)
         
-        local exp = ents.Create("env_explosion")
-        exp:SetKeyValue("magnitude", 100)
-        exp:SetPos(pos)
-        exp:Spawn()
-        exp:Fire("explode","",0)
+        local num = math.random(4)
+        self:EmitSound("weapons/physcannon/superphys_launch"..num..".wav", 350)
+        self.ExpSound:Play()
+        self.ExpSound:ChangeVolume(0.7)
+
+        local ef = EffectData()
+        ef:SetOrigin(pos)
+
+        ef:SetScale(150)
+        util.Effect("ThumperDust", ef)
+
+        ef:SetScale(0.75)
+        ef:SetMagnitude(1)
+        ef:SetFlags(0x4)    --no sound
+        util.Effect("Explosion", ef)
 
         self:Remove()
     end
