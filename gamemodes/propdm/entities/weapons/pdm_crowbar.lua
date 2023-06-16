@@ -53,20 +53,6 @@ if SERVER then
 end
 
 if CLIENT then
-
-    surface.CreateFont( "hl2f", {
-        font = "halflife2",
-        size = 128
-    } )
-
-    surface.CreateFont( "hl2b", {
-        font = "halflife2",
-        size = 128,
-        blursize = 12,
-        scanlines = 4
-    } )
-
-
     local col = Color(255,240,50)
 
     function SWEP:DrawWeaponSelection(x, y, width, height)

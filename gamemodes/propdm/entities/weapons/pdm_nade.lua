@@ -1,6 +1,8 @@
 SWEP.PrintName = "Gravity Grenade"
 SWEP.Spawnable = true
 SWEP.Category = "Prop Deathmatch"
+SWEP.Slot = 5
+SWEP.SlotPos = 1
 
 SWEP.UseHands = false 
 SWEP.ViewModel = "models/weapons/v_grenade.mdl"
@@ -27,6 +29,17 @@ SWEP.Secondary = {
     Automatic = false,
     Ammo = ""
 }
+
+if CLIENT then
+    local col = Color(255,240,50)
+
+    function SWEP:DrawWeaponSelection(x, y, width, height)
+        draw.SimpleText("k", "hl2b", x + width/2, y + height/2, col, 1, 1)
+        draw.SimpleText("k", "hl2f", x + width/2, y + height/2, col, 1, 1)
+    end
+end
+
+
 
 function SWEP:Initialize()
     self:SetWeaponHoldType("grenade")
