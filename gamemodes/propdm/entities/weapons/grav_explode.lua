@@ -12,7 +12,7 @@ function PDM_GravExplode(pos, rad, pwr, minrad, plyw, att)
 
         ent:SetPos(ent:GetPos()+Vector(0,0,1))  --remove ground friction
 
-        if(ent:IsPlayer()) then     --applyforce doesn't work for players
+        if(ent:IsPlayer() or ent:IsNPC()) then     --applyforce doesn't work for players
             ent:SetVelocity(ent:GetVelocity() + force/plyw)
         else
             phys:ApplyForceCenter(force)
