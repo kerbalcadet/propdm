@@ -15,10 +15,10 @@ SWEP.LastCook = 0
 SWEP.Under = false
 
 SWEP.Primary = {
-    ClipSize = 100,
-    DefaultClip = 100,
+    ClipSize = 1,
+    DefaultClip = 1,
     Automatic = false, 
-    Ammo = "pdmnade"
+    Ammo = "grenade"
 }
 
 SWEP.Secondary = {
@@ -112,7 +112,7 @@ function SWEP:Think()
 end
 
 function SWEP:CanPrimaryAttack()
-    return CurTime() > self.LastThrow + self.ThrowDelay
+    return CurTime() > self.LastThrow + self.ThrowDelay and self:Clip1() > 0
 end
 
 function SWEP:PrimaryAttack()
@@ -181,5 +181,14 @@ function SWEP:Throw(fuse, vel)
         phys:SetAngleVelocity(VectorRand()*angvel)
     end
 
-    self:SetClip1(self:Clip1()-1)
+    local clip = self:Clip1()-1
+    if clip <= 0 then
+        self:Remove()
+        
+        local lastwep = own:GetPreviousWeapon()
+        local wep = IsValid(lastwep) and lastwep or own:GetWeapons()[1]
+        if wep then own:SelectWeapon(wep:GetClass()) end
+    else
+        self:SetClip1(clip)
+    end
 end
