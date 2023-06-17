@@ -6,6 +6,10 @@ include("game/sv_player.lua")
 include("game/sv_props.lua")
 include("util/sv_fileutil.lua")
 
+AddCSLuaFile("game/cl/cl_fonts.lua")
+AddCSLuaFile("game/cl/cl_hud.lua")
+
+util.AddNetworkString("PDM_Points")
 
 function GM:InitPostEntity()
     local t1 = FILE:LoadList("gamemodes/propdm/content/construction.txt", "GAME")
@@ -20,4 +24,10 @@ function GM:InitPostEntity()
 
     game.CleanUpMap()
     RoundStart()
+
+    timer.Create("test", 5, 0, function()
+        net.Start("PDM_Points")
+        net.WriteInt(10, 16)
+        net.Broadcast()
+    end)
 end

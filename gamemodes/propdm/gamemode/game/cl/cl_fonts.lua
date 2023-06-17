@@ -1,5 +1,3 @@
-AddCSLuaFile()
-
 surface.CreateFont( "hl2f", {
     font = "halflife2",
     size = 128
