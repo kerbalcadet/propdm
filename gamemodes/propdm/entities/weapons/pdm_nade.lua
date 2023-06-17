@@ -8,6 +8,9 @@ SWEP.UseHands = false
 SWEP.ViewModel = "models/weapons/v_grenade.mdl"
 SWEP.WorldModel = "models/weapons/w_grenade.mdl"
 
+util.PrecacheModel(SWEP.ViewModel)
+util.PrecacheModel(SWEP.WorldModel)
+
 SWEP.Fuse = 3   --seconds 
 SWEP.ThrowDelay = 1.3 --delay between each throw
 SWEP.Armed = false
@@ -65,7 +68,7 @@ function SWEP:Think()
     local rclick = self:GetOwner():KeyDown(IN_ATTACK2)
 
     --overcook
-    if self.Armed and self.Cooking and (lclick or rclick) then
+    if SERVER and self.Armed and self.Cooking and (lclick or rclick) then
         local time = CurTime() - self.LastCook
 
         if time >= self.Fuse then   --explode in hand
