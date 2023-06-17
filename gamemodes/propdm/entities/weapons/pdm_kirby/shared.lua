@@ -52,7 +52,7 @@ SWEP.Secondary = {
 	Time = 0,	--last time the right mouse button changed
 	Spool = 0,
 	SuckPower = 150000,
-	MaxVelSqr = 25000,
+	MaxVelSqr = 12000,
 	Range = 500,
 }
 
@@ -277,17 +277,19 @@ function SWEP:Think()
 			local pos = own:EyePos()
 			local range = self.Secondary.Range*rspool
 			for _, ent in pairs(ents.FindInCone(pos, own:EyeAngles():Forward(), range, 0.8)) do
+				
 				local phys = ent:GetPhysicsObject()
 				if not ent:IsSolid() or not phys:IsValid() or ent:IsPlayer() then continue end
-				if ent:GetVelocity():LengthSqr() > self.Secondary.MaxVelSqr then continue end	--prevent super speed
+				slow =  ent:GetVelocity():LengthSqr() < self.Secondary.MaxVelSqr	--prevent super speed
 
 				local diff = pos - ent:GetPos()
 				local dir = diff:GetNormalized()
-				local distsq = math.Clamp(diff:LengthSqr()/144, 0.5, 100)	--feet bc why not
+				local distsq = math.Clamp(diff:LengthSqr()/144, 1, 100)	--feet bc why not
 				
 				--apply suction force
-				local force = (dir/distsq)*self.Secondary.SuckPower*rspool
-				phys:ApplyForceCenter(force)
+				local force = slow and (dir/distsq)*self.Secondary.SuckPower or Vector(0,0,0)
+				local lift = Vector(0,0,1)*phys:GetMass()*600*engine.TickInterval()*0.98
+				phys:ApplyForceCenter((force + lift)*rspool)
 			
 				if ent == own:GetTouchTrace().Entity and rclick then self:TryAddInv(ent) end
 			end
