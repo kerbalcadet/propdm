@@ -7,3 +7,4 @@ function RoundStart()
     end
 end
 
+util.AddNetworkString("PDM_Points")
