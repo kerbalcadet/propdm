@@ -220,7 +220,9 @@ function KirbyFireProp(tab, pos, dir, vel, att)
 
 	local phys = ent:GetPhysicsObject()
 	local physentity = phys	--what velocity is applied to
-	if string.sub(tab.class, 1, 3) == "npc" then physentity = ent end
+	
+	local pref = string.sub(tab.class, 1, 3)
+	if pref == "npc" then physentity = ent end
 
 	local mass = tab.mass
 	phys:SetMass(mass)
