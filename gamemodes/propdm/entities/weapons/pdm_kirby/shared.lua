@@ -234,7 +234,6 @@ function KirbyFireProp(tab, pos, dir, vel, att)
 	if exp and exp > 0 then ent:SetHealth(1) end
 
 
-	ent:SetOwner(att)
 	ent.Attacker = att
 end
 
