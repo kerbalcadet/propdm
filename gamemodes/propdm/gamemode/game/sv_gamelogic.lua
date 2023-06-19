@@ -6,3 +6,10 @@ function RoundStart()
         gamemode.Call("PlayerSpawn", p)
     end
 end
+
+hook.Remove("PlayerDeath", "PDM_PlayerDeath")
+hook.Add("PlayerDeath", "PDM_PlayerDeath", function(vic, inf, att)
+    if not att:IsPlayer() then return end
+    
+    att:AddPoints(10)
+end)
