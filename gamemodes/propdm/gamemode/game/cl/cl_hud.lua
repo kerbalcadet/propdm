@@ -39,7 +39,7 @@ local stime = 0
 local disp_points = 0
 
 --scoreboard init
-local top4 = { {LocalPlayer(), 0} }
+local top4 = {}
 
 net.Receive("PDM_AddPoints", function()
     disp_points = disp_points + net.ReadInt(16)
@@ -54,17 +54,25 @@ net.Receive("PDM_ScoreUpdate", function()
     local score4 = {}
 
     local ply_inc = false
-    for i=1, 4, 1 do
-        if score[i][1] == LocalPlayer() then ply_inc = true end
+    local max = #score > 4 and 4 or #score
+    local name = LocalPlayer():GetName()
+    for i=1, #score, 1 do
+        if score[i][1] == name then ply_inc = true end
         score4[i] = score[i]
     end
 
     if ply_inc == false then
-        score[1] = {LocalPlayer(), LocalPlayer():GetNW2Int("Points")}
+        score[1] = {name, LocalPlayer():GetNW2Int("Points")}
     end
 
     top4 = score4
-    PrintTable(top4)
+end)
+
+hook.Remove("InitPostEntity", "PDM_RequestScore")
+hook.Add("InitPostEntity", "PDM_RequestScore", function()
+    net.Start("PDM_RequestScoreUpdate")
+    net.SendToServer()
+    print("test")
 end)
 
 local function PDMHud()
@@ -100,51 +108,54 @@ local function PDMHud()
 
     --SCOREBOARD
 
-    --top box
-    surface.SetFont("Score32")
-    local txt = top4[1][1]:GetName()..": "..top4[1][2] 
-    local txtw, txth = surface.GetTextSize(txt)
+    if #top4 > 0 then
+        --top box
+        surface.SetFont("Score32")
+        local txt = top4[1][1]..": "..top4[1][2] 
+        local txtw, txth = surface.GetTextSize(txt)
 
-    local b = Box32
+        local name = LocalPlayer():GetName()
+        local b = Box32
 
-    local col = top4[1][1] == LocalPlayer() and Yellow or White
-    col.a = 255
-    local txt_tab = {text = txt,
-        font = "Score32",
-        pos = {b.LRMargin + b.TxtLRMargin + txtw/2, b.TBMargin + b.Height/2},
-        xalign = 1,
-        yalign = 1,
-        color = col
-    }
-
-    draw.RoundedBox(b.Corner, b.LRMargin, b.TBMargin, txtw + b.TxtLRMargin*2, b.Height, ScoreBoxCol)
-    draw.Text(txt_tab)
-    draw.TextShadow(txt_tab, 2, 200)
-
-    --3 boxes under
-    if #top4 > 1 then
-        surface.SetFont("Score24")
-        for i=2, #top4, 1 do
-            local ply = top4[i][1]
-            local pts = top4[i][2]
-            local txt = ply:GetName()..": "..pts
-            local txtw, txth = surface.GetTextSize(txt)
-            local col = ply == LocalPlayer() and Yellow or White
-            col.a = 255
-
-            local b = Box24
-            draw.RoundedBox(b.Corner, b.LRMargin, b.TBMargin + Box32.Height + b.Height*(i-2) + b.BtwMargin*(i-1), txtw + b.TxtLRMargin*2, b.Height, ScoreBoxCol)
-
-            local txt_tab = {text = txt,
-            font = "Score24",
-            pos = {b.LRMargin + b.TxtLRMargin + txtw/2, b.TBMargin + b.Height/2 + Box32.Height + b.Height*(i-2) + b.BtwMargin*(i-1)},
+        local col = top4[1][1] == name and Yellow or White
+        col.a = 255
+        local txt_tab = {text = txt,
+            font = "Score32",
+            pos = {b.LRMargin + b.TxtLRMargin + txtw/2, b.TBMargin + b.Height/2},
             xalign = 1,
             yalign = 1,
             color = col
-            }
-        
-            draw.Text(txt_tab)
-            draw.TextShadow(txt_tab, 2, 200)
+        }
+
+        draw.RoundedBox(b.Corner, b.LRMargin, b.TBMargin, txtw + b.TxtLRMargin*2, b.Height, ScoreBoxCol)
+        draw.Text(txt_tab)
+        draw.TextShadow(txt_tab, 2, 200)
+
+        --3 boxes under
+        if #top4 > 1 then
+            surface.SetFont("Score24")
+            for i=2, #top4, 1 do
+                local ply = top4[i][1]
+                local pts = top4[i][2]
+                local txt = ply..": "..pts
+                local txtw, txth = surface.GetTextSize(txt)
+                local col = ply == name and Yellow or White
+                col.a = 255
+
+                local b = Box24
+                draw.RoundedBox(b.Corner, b.LRMargin, b.TBMargin + Box32.Height + b.Height*(i-2) + b.BtwMargin*(i-1), txtw + b.TxtLRMargin*2, b.Height, ScoreBoxCol)
+
+                local txt_tab = {text = txt,
+                font = "Score24",
+                pos = {b.LRMargin + b.TxtLRMargin + txtw/2, b.TBMargin + b.Height/2 + Box32.Height + b.Height*(i-2) + b.BtwMargin*(i-1)},
+                xalign = 1,
+                yalign = 1,
+                color = col
+                }
+            
+                draw.Text(txt_tab)
+                draw.TextShadow(txt_tab, 2, 200)
+            end
         end
     end
 

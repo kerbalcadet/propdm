@@ -5,11 +5,6 @@ function RoundStart()
         gamemode.Call("PlayerInitialSpawn", p)
         gamemode.Call("PlayerSpawn", p)
     end
-    
-    --initializes scoreboard
-    net.Start("PDM_ScoreUpdate")
-    net.WriteTable(PDM_GetScoreBoard())
-    net.Broadcast()
 end
 
 hook.Remove("PlayerDeath", "PDM_PlayerDeath")
