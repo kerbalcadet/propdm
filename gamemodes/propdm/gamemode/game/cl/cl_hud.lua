@@ -45,7 +45,7 @@ local voffset = 200  --slightly forgot that the ui still occupies the corners
 net.Receive("PDM_AddPoints", function()
     disp_points = disp_points + net.ReadInt(16)
     stime = CurTime()
-    surface.PlaySound("buttons/button9.wav")
+    surface.PlaySound("weapons/ar2/ar2_reload_push.wav")
 end)
 
 net.Receive("PDM_ScoreUpdate", function()

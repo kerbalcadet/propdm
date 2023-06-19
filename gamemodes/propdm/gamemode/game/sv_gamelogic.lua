@@ -5,6 +5,8 @@ function RoundStart()
         gamemode.Call("PlayerInitialSpawn", p)
         gamemode.Call("PlayerSpawn", p)
     end
+
+    PDM_ScoreUpdate()
 end
 
 hook.Remove("PlayerDeath", "PDM_PlayerDeath")
