@@ -9,7 +9,7 @@ local Yellow = Color(253, 240, 92)
 
 
 net.Receive("PDM_AddPoints", function()
-    disp_points = net.ReadInt(16)
+    disp_points = disp_points + net.ReadInt(16)
     stime = CurTime()
     surface.PlaySound("buttons/button9.wav")
 end)
@@ -46,6 +46,8 @@ local function PDMHud()
 
         draw.Text(points)
         draw.TextShadow(points, 2, y.a)
+    else
+        disp_points = 0
     end
 end
 
