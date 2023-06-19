@@ -100,11 +100,11 @@ if SERVER then
 
 hook.Remove("EntityTakeDamage", "kirbypropdamage")
 hook.Add("EntityTakeDamage", "kirbypropdamage", function(ent, dmg)
-	if not ent:IsPlayer() or not (dmg:GetDamageType() == 1) then return end
-
+	if not ent:IsPlayer() then return end
+	
 	local inf = dmg:GetInflictor()
 	if inf.Attacker then 
-		if inf.Attacker == ent then 
+		if inf.Attacker == ent and dmg:IsDamageType(DMG_CRUSH) then 
 			return true
 		else
 			dmg:SetAttacker(inf.Attacker) 
@@ -234,6 +234,7 @@ function KirbyFireProp(tab, pos, dir, vel, att)
 	if exp and exp > 0 then ent:SetHealth(1) end
 
 
+	ent:SetOwner(att)
 	ent.Attacker = att
 end
 
