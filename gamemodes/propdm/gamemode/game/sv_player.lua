@@ -1,6 +1,6 @@
 function GM:PlayerInitialSpawn(ply)
+    ply:SetNW2Int("Points", 0)
 end
-
 
 function GM:PlayerSpawn(ply)
     ply:StripWeapons()
@@ -34,3 +34,14 @@ hook.Remove("PlayerDeath", "remove_nadetimer")
 hook.Add("PlayerDeath", "remove_nadetimer", function(ply)
     timer.Remove(tostring(ply).."_givenade")
 end)
+
+util.AddNetworkString("PDM_AddPoints")
+function PLAYER:AddPoints(num)
+    local pts = self:GetNW2Int("Points")
+    pts = pts + num
+
+    self:SetNW2Int("Points", pts)
+    net.Start("PDM_AddPoints")
+        net.WriteInt(num, 16)
+    net.Send(self)
+end

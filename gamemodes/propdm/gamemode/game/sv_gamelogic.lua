@@ -6,5 +6,3 @@ function RoundStart()
         gamemode.Call("PlayerSpawn", p)
     end
 end
-
-util.AddNetworkString("PDM_Points")

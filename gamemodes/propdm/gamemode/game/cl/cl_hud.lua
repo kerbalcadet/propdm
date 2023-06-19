@@ -8,7 +8,7 @@ local disp_points = 0
 local Yellow = Color(253, 240, 92)
 
 
-net.Receive("PDM_Points", function()
+net.Receive("PDM_AddPoints", function()
     disp_points = net.ReadInt(16)
     stime = CurTime()
 end)
