@@ -35,6 +35,7 @@ hook.Add("PlayerDeath", "remove_nadetimer", function(ply)
     timer.Remove(tostring(ply).."_givenade")
 end)
 
+util.AddNetworkString("PDM_ScoreUpdate")
 util.AddNetworkString("PDM_AddPoints")
 function PLAYER:AddPoints(num)
     local pts = self:GetNW2Int("Points")
@@ -44,4 +45,17 @@ function PLAYER:AddPoints(num)
     net.Start("PDM_AddPoints")
         net.WriteInt(num, 16)
     net.Send(self)
+
+    net.Start("PDM_ScoreUpdate")
+        net.WriteTable(PDM_GetScoreBoard())
+    net.Broadcast()
+end
+
+function PDM_GetScoreBoard()
+    local score = {}
+    for _, p in pairs(player.GetAll()) do
+        table.insert(score, {p, p:GetNW2Int("Points")})
+    end
+
+    return score
 end
