@@ -6,6 +6,8 @@ hook.Add("EntityFireBullets", "Propageddon", function(v,bullet)
         v:SetCustomCollisionCheck(true)
         if math.random(100) < 45 then
             local tab = table.Random(PDM_PROPS)
+            if not IsValid(tab) then return end
+            
             local ent = ents.Create("prop_physics")
 
             ent:SetModel(tab.model)
