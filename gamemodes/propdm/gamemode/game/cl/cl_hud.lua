@@ -40,6 +40,7 @@ local disp_points = 0
 
 --scoreboard init
 local top4 = {}
+local voffset = 200  --slightly forgot that the ui still occupies the corners
 
 net.Receive("PDM_AddPoints", function()
     disp_points = disp_points + net.ReadInt(16)
@@ -121,13 +122,13 @@ local function PDMHud()
         col.a = 255
         local txt_tab = {text = txt,
             font = "Score32",
-            pos = {b.LRMargin + b.TxtLRMargin + txtw/2, b.TBMargin + b.Height/2},
+            pos = {(b.LRMargin + b.TxtLRMargin + txtw/2), b.TBMargin + b.Height/2 + voffset},
             xalign = 1,
             yalign = 1,
             color = col
         }
 
-        draw.RoundedBox(b.Corner, b.LRMargin, b.TBMargin, txtw + b.TxtLRMargin*2, b.Height, ScoreBoxCol)
+        draw.RoundedBox(b.Corner, b.LRMargin, b.TBMargin + voffset, txtw + b.TxtLRMargin*2, b.Height, ScoreBoxCol)
         draw.Text(txt_tab)
         draw.TextShadow(txt_tab, 2, 200)
 
@@ -143,11 +144,11 @@ local function PDMHud()
                 col.a = 255
 
                 local b = Box24
-                draw.RoundedBox(b.Corner, b.LRMargin, b.TBMargin + Box32.Height + b.Height*(i-2) + b.BtwMargin*(i-1), txtw + b.TxtLRMargin*2, b.Height, ScoreBoxCol)
+                draw.RoundedBox(b.Corner, b.LRMargin, b.TBMargin + Box32.Height + b.Height*(i-2) + b.BtwMargin*(i-1) + voffset, txtw + b.TxtLRMargin*2, b.Height, ScoreBoxCol)
 
                 local txt_tab = {text = txt,
                 font = "Score24",
-                pos = {b.LRMargin + b.TxtLRMargin + txtw/2, b.TBMargin + b.Height/2 + Box32.Height + b.Height*(i-2) + b.BtwMargin*(i-1)},
+                pos = {(b.LRMargin + b.TxtLRMargin + txtw/2), b.TBMargin + b.Height/2 + Box32.Height + b.Height*(i-2) + b.BtwMargin*(i-1) + voffset},
                 xalign = 1,
                 yalign = 1,
                 color = col
