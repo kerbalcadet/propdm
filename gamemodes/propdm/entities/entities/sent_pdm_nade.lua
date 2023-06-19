@@ -38,8 +38,8 @@ function ENT:Initialize()
     self.GravRadius = 400
     self.GravPwr = 60*10^6 --has to be super large because force is applied for one frame only
     self.MinRad = 15 --range at which grav effects are unclamped (fall off) in ft
-    self.DmgRadius = 200
-    self.Dmg = 50
+    self.DmgRadius = 400
+    self.Dmg = 120
     self.Owner = self:GetOwner()
     self.Weapon = self:GetOwner():GetActiveWeapon()
     self.ExpOffset = Vector(0,0,-100)
