@@ -1,5 +1,8 @@
 function GM:PlayerInitialSpawn(ply)
     ply:SetNW2Int("Points", 0)
+
+    local ind = table.KeyFromValue(player.GetAll(), ply) % 4
+    ply:SetTeam(ind)
 end
 
 function GM:PlayerSpawn(ply)
@@ -9,9 +12,14 @@ function GM:PlayerSpawn(ply)
     ply:Give("pdm_kirby")
     ply:Give("pdm_nade")
     ply:SetModel("models/player/hostage/hostage_04.mdl")
+    --ply:SetModel("models/player/combine_super_soldier.mdl")
     ply:SetupHands()
     ply:SetWalkSpeed(200)
     ply:SetRunSpeed(400)
+
+    local col = team.GetColor(ply:Team())
+    --local cvec = Vector(col.r/255, col.g/255, col.b/255)
+    ply:SetColor(col)
 
     local title = tostring(ply).."_givenade"
     timer.Create(title, 60, 0, function()
