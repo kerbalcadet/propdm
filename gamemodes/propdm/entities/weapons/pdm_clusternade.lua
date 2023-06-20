@@ -16,10 +16,7 @@ SWEP.SeparateFuse = 0.5
 SWEP.ThrowDelay = 2 --delay between each throw
 SWEP.Armed = false
 SWEP.LastThrow = 0
-SWEP.LastCook = 0
 SWEP.Under = false
-
-SWEP.Fuse = 1   --seconds for cluster grenades
 
 
 SWEP.Primary = {
@@ -145,7 +142,6 @@ function SWEP:Throw(vel)
     nade:SetAngles(own:EyeAngles())
     nade:Spawn()
     nade.SeparateFuse = self.SeparateFuse
-    nade.Fuse = self.Fuse
 
     local phys = nade:GetPhysicsObject()
     if IsValid(phys) then
