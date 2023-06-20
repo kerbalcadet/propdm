@@ -135,24 +135,9 @@ function SWEP:PrimaryAttack()
     if self.Armed or not self:CanPrimaryAttack() then return end
 
     self.Armed = true
-    self:SendWeaponAnim(ACT_VM_PULLBACK_HIGH)
-    self.Under = false
-end
-
-function SWEP:SecondaryAttack()
-    if self.Armed or not self:CanPrimaryAttack() then return end
-
-    self.Armed = true
-    self:SendWeaponAnim(ACT_VM_PULLBACK_LOW)
-    self.Under = true
-end
-
---init grenade cook
-function SWEP:Reload()
-    if not self.Armed or self.Cooking then return end
-
     self.Cooking = true
     self.LastCook = CurTime()
+    self.Under = false
 
     self.SoundSpoon:Stop()
     self.SoundSpoon:Play()
@@ -168,6 +153,16 @@ function SWEP:Reload()
         self.SoundTick:Play()
         self.SoundTick:ChangePitch(80)
     end)
+
+    self:SendWeaponAnim(ACT_VM_PULLBACK_HIGH)
+end
+
+function SWEP:SecondaryAttack()
+    if self.Armed or not self:CanPrimaryAttack() then return end
+
+    self.Armed = true
+    self:SendWeaponAnim(ACT_VM_PULLBACK_LOW)
+    self.Under = true
 end
 
 function SWEP:Throw(fuse, vel)
