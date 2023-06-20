@@ -3,6 +3,9 @@ function GM:PlayerInitialSpawn(ply)
 
     local ind = table.KeyFromValue(player.GetAll(), ply) % 4
     ply:SetTeam(ind)
+
+    -- Manually set the Player Entity name, for use in setting the relationship with killstreak NPC(s)
+    ply:SetName(ply:Nick())
 end
 
 function GM:PlayerSpawn(ply)
