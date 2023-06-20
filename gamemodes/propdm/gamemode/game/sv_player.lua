@@ -16,6 +16,8 @@ function GM:PlayerSpawn(ply)
     ply:SetupHands()
     ply:SetWalkSpeed(200)
     ply:SetRunSpeed(400)
+    
+    ply:SetNW2Int("Streak", 0)
 
     local col = team.GetColor(ply:Team())
     --local cvec = Vector(col.r/255, col.g/255, col.b/255)
