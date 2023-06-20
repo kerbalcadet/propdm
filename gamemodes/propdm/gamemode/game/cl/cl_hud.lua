@@ -33,18 +33,27 @@ local Box24 = {
 }
 
 --points ui
-local fadestart = 1
-local fadetime = 1
-local stime = 0
+local pts_fadestart = 1
+local pts_fadetime = 1
+local pts_stime = 0
 local disp_points = 0
 
 --scoreboard init
 local top4 = {}
 local voffset = 200  --slightly forgot that the ui still occupies the corners
 
+--killstreak message
+local ks_fadestart = 2
+local ks_fadetime = 1
+local ks_stime = 0
+local ks_txt = ""
+
+
+--###### NET MESSAGES ########
+
 net.Receive("PDM_AddPoints", function()
     disp_points = disp_points + net.ReadInt(16)
-    stime = CurTime()
+    pts_stime = CurTime()
     surface.PlaySound("buttons/button9.wav")
 end)
 
@@ -73,21 +82,29 @@ hook.Remove("InitPostEntity", "PDM_RequestScore")
 hook.Add("InitPostEntity", "PDM_RequestScore", function()
     net.Start("PDM_RequestScoreUpdate")
     net.SendToServer()
-    print("test")
 end)
+
+net.Receive("PDM_Killstreak", function()
+    ks_txt = net.ReadString()
+    ks_stime = CurTime()
+    surface.PlaySound("npc/dog/dog_playfull5.wav")
+    --surface.PlaySound("npc/roller/mine/rmine_taunt1.wav")
+end)
+
+--######## ACTUAL HUD RENDERING #######
 
 local function PDMHud()
     local ply = LocalPlayer()
     if not ply:Alive() then return end
 
-    --POINTS INDICATOR
-    local t = CurTime() - stime
+    --### POINTS INDICATOR ###
+    local t = CurTime() - pts_stime
 
-    if t < (fadestart + fadetime) then
+    if t < (pts_fadestart + pts_fadetime) then
         local y = Yellow
         
-        if t > fadestart then
-            local a = 255*(1 - (t - fadestart)/fadetime)
+        if t > pts_fadestart then
+            local a = 255*(1 - (t - pts_fadestart)/pts_fadetime)
             y.a = a
         else
             y.a = 255
@@ -107,7 +124,9 @@ local function PDMHud()
         disp_points = 0
     end
 
-    --SCOREBOARD
+
+
+    --### SCOREBOARD ###
 
     if #top4 > 0 then
         --top box
@@ -160,6 +179,32 @@ local function PDMHud()
         end
     end
 
+
+    --### KILLSTREAKS MESSAGES ###
+
+    local t = CurTime() - ks_stime
+
+    if t < (ks_fadestart + ks_fadetime) then
+        local y = Yellow
+        
+        if t > ks_fadestart then
+            local a = 255*(1 - (t - ks_fadestart)/ks_fadetime)
+            y.a = a
+        else
+            y.a = 255
+        end
+
+        local txt = {text = ks_txt,
+        font = "Points48",
+        pos = {w/2, h*1/4},
+        xalign = 1,
+        yalign = 1,
+        color = y
+        }
+
+        draw.Text(txt)
+        draw.TextShadow(txt, 2, y.a)
+    end
 end
 
 hook.Remove("HUDPaint", "PDMHud")
