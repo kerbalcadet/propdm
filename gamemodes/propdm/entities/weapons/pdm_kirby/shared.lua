@@ -233,6 +233,10 @@ function KirbyFireProp(tab, pos, dir, vel, att)
 	local exp = ent:GetKeyValues().ExplodeDamage
 	if exp and exp > 0 then ent:SetHealth(1) end
 
+	--for some reason, setowner nocollides the entities to you. 
+	--it happens to be the easiest way to do this
+	ent:SetOwner(att)
+	timer.Simple(0.2, function() if IsValid(ent) then ent:SetOwner(nil) end end)
 
 	ent.Attacker = att
 end

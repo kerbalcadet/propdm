@@ -88,7 +88,6 @@ net.Receive("PDM_Killstreak", function()
     ks_txt = net.ReadString()
     ks_stime = CurTime()
     surface.PlaySound("npc/dog/dog_playfull5.wav")
-    --surface.PlaySound("npc/roller/mine/rmine_taunt1.wav")
 end)
 
 --######## ACTUAL HUD RENDERING #######
