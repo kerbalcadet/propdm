@@ -35,15 +35,15 @@ function ENT:Initialize()
 
     self.Fuse = self.Fuse or 3
     self.SpawnTime = CurTime()
-    self.GravRadius = 400
-    self.GravPwr = 60*10^6 --has to be super large because force is applied for one frame only
-    self.MinRad = 15 --range at which grav effects are unclamped (fall off) in ft
-    self.DmgRadius = 400
-    self.Dmg = 120
-    self.Owner = self:GetOwner()
-    self.Weapon = self:GetOwner():GetActiveWeapon()
-    self.ExpOffset = Vector(0,0,-100)
-    self.PlyWeight = 800
+    self.GravRadius = self.GravRadius or 400
+    self.GravPwr = self.GravPwr or 60*10^6 --has to be super large because force is applied for one frame only
+    self.MinRad = self.MinRad or 15 --range at which grav effects are unclamped (fall off) in ft
+    self.DmgRadius = self.DmgRadius or 400
+    self.Dmg = self.Dmg or 120
+    self.Owner = self.Owner or self:GetOwner()
+    self.Weapon = self.Weapon or self:GetOwner():GetActiveWeapon()
+    self.ExpOffset = self.ExpOffset or Vector(0,0,-100)
+    self.PlyWeight = self.PlyWeight or 800
 
     self.ExpSound = CreateSound(self, "BaseExplosionEffect.Sound")
 end
@@ -61,7 +61,7 @@ function ENT:Think()
         dmg:SetInflictor(wep)
         dmg:SetAttacker(self.Owner)
         util.BlastDamageInfo(dmg, pos, self.DmgRadius)
-        
+
         local num = math.random(4)
         self:EmitSound("weapons/physcannon/superphys_launch"..num..".wav", 350)
         self.ExpSound:Play()
