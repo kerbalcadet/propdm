@@ -26,7 +26,7 @@ SWEP.Primary = {
     ClipSize = 1,
     DefaultClip = 1,
     Automatic = false, 
-    Ammo = "grenade"
+    Ammo = "clustergrenade"
 }
 
 SWEP.Secondary = {
@@ -88,7 +88,7 @@ function SWEP:Think()
         if SERVER then
             timer.Simple(0.1, function()
                 local vel = self.Under and 400 or 1300
-                self:Throw(nil, vel)
+                self:Throw(vel)
             end)
         end
 
@@ -127,7 +127,7 @@ function SWEP:SecondaryAttack()
     self.Under = true
 end
 
-function SWEP:Throw(fuse, vel)
+function SWEP:Throw(vel)
     local nade = ents.Create("sent_pdm_clusternade")
     local own = self:GetOwner()
 
