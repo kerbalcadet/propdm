@@ -11,7 +11,7 @@ function PDM_FireProp(tab, pos, ang, vel, avel)
     local ent = PDM_PropFromTable(tab, pos)
     local phys = ent:GetPhysicsObject()
 
-    if not IsValid(phys) or not ent:GetMoveType() == MOVETYPE_VPHYSICS then return false end
+    if not IsValid(phys) or not ent:GetMoveType() == MOVETYPE_VPHYSICS then ent:Remove() return false end
 
     ent:SetAngles(ang or Angle(0, 0, 0))
     phys:SetVelocity(vel or Vector(0, 0, 0))
