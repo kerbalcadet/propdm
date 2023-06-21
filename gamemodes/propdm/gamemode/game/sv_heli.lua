@@ -27,6 +27,7 @@ hook.Add("EntityFireBullets", "PDM_HeliProps", function(wep, bullet)
     wep:EmitSound("garrysmod/balloon_pop_cute.wav", 400, 100, 0.4)
 
     --collisions
+    ent:SetOwner(wep)
     ent:SetCollisionGroup(COLLISION_GROUP_WORLD)
     timer.Simple(0.3, function()
         if not IsValid(ent) then return end
