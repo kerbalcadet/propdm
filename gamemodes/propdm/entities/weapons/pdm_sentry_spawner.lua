@@ -143,6 +143,7 @@ function SWEP:PrimaryAttack()
     turret.NoPickup = true
     turret.MaxProps = self.MaxProps
     turret.Props = {}   --list of all props fired
+    turret.Owner = ply
 
     -- Don't attack the player placing this NPC
     --turret:Fire("SetRelationship", ply:Nick() .. " D_LI 99")
@@ -211,11 +212,11 @@ hook.Add("EntityFireBullets", "PDM_SentryProps", function(wep, bullet)
 
     --actually shoot it out 
     local pos = bullet.Src + bullet.Dir * 32
-    local vel = 3000 * bullet.Dir
+    local vel = 4000 * bullet.Dir
 
     --table, pos, angle, vel, angvel
     local ent = PDM_FireProp(tab, pos, AngleRand(), vel, VectorRand()*100)
-    ent.Attacker = wep
+    ent.Attacker = wep.Owner
     wep:EmitSound("garrysmod/balloon_pop_cute.wav", 400, 100, 0.4)
 
     --collisions
