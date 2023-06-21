@@ -49,6 +49,7 @@ function PDM_SpawnHeli()
     heli:SetKeyValue("spawnflags", "1377028")
 
     heli:Spawn()
+    heli:Activate()
     heli:Fire("SetTrack", "heli_patrol_1")
     heli:Fire("physdamagescale", "1")
     heli:Fire("StartPatrol")
