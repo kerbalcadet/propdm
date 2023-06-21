@@ -142,7 +142,7 @@ function SWEP:PrimaryAttack()
 
 
     -- Don't attack the player placing this NPC
-    turret:Fire("SetRelationship", ply:Nick() .. " D_LI 99")
+    --turret:Fire("SetRelationship", ply:Nick() .. " D_LI 99")
 
     turret:EmitSound("physics/metal/metal_barrel_impact_soft1.wav")
     turret:EmitSound("k_lab.eyescanner_deploy")
@@ -184,8 +184,6 @@ hook.Remove("EntityFireBullets", "PDM_SentryProps")
 hook.Add("EntityFireBullets", "PDM_SentryProps", function(wep, bullet)
     if not (wep:GetClass() == "npc_turret_floor") then return end
 
-    print(wep:GetClass())
-
     local prob = 45  --%
     if math.random(100) > prob then return false end
     
@@ -210,7 +208,7 @@ hook.Add("EntityFireBullets", "PDM_SentryProps", function(wep, bullet)
 
     --actually shoot it out 
     local pos = bullet.Src + bullet.Dir * 32
-    local vel = Vector(3000, 3000, 0) * bullet.Dir
+    local vel = 3000 * bullet.Dir
 
     --table, pos, angle, vel, angvel
     local ent = PDM_FireProp(tab, pos, AngleRand(), vel, VectorRand()*100)
