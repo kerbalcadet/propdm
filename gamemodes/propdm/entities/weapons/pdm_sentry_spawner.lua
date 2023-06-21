@@ -59,7 +59,7 @@ function SWEP:Think()
         end
 
         local holo = self.Holo
-        if tr.Hit then
+        if tr.Hit and not self.Holstered then
             holo:SetNoDraw(false)
             holo:SetPos(tr.HitPos)
             holo:SetAngles(Angle(0, self:GetOwner():EyeAngles().y, 0))
@@ -113,8 +113,12 @@ if CLIENT then
         wm:DrawModel()
     end
 
+    function SWEP:Deploy()
+        self.Holstered = false
+    end
+
     function SWEP:Holster()
-        self.Holo:SetNoDraw(true)
+        self.Holstered = true
     end
 
     function SWEP:OnRemove()
