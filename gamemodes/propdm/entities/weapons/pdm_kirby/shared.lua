@@ -94,23 +94,7 @@ end
 --[[==SERVER==]]--
 if SERVER then
 
---attribute dmg
 
-
-
-hook.Remove("EntityTakeDamage", "kirbypropdamage")
-hook.Add("EntityTakeDamage", "kirbypropdamage", function(ent, dmg)
-	if not ent:IsPlayer() then return end
-	
-	local inf = dmg:GetInflictor()
-	if inf.Attacker then 
-		if inf.Attacker == ent and dmg:IsDamageType(DMG_CRUSH) then 
-			return true
-		else
-			dmg:SetAttacker(inf.Attacker) 
-		end
-	end
-end)
 
 hook.Remove("PlayerDeath", "kirbyexplode")
 hook.Add("PlayerDeath", "kirbyexplode", function(ply, inf, att)

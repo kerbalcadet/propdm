@@ -19,3 +19,13 @@ function PDM_FireProp(tab, pos, ang, vel, avel)
 
     return ent
 end
+
+--properly attribute prop damage
+hook.Remove("EntityTakeDamage", "PDM_PropDamage")
+hook.Add("EntityTakeDamage", "PDM_PropDamage", function(ent, dmg)
+	if not ent:IsPlayer() or not (dmg:GetDamageType() == DMG_CRUSH) then return end
+	
+	local inf = dmg:GetInflictor()
+	if inf.Attacker then dmg:SetAttacker(inf.Attacker) end 
+	if inf.Inflictor then dmg:SetInflictor(inf.Inflictor) end
+end)
