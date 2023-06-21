@@ -20,7 +20,7 @@ hook.Add("PlayerDeath", "PDM_PlayerDeath", function(vic, inf, att)
     att:SetNW2Int("Streak", ks)
     
     local kstab = PDM_KILLSTREAKS[ks]
-    if istable(kstab) then
+    if kstab and not table.IsEmpty(kstab) then
         local ksfunc = kstab[1]
         local name = kstab[2]
 
