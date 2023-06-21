@@ -133,8 +133,10 @@ function SWEP:PrimaryAttack()
     -- Create a turret NPC, set its position and angle to just in front of the player in the aiming direction
     local turret = ents.Create("npc_turret_floor")
     turret:SetAngles(Angle(0, ply:EyeAngles().y, 0))
-    turret:SetPos(tr.HitPos + Vector(0,0,1))
+    turret:SetPos(tr.HitPos)
     turret:Spawn()
+    turret:SetMoveType(MOVETYPE_NONE)
+
 
     -- Don't attack the player placing this NPC
     turret:Fire("SetRelationship", ply:Nick() .. " D_LI 99")
