@@ -180,8 +180,9 @@ function SWEP:PrimaryAttack()
     turret.Props = {}   --list of all props fired
     turret.Owner = ply
 
-    -- Don't attack the player placing this NPC
+    -- Setup relationships
     turret:Fire("SetRelationship", ply:Nick() .. " D_LI 99")
+    turret:Fire("SetRelationship", "npc_helicopter D_HT 99")
 
     --sound
     turret:EmitSound("physics/metal/metal_barrel_impact_soft1.wav")
