@@ -19,6 +19,9 @@ SWEP.ViewModel = "models/Combine_turrets/Floor_turret.mdl"
 SWEP.ViewModelPos = Vector(30, -25, -40)
 SWEP.UseHands = false
 
+SWEP.Primary.Ammo = "none"
+SWEP.Secondary.Ammo = "none"
+
 SWEP.DespTime = 60
 SWEP.PlaceRange = 150
 SWEP.CanPlace = false
@@ -28,6 +31,12 @@ SWEP.DeathBlastRad = 200
 
 function SWEP:Initialize()
     self:SetHoldType("melee")   --for some reason this doesn't work in the field
+end
+
+function SWEP:PrimaryAttack()
+end
+
+function SWEP:SecondaryAttack()
 end
 
 local tr = {}
@@ -155,6 +164,10 @@ function SWEP:PrimaryAttack()
         end)
     end)
 
+    self:Remove()
+    local lastwep = ply:GetPreviousWeapon()
+    local wep = IsValid(lastwep) and lastwep or ply:GetWeapons()[1]
+    if wep then ply:SelectWeapon(wep:GetClass()) end
 end
 
 end
