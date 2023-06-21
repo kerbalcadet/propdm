@@ -24,6 +24,7 @@ SWEP.Secondary.Ammo = "none"
 
 SWEP.DespTime = 60
 SWEP.PlaceRange = 150
+SWEP.MaxProps = 20
 SWEP.CanPlace = false
 SWEP.DeathBlastDmg = 50
 SWEP.DeathBlastRad = 200
@@ -138,8 +139,10 @@ function SWEP:PrimaryAttack()
     turret:SetPos(tr.HitPos)
     turret:Spawn()
     turret:SetMoveType(MOVETYPE_NONE)
-    turret.NoPickup = true
 
+    turret.NoPickup = true
+    turret.MaxProps = self.MaxProps
+    turret.Props = {}   --list of all props fired
 
     -- Don't attack the player placing this NPC
     --turret:Fire("SetRelationship", ply:Nick() .. " D_LI 99")
@@ -219,6 +222,14 @@ hook.Add("EntityFireBullets", "PDM_SentryProps", function(wep, bullet)
     ent:SetOwner(wep)
 
     --despawning
+    table.insert(wep.Props, ent)
+    if #wep.Props > wep.MaxProps then
+        local e = wep.Props[1]
+        if IsValid(e) then e:Dissolve(false, 1, ent:GetPos()) end
+
+        table.remove(wep.Props, 1)
+    end
+
     timer.Simple(PDM_DESPTIME, function()
         if IsValid(ent) then ent:Dissolve(false, 1, ent:GetPos()) end
     end)
