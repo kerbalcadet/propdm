@@ -21,8 +21,6 @@ hook.Add("PlayerDeath", "PDM_PlayerDeath", function(vic, inf, att)
     
     local kstab = PDM_KILLSTREAKS[ks]
     if kstab and not table.IsEmpty(kstab) then
-        PrintTable(kstab)
-
         local ksfunc = kstab[1]
         local name = kstab[2]
 
