@@ -7,6 +7,8 @@ function RoundStart()
     end
 
     PDM_ScoreUpdate()
+
+    PDM_SpawnHeli()
 end
 
 hook.Remove("PlayerDeath", "PDM_PlayerDeath")
