@@ -146,7 +146,7 @@ function SWEP:PrimaryAttack()
     turret.Owner = ply
 
     -- Don't attack the player placing this NPC
-    --turret:Fire("SetRelationship", ply:Nick() .. " D_LI 99")
+    turret:Fire("SetRelationship", ply:Nick() .. " D_LI 99")
 
     turret:EmitSound("physics/metal/metal_barrel_impact_soft1.wav")
     turret:EmitSound("k_lab.eyescanner_deploy")
