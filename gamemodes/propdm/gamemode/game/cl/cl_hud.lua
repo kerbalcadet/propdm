@@ -5,7 +5,8 @@ surface.CreateFont("Points48", { font = "CloseCaption_Bold", size = 48})
 
 local ScoreBoxCol = Color(255, 255, 255, 50)
 local White = Color(255,255,255)
-local Yellow = Color(253, 240, 92)
+local YellowPts = Color(253, 240, 92)
+local YellowKS = Color(253, 240, 92)
 
 local w = ScrW()
 local h = ScrH()
@@ -43,6 +44,7 @@ local top4 = {}
 local voffset = 200  --slightly forgot that the ui still occupies the corners
 
 --killstreak message
+local ks_fadein = 0.5
 local ks_fadestart = 2
 local ks_fadetime = 1
 local ks_stime = 0
@@ -66,13 +68,13 @@ net.Receive("PDM_ScoreUpdate", function()
     local ply_inc = false
     local max = #score > 4 and 4 or #score
     local name = LocalPlayer():GetName()
-    for i=1, #score, 1 do
+    for i=1, math.min(#score, 4), 1 do
         if score[i][1] == name then ply_inc = true end
         score4[i] = score[i]
     end
 
     if ply_inc == false then
-        score[1] = {name, LocalPlayer():GetNW2Int("Points")}
+        score4[4] = {name, LocalPlayer():GetNW2Int("Points")}
     end
 
     top4 = score4
@@ -100,7 +102,7 @@ local function PDMHud()
     local t = CurTime() - pts_stime
 
     if t < (pts_fadestart + pts_fadetime) then
-        local y = Yellow
+        local y = YellowPts
         
         if t > pts_fadestart then
             local a = 255*(1 - (t - pts_fadestart)/pts_fadetime)
@@ -183,12 +185,13 @@ local function PDMHud()
 
     local t = CurTime() - ks_stime
 
-    if t < (ks_fadestart + ks_fadetime) then
-        local y = Yellow
+    if t < (ks_fadein + ks_fadestart + ks_fadetime) then
+        local y = YellowKS
         
-        if t > ks_fadestart then
-            local a = 255*(1 - (t - ks_fadestart)/ks_fadetime)
-            y.a = a
+        if t < ks_fadein then
+            y.a = 255*t/ks_fadein
+        elseif t > ks_fadestart then
+            y.a = 255*(1 - (t - ks_fadestart)/ks_fadetime)
         else
             y.a = 255
         end
@@ -201,8 +204,19 @@ local function PDMHud()
         color = y
         }
 
-        draw.Text(txt)
+        draw.DrawText(txt)
         draw.TextShadow(txt, 2, y.a)
+
+        local txt2 = {text = LocalPlayer():GetNW2Int("Streak").." Kills",
+        font = "Points48",
+        pos = {w/2, h*1/4 - 48 - 10},
+        xalign = 1,
+        yalign = 1,
+        color = y
+        }
+
+        draw.DrawText(txt2)
+        draw.TextShadow(txt2, 2, y.a)
     end
 end
 
