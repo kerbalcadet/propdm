@@ -19,8 +19,11 @@ SWEP.ViewModel = "models/Combine_turrets/Floor_turret.mdl"
 SWEP.ViewModelPos = Vector(30, -25, -40)
 SWEP.UseHands = false
 
+SWEP.DespTime = 60
 SWEP.PlaceRange = 150
 SWEP.CanPlace = false
+SWEP.DeathBlastDmg = 50
+SWEP.DeathBlastRad = 200
 
 
 function SWEP:Initialize()
@@ -114,25 +117,44 @@ end
 if SERVER then
 
 function SWEP:PrimaryAttack()
-    local ply = self:GetOwner()
-    
-    self:SendWeaponAnim(ACT_VM_MISSCENTER)
-    self:GetOwner():SetAnimation(PLAYER_ATTACK1)
+    local ply = self:GetOwner()    
+    ply:SetAnimation(PLAYER_ATTACK1)
+
 
     -- Create a turret NPC, set its position and angle to just in front of the player in the aiming direction
     local turret = ents.Create("npc_turret_floor")
     turret:SetAngles(Angle(0, ply:EyeAngles().y, 0))
     turret:SetPos(tr.HitPos + Vector(0,0,1))
-    turret:SetOwner(ply)
     turret:Spawn()
 
     -- Don't attack the player placing this NPC
     turret:Fire("SetRelationship", ply:Nick() .. " D_LI 99")
 
-    timer.Create(tostring(turret).."desp", PDM_DESPTIME, 1, function()
+    turret:EmitSound("physics/metal/metal_barrel_impact_soft1.wav")
+    turret:EmitSound("k_lab.eyescanner_deploy")
+
+    turret.BlastDmg = self.DeathBlastDmg
+    turret.BlastRad = self.DeathBlastRad
+    timer.Simple(self.DespTime, function()
         if not IsValid(turret) then return end
-        turret:Ignite()
+
+        turret:Fire("SelfDestruct")
+
+        timer.Simple(4, function()
+            local pos = turret:GetPos()
+
+            turret:EmitSound("BaseExplosionEffect.Sound")
+
+            local ef = EffectData()
+            ef:SetOrigin(pos)
+            ef:SetScale(0.75)
+            ef:SetMagnitude(1)
+            util.Effect("Explosion", ef)
+
+            util.BlastDamage(turret, ply, pos, turret.BlastRad, turret.BlastDmg)
+        end)
     end)
+
 end
 
 end
