@@ -122,6 +122,7 @@ if CLIENT then
     end
 
     function SWEP:OnRemove()
+        self.Holstered = false
         self.Holo:SetNoDraw(true)
     end
 end
@@ -139,6 +140,10 @@ function ENTITY:PDM_TurretDeath()
     self.Dying = true
     self:Fire("SelfDestruct")
 
+    local rad = self.BlastRad
+    local dmg = self.BlastDmg
+    local own = self.Owner
+
     timer.Simple(4, function()
         if not IsValid(self) then return end
 
@@ -151,8 +156,8 @@ function ENTITY:PDM_TurretDeath()
         ef:SetScale(0.75)
         ef:SetMagnitude(1)
         util.Effect("Explosion", ef)
-
-        util.BlastDamage(self, ply, pos, self.BlastRad, self.BlastDmg)
+        
+        util.BlastDamage(game.GetWorld(), own, pos, rad, dmg)
     end)
 end
 
@@ -207,11 +212,9 @@ hook.Add("EntityTakeDamage", "PDM_SentryHealth", function(ent, dmg)
     if not (ent:GetClass() == "npc_turret_floor" and ent.PDM == true) then return end
 
     local health = ent:Health() - dmg:GetDamage()
-    if health <= 0 and not ent.Dying then
-        ent:PDM_TurretDeath()
-    else
-        ent:SetHealth(health)
-    end
+    ent:SetHealth(health)
+
+    if health <= 0 and not ent.Dying then ent:PDM_TurretDeath() end
 end)
 
 --shoot props
