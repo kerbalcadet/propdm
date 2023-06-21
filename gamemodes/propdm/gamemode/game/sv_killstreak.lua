@@ -3,11 +3,6 @@
 
 util.AddNetworkString("PDM_Killstreak")
 
-PDM_KILLSTREAKS = {
-    [3] = {KS_Clusternade, "Cluster Grenade"},
-    [5] = {KS_Launcher, "Prop Launcher"}
-}
-
 function KS_Clusternade(ply)
     ply:Give("pdm_clusternade")
 end
@@ -15,3 +10,8 @@ end
 function KS_Launcher(ply)
     print("launcher!") --tmp replace with launcher
 end
+
+PDM_KILLSTREAKS = {
+    [3] = {KS_Clusternade, "Cluster Grenade"},
+    [5] = {KS_Launcher, "Prop Launcher"}
+}
