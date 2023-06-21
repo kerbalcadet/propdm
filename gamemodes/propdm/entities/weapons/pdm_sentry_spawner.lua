@@ -136,6 +136,7 @@ function SWEP:PrimaryAttack()
     turret:SetPos(tr.HitPos)
     turret:Spawn()
     turret:SetMoveType(MOVETYPE_NONE)
+    turret.NoPickup = true
 
 
     -- Don't attack the player placing this NPC
