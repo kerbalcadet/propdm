@@ -4,7 +4,7 @@ if CLIENT then
     SWEP.PrintName = "Sentry Spawner"
     SWEP.Purpose = "Little Friend"
     SWEP.Category = "Prop Deathmatch"
-    SWEP.ViewModelFOV = 100
+    SWEP.ViewModelFOV = 80
     SWEP.Weight = 5
     SWEP.Slot = 5
     SWEP.SlotPos = 7
@@ -14,11 +14,14 @@ SWEP.Spawnable = true
 SWEP.AdminSpawnable = true
 SWEP.Base = "weapon_base"
 SWEP.WorldModel = "models/Combine_turrets/Floor_turret.mdl"
+SWEP.WorldModelPos = Vector(0, -3, -30)    --relative to hand
 SWEP.ViewModel = "models/Combine_turrets/Floor_turret.mdl"
+SWEP.ViewModelPos = Vector(30, -25, -40)
 SWEP.UseHands = false
 
 SWEP.PlaceRange = 150
 SWEP.CanPlace = false
+
 
 function SWEP:Initialize()
     self:SetHoldType("melee")   --for some reason this doesn't work in the field
@@ -39,10 +42,6 @@ function SWEP:Think()
     --render sentry hologram
     if CLIENT then
         if not IsValid(self.Holo) then
-            self.Holo = ClientsideModel("models/Combine_turrets/Floor_turret.mdl", RENDERGROUP_TRANSLUCENT)
-            self.Holo:SetRenderMode(RENDERMODE_TRANSALPHA)
-            self.Holo:SetMaterial("models/debug/debugwhite")
-            self.Holo:SetColor(Color(50, 140, 50, 120))
         end
 
         local holo = self.Holo
@@ -69,12 +68,43 @@ if CLIENT then
         draw.SimpleText("?", "hl2f", x + width/2, y + height/2, col, 1, 1)
     end
 
+    function SWEP:CalcViewModelView(vm, oep, oea, ep, ea)
+        local pos, ang = LocalToWorld(self.ViewModelPos, Angle(0,0,0), ep, ea)
+        
+        return pos, ang
+    end
+
+    SWEP.Holo = ClientsideModel("models/Combine_turrets/Floor_turret.mdl", RENDERGROUP_TRANSLUCENT)
+    SWEP.Holo:SetRenderMode(RENDERMODE_TRANSALPHA)
+    SWEP.Holo:SetMaterial("models/debug/debugwhite")
+    SWEP.Holo:SetColor(Color(50, 140, 50, 120))
+    SWEP.Holo:SetNoDraw(true)
+
+    SWEP.WM = ClientsideModel(SWEP.WorldModel, RENDERGROUP_OPAQUE)
+    SWEP.WM:SetNoDraw(true)
+
+    function SWEP:DrawWorldModel()
+        local own = self:GetOwner()
+        if not IsValid(own) then return end
+
+        local bone = own:LookupBone("ValveBiped.Bip01_R_Hand")
+        local bmat = own:GetBoneMatrix(bone)
+
+        local ea = Angle(0, own:EyeAngles().y, 0)
+        local pos, ang = LocalToWorld(self.WorldModelPos, Angle(0,0,0), bmat:GetTranslation(), ea)
+    
+        local wm = self.WM
+        wm:SetPos(pos)
+        wm:SetAngles(ang)
+        wm:DrawModel()
+    end
+
     function SWEP:Holster()
         self.Holo:SetNoDraw(true)
     end
 
     function SWEP:OnRemove()
-        self.Holo:Remove()
+        self.Holo:SetNoDraw(true)
     end
 end
 
