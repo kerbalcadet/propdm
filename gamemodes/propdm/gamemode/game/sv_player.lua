@@ -37,7 +37,7 @@ function GM:PlayerSpawn(ply)
         if not IsValid(wep) then 
             ply:Give("pdm_nade")
             ply:EmitSound("BaseCombatCharacter.AmmoPickup")
-        elseif ply:GetAmmoCount("Grenade") < 3 then
+        elseif ply:GetAmmoCount("Grenade") < 2 then
             ply:GiveAmmo(1, "Grenade", false)
     end
     end)
