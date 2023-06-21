@@ -30,7 +30,7 @@ hook.Add("EntityFireBullets", "Propageddon", function(wep,bullet)
                 ent:Spawn()
                 local phys = ent:GetPhysicsObject()
 
-                if not IsValid(phys) or not ent:IsSolid() or ent:GetMoveType() ~= MOVETYPE_VPHYSICS then return end
+                if not IsValid(phys) or not ent:IsSolid() or ent:GetMoveType() ~= MOVETYPE_VPHYSICS then ent:Remove() return end
 
                 -- The angles of the actual prop model, NOT the angle / direction it's being fired
                 ent:SetAngles(AngleRand())
