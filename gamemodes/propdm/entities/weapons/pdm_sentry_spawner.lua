@@ -125,6 +125,8 @@ end
 
 if SERVER then
 
+--[[### WEAPON LOGIC ###]]--
+
 function SWEP:PrimaryAttack()
     local ply = self:GetOwner()    
     ply:SetAnimation(PLAYER_ATTACK1)
@@ -172,5 +174,59 @@ function SWEP:PrimaryAttack()
     local wep = IsValid(lastwep) and lastwep or ply:GetWeapons()[1]
     if wep then ply:SelectWeapon(wep:GetClass()) end
 end
+
+
+
+
+--[[### HOOKS ###]]--
+
+hook.Remove("EntityFireBullets", "PDM_SentryProps")
+hook.Add("EntityFireBullets", "PDM_SentryProps", function(wep, bullet)
+    if not (wep:GetClass() == "npc_turret_floor") then return end
+
+    print(wep:GetClass())
+
+    local prob = 45  --%
+    if math.random(100) > prob then return false end
+    
+    --
+    -- If we got to this point, we *should* be good to run the rest of the hook
+    --
+    
+    --find prop under volume and weight limit
+    local maxv = 30000
+    local maxw = 100
+    
+    local tab = {}
+    for i=1,10 do
+        tab = table.Random(PDM_PROPS)
+
+        local info = util.GetModelInfo(tab.model)
+        if not info.KeyValues then continue end
+
+        local kv = util.KeyValuesToTable(info.KeyValues)
+        if kv.editparams.totalmass < maxw and kv.solid.volume < maxv then break end
+    end
+
+    --actually shoot it out 
+    local pos = bullet.Src + bullet.Dir * 32
+    local vel = Vector(3000, 3000, 0) * bullet.Dir
+
+    --table, pos, angle, vel, angvel
+    local ent = PDM_FireProp(tab, pos, AngleRand(), vel, VectorRand()*100)
+    ent.Attacker = wep
+    wep:EmitSound("garrysmod/balloon_pop_cute.wav", 400, 100, 0.4)
+
+    --collisions
+    ent:SetOwner(wep)
+
+    --despawning
+    timer.Simple(PDM_DESPTIME, function()
+        if IsValid(ent) then ent:Dissolve(false, 1, ent:GetPos()) end
+    end)
+
+    -- return false IOT NOT fire the original bullet(s)
+    return false
+end)
 
 end
