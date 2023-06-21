@@ -66,13 +66,13 @@ net.Receive("PDM_ScoreUpdate", function()
     local ply_inc = false
     local max = #score > 4 and 4 or #score
     local name = LocalPlayer():GetName()
-    for i=1, #score, 1 do
+    for i=1, math.min(#score, 4), 1 do
         if score[i][1] == name then ply_inc = true end
         score4[i] = score[i]
     end
 
     if ply_inc == false then
-        score[1] = {name, LocalPlayer():GetNW2Int("Points")}
+        score4[4] = {name, LocalPlayer():GetNW2Int("Points")}
     end
 
     top4 = score4
