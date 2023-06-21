@@ -22,6 +22,7 @@ SWEP.UseHands = false
 SWEP.Primary.Ammo = "none"
 SWEP.Secondary.Ammo = "none"
 
+SWEP.TurretHealth = 200
 SWEP.DespTime = 60
 SWEP.PlaceRange = 150
 SWEP.MaxProps = 20
@@ -128,6 +129,29 @@ if SERVER then
 
 --[[### WEAPON LOGIC ###]]--
 
+function ENTITY:PDM_TurretDeath()
+    if not IsValid(self) then return end
+
+    self.Dying = true
+    self:Fire("SelfDestruct")
+
+    timer.Simple(4, function()
+        if not IsValid(self) then return end
+
+        local pos = self:GetPos()
+
+        self:EmitSound("BaseExplosionEffect.Sound")
+
+        local ef = EffectData()
+        ef:SetOrigin(pos)
+        ef:SetScale(0.75)
+        ef:SetMagnitude(1)
+        util.Effect("Explosion", ef)
+
+        util.BlastDamage(self, ply, pos, self.BlastRad, self.BlastDmg)
+    end)
+end
+
 function SWEP:PrimaryAttack()
     local ply = self:GetOwner()    
     ply:SetAnimation(PLAYER_ATTACK1)
@@ -140,6 +164,8 @@ function SWEP:PrimaryAttack()
     turret:Spawn()
     turret:SetMoveType(MOVETYPE_NONE)
 
+    turret:SetHealth(self.TurretHealth)
+    turret.PDM = true
     turret.NoPickup = true
     turret.MaxProps = self.MaxProps
     turret.Props = {}   --list of all props fired
@@ -148,29 +174,15 @@ function SWEP:PrimaryAttack()
     -- Don't attack the player placing this NPC
     turret:Fire("SetRelationship", ply:Nick() .. " D_LI 99")
 
+    --sound
     turret:EmitSound("physics/metal/metal_barrel_impact_soft1.wav")
     turret:EmitSound("k_lab.eyescanner_deploy")
 
+    --despawning
     turret.BlastDmg = self.DeathBlastDmg
     turret.BlastRad = self.DeathBlastRad
     timer.Simple(self.DespTime, function()
-        if not IsValid(turret) then return end
-
-        turret:Fire("SelfDestruct")
-
-        timer.Simple(4, function()
-            local pos = turret:GetPos()
-
-            turret:EmitSound("BaseExplosionEffect.Sound")
-
-            local ef = EffectData()
-            ef:SetOrigin(pos)
-            ef:SetScale(0.75)
-            ef:SetMagnitude(1)
-            util.Effect("Explosion", ef)
-
-            util.BlastDamage(turret, ply, pos, turret.BlastRad, turret.BlastDmg)
-        end)
+        turret:PDM_TurretDeath()
     end)
 
     self:Remove()
@@ -184,6 +196,21 @@ end
 
 --[[### HOOKS ###]]--
 
+--turrets normally do not process health
+--genuinely I do not think there is a better way to add this
+hook.Remove("EntityTakeDamage", "PDM_SentryHealth")
+hook.Add("EntityTakeDamage", "PDM_SentryHealth", function(ent, dmg)
+    if not (ent:GetClass() == "npc_turret_floor" and ent.PDM == true) then return end
+
+    local health = ent:Health() - dmg:GetDamage()
+    if health <= 0 and not ent.Dying then
+        ent:PDM_TurretDeath()
+    else
+        ent:SetHealth(health)
+    end
+end)
+
+--shoot props
 hook.Remove("EntityFireBullets", "PDM_SentryProps")
 hook.Add("EntityFireBullets", "PDM_SentryProps", function(wep, bullet)
     if not (wep:GetClass() == "npc_turret_floor") then return end
