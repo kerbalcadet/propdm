@@ -15,6 +15,9 @@ function PDM_SpawnHeli()
     heli:Fire("SetTrack", "heli_patrol_1")
     heli:Fire("physdamagescale", "1")
     heli:Fire("StartPatrol")
+
+    heli.MaxProps = 100
+    heli.Props = {}
 end
 
 hook.Remove("EntityFireBullets", "PDM_HeliProps")
@@ -53,10 +56,27 @@ hook.Add("EntityFireBullets", "PDM_HeliProps", function(wep, bullet)
         ent:SetCollisionGroup(COLLISION_GROUP_NONE)
     end)
 
+
     --despawning
-    timer.Simple(PDM_DESPTIME, function()
+    timer.Simple(2, function()
+        --only track number if they aren't immediately deleted 
+        if not wep.Props or not wep.MaxProps then return end
+        
+        if #wep.Props > wep.MaxProps then
+            local e = wep.Props[1]
+            if IsValid(e) then e:Dissolve(false, 1, ent:GetPos()) end
+        end
+    
+        table.remove(wep.Props, 1)
+        table.insert(wep.Props, ent)
+
+        --regular ol despawn timer
+        timer.Simple(PDM_DESPTIME, function()
         if IsValid(ent) then ent:Dissolve(false, 1, ent:GetPos()) end
     end)
+    end)
+
+
 
     -- return false IOT NOT fire the original bullet(s)
     return false
