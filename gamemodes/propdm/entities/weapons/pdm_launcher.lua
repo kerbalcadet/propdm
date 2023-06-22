@@ -11,13 +11,14 @@ SWEP.Weight = 5
 SWEP.SlotPos = 1
 
 SWEP.Spool = 0
-SWEP.SpoolTime = 1.2
+SWEP.SpoolTime = 1.3
 SWEP.Spooling = false
 SWEP.SpoolStart = 0
 
 SWEP.FireDelay = 2
 SWEP.LastFired = 0
 
+SWEP.Ready = false
 SWEP.Loaded = false
 SWEP.CoolDown = false
 
@@ -36,7 +37,7 @@ function SWEP:Initialize()
     self.SpoolSound = CreateSound(self, "vehicles/apc/apc_firstgear_loop1.wav")
     self.LoadSound = CreateSound(self, "garrysmod/balloon_pop_cute.wav")
     self.ShootSound = CreateSound(self, "weapons/rpg/rocketfire1.wav")
-    self.TrigSound = CreateSound(self, "weapons/ar2/ar2_empty.wav")
+    self.ReadySound = CreateSound(self, "buttons/button10.wav")
 end
 
 function SWEP:PrimaryAttack()
@@ -47,6 +48,25 @@ end
 
 function SWEP:OnRemove()
     self.SpoolSound:Stop()
+end
+
+function SWEP:Load()
+    self.Loaded = false
+
+    self:SendWeaponAnim(ACT_VM_RELOAD)
+    self:GetOwner():SetAnimation(PLAYER_RELOAD)
+
+    timer.Simple(0.9, function()
+        self.LoadSound:Stop()
+        self.LoadSound:Play()
+        self.LoadSound:ChangePitch(40)
+
+        self.Loaded = true
+    end)
+end
+
+function SWEP:Deploy()
+    if not self.Loaded then self:Load() end
 end
 
 function SWEP:Launch()
@@ -62,14 +82,15 @@ function SWEP:Launch()
     rkt:SetAngles(own:EyeAngles())
     rkt:Spawn()
 
+    self.ShootSound:Stop()
+    self.ShootSound:Play()
+
     self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
     own:SetAnimation(PLAYER_ATTACK1)
 
     timer.Simple(0.5, function()
         if not self then return end
-
-        self:SendWeaponAnim(ACT_VM_RELOAD)
-        own:SetAnimation(PLAYER_RELOAD)
+        self:Load()
     end)
 end
 
@@ -83,8 +104,6 @@ function SWEP:Think()
             self.Spooling = true
             self.SpoolStart = CurTime()
     
-            --self.TrigSound:Stop()
-            --self.TrigSound:Play()
             self:EmitSound("buttons/button4.wav")
             self.SpoolSound:Stop()
             self.SpoolSound:Play()
@@ -95,13 +114,10 @@ function SWEP:Think()
         self.Spool = math.Clamp(t/self.SpoolTime, 0, 1)
 
     else
-        if self.Loaded then
+        if self.Ready then
             if SERVER then self:Launch() end
 
-            self.ShootSound:Stop()
-            self.ShootSound:Play()
-
-            self.Loaded = false
+            self.Ready = false
             self.LastFired = CurTime()
         end
         
@@ -118,11 +134,13 @@ function SWEP:Think()
     local spool = self.Spool
     
     if spool == 0 then self.CoolDown = false
-    elseif spool == 1 and not self.Loaded and not self.CoolDown then
-        self.Loaded = true
-        self.LoadSound:Stop()
-        self.LoadSound:Play()
-        self.LoadSound:ChangePitch(40)
+    elseif spool == 1 and not self.Ready and not self.CoolDown then
+        if SERVER then
+            self.ReadySound:Stop()
+            self.ReadySound:Play()
+            self.ReadySound:ChangePitch(150)
+        end
+        self.Ready = true
     end
 
     self.SpoolSound:ChangeVolume(spool)
