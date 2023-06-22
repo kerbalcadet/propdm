@@ -10,7 +10,7 @@ SWEP.Slot = 5
 SWEP.Weight = 5
 SWEP.SlotPos = 1
 
-SWEP.RocketVel = 1500
+SWEP.RocketVel = 3000
 SWEP.GravRadius = 400
 SWEP.GravPower = 20*10^6
 SWEP.PlyWeight = 1200
@@ -57,10 +57,9 @@ end
 function SWEP:Launch()
     local own = self:GetOwner()
 
-    local aim = own:GetAimVector()
-    local gpos = own:GetPos()
-    local right = aim:Cross(Vector(0,0,1))
-    local pos = gpos
+    local epos = own:EyePos()
+    local eang = own:EyeAngles()
+    local pos, ang = LocalToWorld(Vector(25, -6, -1), Angle(), epos, eang)
 
     local rkt = ents.Create("sent_pdm_propket")
     rkt:SetOwner(own)
@@ -68,9 +67,15 @@ function SWEP:Launch()
     rkt:SetAngles(own:EyeAngles())
     rkt:Spawn()
 
-    local phys = rkt:GetPhysicsObject()
-    phys:SetVelocity(own:GetVelocity() + aim*self.RocketVel)
-    phys:SetAngleVelocity(Angle(0, 0, 100))
+    self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
+    own:SetAnimation(PLAYER_ATTACK1)
+
+    timer.Simple(0.5, function()
+        if not self then return end
+
+        self:SendWeaponAnim(ACT_VM_RELOAD)
+        own:SetAnimation(PLAYER_RELOAD)
+    end)
 end
 
 function SWEP:Think()
