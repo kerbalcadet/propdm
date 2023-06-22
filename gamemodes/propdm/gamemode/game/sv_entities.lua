@@ -35,22 +35,3 @@ function ENTITY:Dissolve(safe, type, pos)
         end)
     end
 end
-
-function PDM_SpawnHeli()
-    local HSpawn = ents.FindByClass("pdm_helispawn")[1]
-    local heli = ents.Create("npc_helicopter")
-
-    heli:SetPos(HSpawn:GetPos())
-    heli:SetHealth(100)
-    heli:SetKeyValue("InitialSpeed", "500")
-    heli:SetKeyValue("PatrolSpeed", "1000")
-    heli:SetKeyValue("ignoreunseenenemies", "yes")
-    --heli:AddFlags(1377028)
-    heli:SetKeyValue("spawnflags", "1377028")
-
-    heli:Spawn()
-    heli:Activate()
-    heli:Fire("SetTrack", "heli_patrol_1")
-    heli:Fire("physdamagescale", "1")
-    heli:Fire("StartPatrol")
-end
