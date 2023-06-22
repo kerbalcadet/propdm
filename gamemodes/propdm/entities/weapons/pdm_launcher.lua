@@ -10,13 +10,8 @@ SWEP.Slot = 5
 SWEP.Weight = 5
 SWEP.SlotPos = 1
 
-SWEP.RocketVel = 3000
-SWEP.GravRadius = 400
-SWEP.GravPower = 20*10^6
-SWEP.PlyWeight = 1200
-
 SWEP.Spool = 0
-SWEP.SpoolTime = 1.5
+SWEP.SpoolTime = 1.2
 SWEP.Spooling = false
 SWEP.SpoolStart = 0
 
@@ -40,8 +35,8 @@ function SWEP:Initialize()
     self:SetHoldType("rpg")
     self.SpoolSound = CreateSound(self, "vehicles/apc/apc_firstgear_loop1.wav")
     self.LoadSound = CreateSound(self, "garrysmod/balloon_pop_cute.wav")
-    self.ShootSound = CreateSound(self, "NPC_Combine.GrenadeLaunch")
-
+    self.ShootSound = CreateSound(self, "weapons/rpg/rocketfire1.wav")
+    self.TrigSound = CreateSound(self, "weapons/ar2/ar2_empty.wav")
 end
 
 function SWEP:PrimaryAttack()
@@ -83,11 +78,14 @@ function SWEP:Think()
     local lclick = own:KeyDown(IN_ATTACK)
     local t = CurTime() - self.LastFired
 
-    if lclick and not self.CoolDown and t > self.FireDelay then
+    if lclick and not self.CoolDown and (t > self.FireDelay) then
         if not self.Spooling then
             self.Spooling = true
             self.SpoolStart = CurTime()
     
+            --self.TrigSound:Stop()
+            --self.TrigSound:Play()
+            self:EmitSound("buttons/button4.wav")
             self.SpoolSound:Stop()
             self.SpoolSound:Play()
             self.SpoolSound:ChangePitch(255)
@@ -97,8 +95,8 @@ function SWEP:Think()
         self.Spool = math.Clamp(t/self.SpoolTime, 0, 1)
 
     else
-        if SERVER and self.Loaded then
-            self:Launch()
+        if self.Loaded then
+            if SERVER then self:Launch() end
 
             self.ShootSound:Stop()
             self.ShootSound:Play()
@@ -114,7 +112,7 @@ function SWEP:Think()
         end
 
         local t = CurTime() - self.SpoolStart
-        self.Spool = math.Clamp(1 - t, 0, 1)
+        self.Spool = math.Clamp(1 - t*3/4, 0, 1)
     end
 
     local spool = self.Spool
@@ -128,6 +126,6 @@ function SWEP:Think()
     end
 
     self.SpoolSound:ChangeVolume(spool)
-    if not self.Spooling then self.SpoolSound:ChangePitch(255 - (1-spool)*100) end
+    if not self.Spooling then self.SpoolSound:ChangePitch(255 - (1-spool)*200) end
 
 end

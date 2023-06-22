@@ -14,13 +14,15 @@ function ENT:Initialize()
     self:SetSolid(SOLID_VPHYSICS)
     self:DrawShadow(true)
 
-    self.Speed = 2000
+    self.RocketVel = self.RocketVel or 2000
     self.Mass = 10
     self.Gravity = 0.2
     self.Phys = self:GetPhysicsObject()
-    self.Phys:SetVelocity(self:GetForward()*self.Speed)
+    self.Phys:SetVelocity(self:GetForward()*self.RocketVel)
     self.Phys:SetMass(self.Mass)
     
+    self.ExpDmg = self.ExpDmg or 120
+    self.ExpRad = self.ExpRad or 400
     self.GravRadius = self.GravRadius or 400
     self.GravPower = self.GravPower or 20*10^6
     self.PlyWeight = self.PlyWeight or 1200
