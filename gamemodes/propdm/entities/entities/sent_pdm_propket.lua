@@ -103,7 +103,7 @@ function ENT:Explode()
     
     timer.Simple(self.PropDespTime, function()
         for _, p in pairs(props) do
-            if IsValid(p) then p:Dissolve(false, 1, p:GetPos()) end
+            if IsValid(p) then p:Dissolve(1, p:GetPos()) end
         end
     end)
 

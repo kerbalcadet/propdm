@@ -259,13 +259,13 @@ hook.Add("EntityFireBullets", "PDM_SentryProps", function(wep, bullet)
     table.insert(wep.Props, ent)
     if #wep.Props > wep.MaxProps then
         local e = wep.Props[1]
-        if IsValid(e) then e:Dissolve(false, 1, ent:GetPos()) end
+        if IsValid(e) then e:Dissolve(1, ent:GetPos()) end
 
         table.remove(wep.Props, 1)
     end
 
-    timer.Simple(PDM_DESPTIME, function()
-        if IsValid(ent) then ent:Dissolve(false, 1, ent:GetPos()) end
+    timer.Simple(GetConVar("pdm_despawntime"):GetInt(), function()
+        if IsValid(ent) then ent:Dissolve(1, ent:GetPos()) end
     end)
 
     -- return false IOT NOT fire the original bullet(s)

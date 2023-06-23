@@ -5,7 +5,7 @@ end)
 
 --dissolve ents in lightning
 local diss
-function ENTITY:Dissolve(safe, type, pos)                               
+function ENTITY:Dissolve(type, pos)                               
     if not IsValid(self) then return end
 
     local targ
@@ -27,11 +27,4 @@ function ENTITY:Dissolve(safe, type, pos)
     diss:SetKeyValue("dissolvetype", t)
     targ:SetName("dissolveme")
     diss:Fire("Dissolve")
-
-
-    if safe then
-        timer.Create(tostring(targ).."diss", PDM_DESPTIME, 1, function()       --remove cars and such without explosion
-            if IsValid(targ) then targ:Remove() end
-        end)
-    end
 end
