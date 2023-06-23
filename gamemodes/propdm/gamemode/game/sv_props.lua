@@ -7,6 +7,17 @@ function PDM_PropFromTable(tab, pos)
     return ent
 end
 
+function PDM_PropInfo(mdl)
+    local info = util.GetModelInfo(mdl)
+    if not info.KeyValues then return false end
+
+    local tab = util.KeyValuesToTable(info.KeyValues)
+    local mass = tab.editparams.totalmass
+    local vol = tab.solid.volume
+
+    return mass, vol, tab
+end
+
 function PDM_FireProp(tab, pos, ang, vel, avel)
     local ent = PDM_PropFromTable(tab, pos)
     local phys = ent:GetPhysicsObject()
@@ -18,6 +29,21 @@ function PDM_FireProp(tab, pos, ang, vel, avel)
     phys:SetAngleVelocity(avel or Angle(0, 0, 0))
 
     return ent
+end
+
+function PDM_PropExplode(table, pos, vel)
+    local props = {}
+    for _, tab in pairs(table) do
+        local new = PDM_FireProp(tab, pos, AngleRand(), vel, VectroRand()*100)
+        new:SetCollisionGroup(COLLISION_GROUP_WORLD)
+        table.insert(props, new)
+    end
+
+    timer.Simple(0.1, function()
+        for _, p in pairs(props) do
+            p:SetCollisionGroup(COLLISION_GROUP_NONE)
+        end
+    end)
 end
 
 --properly attribute prop damage
