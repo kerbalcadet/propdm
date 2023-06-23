@@ -57,6 +57,8 @@ function SWEP:Load()
     self:GetOwner():SetAnimation(PLAYER_RELOAD)
 
     timer.Simple(0.9, function()
+        if not IsValid(self) then return end
+        
         self.LoadSound:Stop()
         self.LoadSound:Play()
         self.LoadSound:ChangePitch(40)
