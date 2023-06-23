@@ -24,7 +24,7 @@ SWEP.CoolDown = false
 
 SWEP.Primary.ClipSize = 1
 SWEP.Primary.Ammo = "rpg_round"
-SWEP.DefaultClip = 3
+SWEP.Primary.DefaultClip = 3
 SWEP.Automatic = false
 
 SWEP.Secondary.ClipSize = -1
@@ -52,10 +52,8 @@ end
 
 function SWEP:Load()
     self.Loaded = false
-
-    self:SendWeaponAnim(ACT_VM_RELOAD)
-    self:GetOwner():SetAnimation(PLAYER_RELOAD)
-
+    self:Reload()
+    
     timer.Simple(0.9, function()
         if not IsValid(self) then return end
 
@@ -86,6 +84,8 @@ function SWEP:Launch()
 
     self.ShootSound:Stop()
     self.ShootSound:Play()
+
+    self:TakePrimaryAmmo(1)
 
     self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
     own:SetAnimation(PLAYER_ATTACK1)
