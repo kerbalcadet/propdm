@@ -31,8 +31,8 @@ function ENT:Initialize()
     self.ExpDmg = self.ExpDmg or 200
     self.ExpRad = self.ExpRad or 100
     self.GravRadius = self.GravRadius or 400
-    self.GravPower = self.GravPower or 60*10^6
-    self.PlyWeight = self.PlyWeight or 1200
+    self.GravPower = self.GravPower or 30*10^6
+    self.PlyWeight = self.PlyWeight or 2000
 
     self.PropDespTime = 15
     
