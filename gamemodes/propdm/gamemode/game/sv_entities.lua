@@ -1,5 +1,7 @@
 --disable self damage
 hook.Add("PlayerShouldTakeDamage", "disableselfdamage", function(ply,att)
+    if not IsValid(ply) or not IsValid(att) then return end
+    
     if ply == att && ply:GetActiveWeapon():GetClass() == "weapon_pdm_crowbar" then return false end
 end)
 
