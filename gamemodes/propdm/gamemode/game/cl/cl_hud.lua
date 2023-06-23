@@ -2,11 +2,11 @@
 surface.CreateFont("Score32", { font = "CloseCaption_Bold", size = 32})
 surface.CreateFont("Score24", { font = "Trebuchet24", size = 24})
 surface.CreateFont("Points48", { font = "CloseCaption_Bold", size = 48})
+surface.CreateFont("RoundStart", { font = "Roboto Mono", size = 80, weight = 1000})
+surface.CreateFont("RoundStartSub", {font = "Roboto Mono", size = 36, weight = 1000})
 
 local ScoreBoxCol = Color(255, 255, 255, 50)
 local White = Color(255,255,255)
-local YellowPts = Color(253, 240, 92)
-local YellowKS = Color(253, 240, 92)
 
 local w = ScrW()
 local h = ScrH()
@@ -34,6 +34,7 @@ local Box24 = {
 }
 
 --points ui
+local YellowPts = Color(253, 240, 92)
 local pts_fadestart = 1
 local pts_fadetime = 1
 local pts_stime = 0
@@ -44,11 +45,20 @@ local top4 = {}
 local voffset = 200  --slightly forgot that the ui still occupies the corners
 
 --killstreak message
+local YellowKS = Color(253, 240, 92)
 local ks_fadein = 0.5
 local ks_fadestart = 2
 local ks_fadetime = 1
 local ks_stime = 0
 local ks_txt = ""
+
+--round start 
+local GreenRS = Color(135, 240, 95)
+local rs_fadein = 0.5
+local rs_fadestart = 5
+local rs_fadetime = 1
+local rs_stime = -1000
+local rs_numkills = 30
 
 
 --###### NET MESSAGES ########
@@ -80,17 +90,28 @@ net.Receive("PDM_ScoreUpdate", function()
     top4 = score4
 end)
 
-hook.Remove("InitPostEntity", "PDM_RequestScore")
-hook.Add("InitPostEntity", "PDM_RequestScore", function()
-    net.Start("PDM_RequestScoreUpdate")
-    net.SendToServer()
+net.Receive("PDM_RoundStart", function()
+    rs_stime = CurTime()
+    rs_numkills = net.ReadInt(16)
 end)
+
+--somehow the best way to do a real client init
+hook.Remove("HUDPaint", "PDM_InitPlayer")
+hook.Add("HUDPaint", "PDM_InitPlayer", function()
+    net.Start("PDM_RequestInitDetails")
+    net.SendToServer()
+
+    hook.Remove("HUDPaint", "PDM_InitPlayer")
+end)
+
 
 net.Receive("PDM_Killstreak", function()
     ks_txt = net.ReadString()
     ks_stime = CurTime()
     surface.PlaySound("npc/dog/dog_playfull5.wav")
 end)
+
+
 
 --######## ACTUAL HUD RENDERING #######
 
@@ -217,6 +238,41 @@ local function PDMHud()
 
         draw.DrawText(txt2)
         draw.TextShadow(txt2, 2, y.a)
+    end
+
+    --### Round Start ###--
+
+    surface.SetFont("RoundStart48")
+    local t = CurTime() - rs_stime
+
+    if t < (rs_fadein + rs_fadestart + rs_fadetime) then
+        local c = GreenRS
+        
+        if t < rs_fadein then
+            c.a = 150*t/rs_fadein
+        elseif t > rs_fadestart then
+            c.a = 150*(1 - (t - rs_fadestart)/rs_fadetime)
+        else
+            c.a = 150
+        end
+
+        local txt = {text = "Free For All",
+        font = "RoundStart",
+        pos = {w/2, h*1/4},
+        xalign = 1,
+        yalign = 1,
+        color = c
+        }
+
+        draw.DrawText(txt)
+        draw.TextShadow(txt, 5, c.a)
+
+        txt.text = rs_numkills.." kills to win"
+        txt.pos = {w/2, h/4 + 64 + 5}
+        txt.font = "RoundStartSub"
+
+        draw.DrawText(txt)
+        draw.TextShadow(txt, 2, c.a)
     end
 end
 
