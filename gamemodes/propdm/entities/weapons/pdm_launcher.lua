@@ -11,7 +11,7 @@ SWEP.Weight = 5
 SWEP.SlotPos = 1
 
 SWEP.Spool = 0
-SWEP.SpoolTime = 1.3
+SWEP.SpoolTime = 1.2
 SWEP.Spooling = false
 SWEP.SpoolStart = 0
 
@@ -89,7 +89,7 @@ function SWEP:Launch()
     own:SetAnimation(PLAYER_ATTACK1)
 
     timer.Simple(0.5, function()
-        if not self then return end
+        if not IsValid(self) then return end
         self:Load()
     end)
 end

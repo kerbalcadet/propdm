@@ -12,13 +12,13 @@ function PDM_PropInfo(mdl)
     if not info.KeyValues then return false end
 
     local tab = util.KeyValuesToTable(info.KeyValues)
-    local mass = tab.editparams.totalmass
-    local vol = tab.solid.volume
+    local mass = tab.editparams.totalmass or nil
+    local vol = tab.solid.volume or nil
 
     return mass, vol, tab
 end
 
-function PDM_FireProp(tab, pos, ang, vel, avel)
+function PDM_FireProp(tab, pos, ang, vel, avel, att)
     local ent = PDM_PropFromTable(tab, pos)
     local phys = ent:GetPhysicsObject()
 
@@ -28,23 +28,37 @@ function PDM_FireProp(tab, pos, ang, vel, avel)
     phys:SetVelocity(vel or Vector(0, 0, 0))
     phys:SetAngleVelocity(avel or Angle(0, 0, 0))
 
+    ent.Attacker = att
+
     return ent
 end
 
-function PDM_PropExplode(table, pos, vel)
+function PDM_PropExplode(tabs, pos, vel, normal, att)
     local props = {}
-    for _, tab in pairs(table) do
-        local new = PDM_FireProp(tab, pos, AngleRand(), vel, VectroRand()*100)
-        new:SetCollisionGroup(COLLISION_GROUP_WORLD)
+    for _, tab in pairs(tabs) do
+        local ar = AngleRand()
+        local vr = VectorRand()
+
+        --keep vector in same hemisphere as normal
+        local dot = vr:Dot(normal)
+        if dot < 0 then vr = vr - dot*2*normal end
+
+        local new = PDM_FireProp(tab, pos + normal*100, ar, vel*vr, vr*100, att)
+        new:SetCollisionGroup(COLLISION_GROUP_INTERACTIVE)
         table.insert(props, new)
     end
 
     timer.Simple(0.1, function()
         for _, p in pairs(props) do
-            p:SetCollisionGroup(COLLISION_GROUP_NONE)
+            if IsValid(p) then p:SetCollisionGroup(COLLISION_GROUP_NONE) end
         end
     end)
 end
+
+hook.Remove("ShouldCollide", "PDM_PropExplode")
+hook.Add("ShouldCollide", "PDM_PropExplode", function()
+    
+end)
 
 --properly attribute prop damage
 hook.Remove("EntityTakeDamage", "PDM_PropDamage")
