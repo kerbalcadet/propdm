@@ -1,4 +1,5 @@
 function RoundStart()
+    game.CleanUpMap()
 
     for _, p in pairs(player.GetAll()) do
         p:Spawn()
@@ -7,9 +8,14 @@ function RoundStart()
     end
 
     PDM_ScoreUpdate()
-
     PDM_SpawnHeli()
+
+    --to write round start message on clients 
+    net.Start("PDM_RoundStart")
+        net.WriteInt(PDM_KILLGOAL:GetInt(), 16)
+    net.Broadcast()
 end
+concommand.Add("pdm_roundstart", RoundStart)
 
 hook.Remove("PlayerDeath", "PDM_PlayerDeath")
 hook.Add("PlayerDeath", "PDM_PlayerDeath", function(vic, inf, att)

@@ -58,7 +58,7 @@ local rs_fadein = 0.5
 local rs_fadestart = 5
 local rs_fadetime = 1
 local rs_stime = -1000
-local rs_numkills = 30
+local rs_numkills = 0
 
 
 --###### NET MESSAGES ########
