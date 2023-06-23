@@ -196,10 +196,7 @@ function SWEP:Throw(fuse, vel)
     local ammo = own:GetAmmoCount("grenade")
     if ammo + clip <= 0 then
         self:Remove()
-        
-        local lastwep = own:GetPreviousWeapon()
-        local wep = IsValid(lastwep) and lastwep or own:GetWeapons()[1]
-        if wep then own:SelectWeapon(wep:GetClass()) end
+        own:SwitchLastWeapon()
     else
         self:SetClip1(1)
         own:SetAmmo(ammo - 1, "grenade")

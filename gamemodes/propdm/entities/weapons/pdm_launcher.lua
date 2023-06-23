@@ -40,29 +40,67 @@ function SWEP:Initialize()
     self.ReadySound = CreateSound(self, "buttons/button10.wav")
 end
 
+if CLIENT then
+
+local dropmdl = SWEP.WorldModel
+local function DropRPG()
+    local own = LocalPlayer()
+    local prop = ents.CreateClientProp(dropmdl)
+    local ea = own:EyeAngles()
+    local ep = own:GetShootPos()
+    local offset = Vector(7, -7, -6)
+    local pos, ang = LocalToWorld(offset, Angle(0,180,0), ep, ea)
+    prop:SetPos(pos)
+    prop:SetAngles(ang)
+    prop:Spawn()
+
+    timer.Simple(5, function()
+        if IsValid(prop) then prop:Remove() end
+    end)
+end
+net.Receive("PDM_DropRPG", DropRPG)
+
+end
+
+
+
 function SWEP:PrimaryAttack()
 end
 
 function SWEP:SecondaryAttack()
 end
 
+
+if SERVER then
+
 function SWEP:OnRemove()
     self.SpoolSound:Stop()
 end
 
+util.AddNetworkString("PDM_DropRPG")
 function SWEP:Load()
     self.Loaded = false
-    self:Reload()
+    local own = self:GetOwner()
+
+    if own:GetAmmoCount(self.Primary.Ammo) > 0 then
+        self:Reload()
     
-    timer.Simple(0.9, function()
-        if not IsValid(self) then return end
+        timer.Simple(0.9, function()
+            if not IsValid(self) then return end
 
-        self.LoadSound:Stop()
-        self.LoadSound:Play()
-        self.LoadSound:ChangePitch(40)
+            self.LoadSound:Stop()
+            self.LoadSound:Play()
+            self.LoadSound:ChangePitch(40)
 
-        self.Loaded = true
-    end)
+            self.Loaded = true
+        end)
+    else
+        self:Remove()
+        own:SwitchLastWeapon()
+        
+        net.Start("PDM_DropRPG")
+        net.Send(own)
+    end
 end
 
 function SWEP:Deploy()
@@ -89,19 +127,15 @@ function SWEP:Launch()
 
     self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
     own:SetAnimation(PLAYER_ATTACK1)
-
-    timer.Simple(0.5, function()
-        if not IsValid(self) then return end
-        self:Load()
-    end)
 end
+
 
 function SWEP:Think()
     local own = self:GetOwner()
     local lclick = own:KeyDown(IN_ATTACK)
     local t = CurTime() - self.LastFired
 
-    if lclick and not self.CoolDown and (t > self.FireDelay) then
+    if lclick and not self.CoolDown and (t > self.FireDelay) and self.Loaded then
         if not self.Spooling then
             self.Spooling = true
             self.SpoolStart = CurTime()
@@ -117,7 +151,12 @@ function SWEP:Think()
 
     else
         if self.Ready then
-            if SERVER then self:Launch() end
+            self:Launch()
+
+            timer.Simple(0.5, function()
+                if not IsValid(self) then return end
+                self:Load()
+            end)
 
             self.Ready = false
             self.LastFired = CurTime()
@@ -137,15 +176,16 @@ function SWEP:Think()
     
     if spool == 0 then self.CoolDown = false
     elseif spool == 1 and not self.Ready and not self.CoolDown then
-        if SERVER then
-            self.ReadySound:Stop()
-            self.ReadySound:Play()
-            self.ReadySound:ChangePitch(150)
-        end
+        self.ReadySound:Stop()
+        self.ReadySound:Play()
+        self.ReadySound:ChangePitch(150)
+        
         self.Ready = true
     end
 
     self.SpoolSound:ChangeVolume(spool)
     if not self.Spooling then self.SpoolSound:ChangePitch(255 - (1-spool)*200) end
+
+end
 
 end

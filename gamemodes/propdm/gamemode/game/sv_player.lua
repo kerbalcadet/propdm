@@ -43,6 +43,13 @@ function GM:PlayerSpawn(ply)
     end)
 end
 
+function PLAYER:SwitchLastWeapon()
+    local lastwep = self:GetPreviousWeapon()
+    local wep = IsValid(lastwep) and lastwep or self:GetWeapons()[1]
+
+    if wep then self:SelectWeapon(self:GetClass()) end
+end
+
 hook.Remove("PlayerDeath", "remove_nadetimer")
 hook.Add("PlayerDeath", "remove_nadetimer", function(ply)
     timer.Remove(tostring(ply).."_givenade")
