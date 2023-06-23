@@ -26,12 +26,12 @@ function ENT:Initialize()
     self.PropExpMaxN = 20   --max number in exp
     self.PropExpMinVol = 5000
     self.PropExpMaxVol = 35000 --volume per prop
-    self.PropExpVel = 2000
+    self.PropExpVel = 4000
 
     self.ExpDmg = self.ExpDmg or 200
-    self.ExpRad = self.ExpRad or 300
+    self.ExpRad = self.ExpRad or 100
     self.GravRadius = self.GravRadius or 400
-    self.GravPower = self.GravPower or 20*10^6
+    self.GravPower = self.GravPower or 60*10^6
     self.PlyWeight = self.PlyWeight or 1200
 
     self.PropDespTime = 15

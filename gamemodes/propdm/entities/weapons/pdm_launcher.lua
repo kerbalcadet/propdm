@@ -6,7 +6,7 @@ SWEP.WorldModel = "models/weapons/w_rocket_launcher.mdl"
 SWEP.ViewModel = "models/weapons/c_rpg.mdl"
 SWEP.UseHands = true
 
-SWEP.Slot = 5
+SWEP.Slot = 3
 SWEP.Weight = 5
 SWEP.SlotPos = 1
 
