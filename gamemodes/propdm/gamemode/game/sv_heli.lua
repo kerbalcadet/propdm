@@ -16,7 +16,7 @@ function PDM_SpawnHeli()
     heli:Fire("physdamagescale", "1")
     heli:Fire("StartPatrol")
 
-    heli.MaxProps = 100
+    heli.MaxProps = GetConVar("pdm_maxprops"):GetInt()
     heli.Props = {}
 end
 
