@@ -42,6 +42,12 @@ end
 
 if CLIENT then
 
+local col = Color(255,240,50)
+function SWEP:DrawWeaponSelection(x, y, width, height)
+    draw.SimpleText("i", "hl2b", x + width/2, y + height/2, col, 1, 1)
+    draw.SimpleText("i", "hl2f", x + width/2, y + height/2, col, 1, 1)
+end
+
 local dropmdl = SWEP.WorldModel
 local function DropRPG()
     local own = LocalPlayer()
@@ -53,6 +59,8 @@ local function DropRPG()
     prop:SetPos(pos)
     prop:SetAngles(ang)
     prop:Spawn()
+
+    own:EmitSound("weapons/slam/throw.wav")
 
     timer.Simple(5, function()
         if IsValid(prop) then prop:Remove() end
