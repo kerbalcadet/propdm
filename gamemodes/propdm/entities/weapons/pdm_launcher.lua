@@ -19,7 +19,7 @@ SWEP.FireDelay = 2
 SWEP.LastFired = 0
 
 SWEP.Ready = false
-SWEP.Loaded = false
+SWEP.Loaded = true
 SWEP.CoolDown = false
 
 SWEP.Primary.ClipSize = 1
@@ -78,15 +78,19 @@ function SWEP:OnRemove()
 end
 
 util.AddNetworkString("PDM_DropRPG")
-function SWEP:Load()
+function SWEP:TestLoad()
     self.Loaded = false
     local own = self:GetOwner()
 
     if own:GetAmmoCount(self.Primary.Ammo) > 0 then
-        self:Reload()
+        --for some reason default reload() function pauses "think"
+        self:SendWeaponAnim(ACT_VM_RELOAD)
+        own:SetAnimation(PLAYER_RELOAD)
     
         timer.Simple(0.9, function()
             if not IsValid(self) then return end
+            self:SetClip1(1)
+            own:RemoveAmmo(1, self.Primary.Ammo)
 
             self.LoadSound:Stop()
             self.LoadSound:Play()
@@ -101,10 +105,6 @@ function SWEP:Load()
         net.Start("PDM_DropRPG")
         net.Send(own)
     end
-end
-
-function SWEP:Deploy()
-    if not self.Loaded then self:Load() end
 end
 
 function SWEP:Launch()
@@ -155,7 +155,7 @@ function SWEP:Think()
 
             timer.Simple(0.5, function()
                 if not IsValid(self) then return end
-                self:Load()
+                self:TestLoad()
             end)
 
             self.Ready = false
@@ -186,6 +186,8 @@ function SWEP:Think()
     self.SpoolSound:ChangeVolume(spool)
     if not self.Spooling then self.SpoolSound:ChangePitch(255 - (1-spool)*200) end
 
+    self:NextThink(CurTime())
+    return true
 end
 
 end
