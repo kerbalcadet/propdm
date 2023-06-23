@@ -33,6 +33,8 @@ function ENT:Initialize()
     self.GravRadius = self.GravRadius or 400
     self.GravPower = self.GravPower or 20*10^6
     self.PlyWeight = self.PlyWeight or 1200
+
+    self.PropDespTime = 15
     
     self.Owner = self:GetOwner()
     self.Filter = {self.Owner, self}
@@ -69,6 +71,13 @@ function ENT:Explode()
     ef:SetMagnitude(1)
     util.Effect("Explosion", ef)
 
+    --normal explosions
+    local own = self:GetOwner()
+    local pos = self:GetPos()
+    util.BlastDamage(self, own, pos, self.ExpRad, self.ExpDmg)
+    PDM_GravExplode(pos, self.GravRadius, self.GravPower, 5, self.PlyWeight, own)
+
+
     --prop explosion
     local props = {}
     local w = 0
@@ -90,15 +99,15 @@ function ENT:Explode()
         end
     end
 
-    PDM_PropExplode(props, self:GetPos(), self.PropExpVel, -self:GetForward(), self:GetOwner())
-
-    --other explosions
-    local own = self:GetOwner()
-    local pos = self:GetPos()
-    util.BlastDamage(self, own, pos, self.ExpRad, self.ExpDmg)
-    PDM_GravExplode(pos, self.GravRadius, self.GravPower, 5, self.PlyWeight, own)
-
+    local props = PDM_PropExplode(props, self:GetPos(), self.PropExpVel, -self:GetForward(), self:GetOwner())
     
+    timer.Simple(self.PropDespTime, function()
+        for _, p in pairs(props) do
+            if IsValid(p) then p:Dissolve(false, 1, p:GetPos()) end
+        end
+    end)
+
+
     self.ExpSound:Play()
     self.RocketSound:Stop()
     self.Exploded = true

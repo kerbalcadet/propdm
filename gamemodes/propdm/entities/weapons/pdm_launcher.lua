@@ -24,7 +24,7 @@ SWEP.CoolDown = false
 
 SWEP.Primary.ClipSize = 1
 SWEP.Primary.Ammo = "rpg_round"
-SWEP.DefaultClip = 1
+SWEP.DefaultClip = 3
 SWEP.Automatic = false
 
 SWEP.Secondary.ClipSize = -1
@@ -58,7 +58,7 @@ function SWEP:Load()
 
     timer.Simple(0.9, function()
         if not IsValid(self) then return end
-        
+
         self.LoadSound:Stop()
         self.LoadSound:Play()
         self.LoadSound:ChangePitch(40)

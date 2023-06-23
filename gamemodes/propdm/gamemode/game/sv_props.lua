@@ -53,6 +53,8 @@ function PDM_PropExplode(tabs, pos, vel, normal, att)
             if IsValid(p) then p:SetCollisionGroup(COLLISION_GROUP_NONE) end
         end
     end)
+
+    return props
 end
 
 hook.Remove("ShouldCollide", "PDM_PropExplode")
