@@ -71,7 +71,7 @@ hook.Add("EntityFireBullets", "PDM_HeliProps", function(wep, bullet)
         table.insert(wep.Props, ent)
 
         --regular ol despawn timer
-        timer.Simple(GetConVar("pdm_despawntime"):GetInt(), function()
+        timer.Simple(PDM_DESPTIME:GetInt(), function()
         if IsValid(ent) then ent:Dissolve(1, ent:GetPos()) end
     end)
     end)

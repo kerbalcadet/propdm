@@ -264,7 +264,7 @@ hook.Add("EntityFireBullets", "PDM_SentryProps", function(wep, bullet)
         table.remove(wep.Props, 1)
     end
 
-    timer.Simple(GetConVar("pdm_despawntime"):GetInt(), function()
+    timer.Simple(PDM_DESPTIME:GetInt(), function()
         if IsValid(ent) then ent:Dissolve(1, ent:GetPos()) end
     end)
 
