@@ -69,7 +69,7 @@ function ENT:Explode()
     ef:SetMagnitude(1)
     util.Effect("Explosion", ef)
 
-    --prop explosions
+    --prop explosion
     local props = {}
     local w = 0
     local n = 0
@@ -92,7 +92,13 @@ function ENT:Explode()
 
     PDM_PropExplode(props, self:GetPos(), self.PropExpVel, -self:GetForward(), self:GetOwner())
 
+    --other explosions
+    local own = self:GetOwner()
+    local pos = self:GetPos()
+    util.BlastDamage(self, own, pos, self.ExpRad, self.ExpDmg)
+    PDM_GravExplode(pos, self.GravRadius, self.GravPower, 5, self.PlyWeight, own)
 
+    
     self.ExpSound:Play()
     self.RocketSound:Stop()
     self.Exploded = true
