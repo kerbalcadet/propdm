@@ -237,12 +237,10 @@ hook.Add("EntityFireBullets", "PDM_SentryProps", function(wep, bullet)
     local tab = {}
     for i=1,10 do
         tab = table.Random(PDM_PROPS)
-
-        local info = util.GetModelInfo(tab.model)
-        if not info.KeyValues then continue end
-
-        local kv = util.KeyValuesToTable(info.KeyValues)
-        if kv.editparams.totalmass < maxw and kv.solid.volume < maxv then break end
+        local mass, vol = PDM_PropInfo(tab.model)
+        if not mass or not vol then continue end
+        
+        if mass < maxw and vol < maxv then break end
     end
 
     --actually shoot it out 
