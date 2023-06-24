@@ -9,21 +9,17 @@ function GM:PlayerInitialSpawn(ply)
 end
 
 function GM:PlayerSpawn(ply)
-    ply:StripWeapons()
-    ply:StripAmmo()
-    ply:Give("pdm_crowbar")
-    ply:Give("pdm_kirby")
-    ply:Give("pdm_nade")
+
     ply:SetModel("models/player/hostage/hostage_04.mdl")
     --ply:SetModel("models/player/combine_super_soldier.mdl")
     ply:SetupHands()
     ply:SetWalkSpeed(200)
     ply:SetRunSpeed(400)
-    
+
+    ply:PDM_GiveDefaultWeapons()
     ply:SetNW2Int("Streak", 0)
 
     local col = team.GetColor(ply:Team())
-    --local cvec = Vector(col.r/255, col.g/255, col.b/255)
     ply:SetColor(col)
 
     local title = tostring(ply).."_givenade"
@@ -41,6 +37,14 @@ function GM:PlayerSpawn(ply)
             ply:GiveAmmo(1, "Grenade", false)
     end
     end)
+end
+
+function PLAYER:PDM_GiveDefaultWeapons()
+    self:StripWeapons()
+    self:StripAmmo()
+    self:Give("pdm_crowbar")
+    self:Give("pdm_kirby")
+    self:Give("pdm_nade")
 end
 
 function PLAYER:SwitchLastWeapon()

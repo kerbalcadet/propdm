@@ -5,6 +5,7 @@ function RoundStart()
 
     for _, p in pairs(player.GetAll()) do
         p:SetMoveType(MOVETYPE_WALK)
+        p:PDM_GiveDefaultWeapons()
     end
 end
 concommand.Add("pdm_roundstart", RoundStart)
@@ -35,6 +36,7 @@ function RoundTimer()
 
         --freeze plys
         p:SetMoveType(MOVETYPE_NONE)
+        p:StripWeapons()
     end
 
     timer.Simple(delay, function()
