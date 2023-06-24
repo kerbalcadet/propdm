@@ -4,6 +4,7 @@ surface.CreateFont("Score24", { font = "Trebuchet24", size = 24})
 surface.CreateFont("Points48", { font = "CloseCaption_Bold", size = 48})
 surface.CreateFont("RoundStart", { font = "Roboto Mono", size = 80, weight = 1000})
 surface.CreateFont("RoundStartSub", {font = "Roboto Mono", size = 36, weight = 1000})
+surface.CreateFont("Timer", { font = "CloseCaption_Bold", size = 48})
 
 local ScoreBoxCol = Color(255, 255, 255, 100)
 local White = Color(255,255,255)
@@ -61,6 +62,10 @@ local rs_stime = -1000
 local rs_txt = ""
 local rs_sub = ""
 
+--timer
+local t_stime = -1000
+local t_etime = -1000
+
 
 --###### NET MESSAGES ########
 
@@ -95,6 +100,9 @@ net.Receive("PDM_RoundStart", function()
     rs_stime = CurTime()
     rs_txt = "Free For All"
     rs_sub = net.ReadInt(16).." kills to win"
+
+    t_stime = net.ReadInt(16)
+    t_etime = net.ReadInt(16)
 end)
 
 net.Receive("PDM_RoundEnd", function()
@@ -280,7 +288,24 @@ local function PDMHud()
 
         draw.DrawText(txt)
         draw.TextShadow(txt, 2, c.a)
+        
     end
+
+    --### Round Start Timer ###--
+
+    local t = CurTime()
+    if t > t_stime and t < t_etime then
+        local txt = {text = math.ceil(t_etime - t),
+        font = "Timer",
+        pos = {w/2, h*3/8},
+        xalign = 1,
+        yalign = 1,
+        color = White
+        }
+
+        draw.Text(txt)
+    end
+
 end
 
 hook.Remove("HUDPaint", "PDMHud")

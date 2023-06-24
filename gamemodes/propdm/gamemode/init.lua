@@ -26,3 +26,4 @@ function GM:InitPostEntity()
 
     RoundTimer()
 end
+concommand.Add("pdm_reset", GAMEMODE.InitPostEntity)

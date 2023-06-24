@@ -9,7 +9,6 @@ function RoundStart()
     end
 end
 concommand.Add("pdm_roundstart", RoundStart)
-concommand.Add("pdm_reset", GAMEMODE.InitPostEntity)
 
 PDM_ROUNDSTART = 0
 function RoundTimer()
@@ -20,6 +19,7 @@ function RoundTimer()
     --write round start message on clients 
     net.Start("PDM_RoundStart")
         net.WriteInt(PDM_KILLGOAL:GetInt(), 16)
+        net.WriteInt(CurTime(), 16)
         net.WriteInt(t, 16)
     net.Broadcast()
 
