@@ -24,6 +24,5 @@ function GM:InitPostEntity()
         util.PrecacheModel(ent.model)
     end
 
-    game.CleanUpMap()
     RoundStart()
 end

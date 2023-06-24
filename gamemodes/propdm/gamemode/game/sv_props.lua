@@ -33,15 +33,21 @@ function PDM_FireProp(tab, pos, ang, vel, avel, att)
     return ent
 end
 
-function PDM_PropExplode(tabs, pos, vel, normal, att)
+function PDM_PropExplode(tabs, pos, vel, normal, maxang, att)
+
     local props = {}
     for _, tab in pairs(tabs) do
         local ar = AngleRand()
-        local vr = VectorRand()
 
-        --keep vector in same hemisphere as normal
+        --create vector within max vertical angle
+        local a = AngleRand()
+        a.p = math.random(-maxang, maxang)
+        local vr = a:Forward()
+
+        --make sure it's firing in the same hemisphere as the normal
+        --pass (0,0,0) to normal if you want to have a spherical-ish explosion
         local dot = vr:Dot(normal)
-        if dot < 0 then vr = vr - dot*2*normal end
+        if dot < 0 then vr = vr + 2*dot*normal end
 
         local new = PDM_FireProp(tab, pos + normal*100, ar, vel*vr, vr*100, att)
         new:SetCollisionGroup(COLLISION_GROUP_INTERACTIVE)
@@ -65,6 +71,7 @@ end)
 --properly attribute prop damage
 hook.Remove("EntityTakeDamage", "PDM_PropDamage")
 hook.Add("EntityTakeDamage", "PDM_PropDamage", function(ent, dmg)
+    if not IsValid(ent) then return end
 	if not ent:IsPlayer() or not (dmg:GetInflictor():GetClass() == "prop_physics") then return end
 	
 	local inf = dmg:GetInflictor()

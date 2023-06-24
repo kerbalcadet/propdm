@@ -27,6 +27,7 @@ function ENT:Initialize()
     self.PropExpMinVol = 5000
     self.PropExpMaxVol = 35000 --volume per prop
     self.PropExpVel = 4000
+    self.PropExpAng = 35    --maximum vertical angle (0 = completely sideways, 90 = all the way upward)
 
     self.ExpDmg = self.ExpDmg or 200
     self.ExpRad = self.ExpRad or 100
@@ -99,7 +100,8 @@ function ENT:Explode()
         end
     end
 
-    local props = PDM_PropExplode(props, self:GetPos(), self.PropExpVel, -self:GetForward(), self:GetOwner())
+    local normal = tr.HitWorld and tr.HitNormal or Vector(0,0,0)
+    local props = PDM_PropExplode(props, self:GetPos(), self.PropExpVel, tr.HitNormal, self.PropExpAng, self:GetOwner())
     
     timer.Simple(self.PropDespTime, function()
         for _, p in pairs(props) do
