@@ -25,6 +25,7 @@ function RoundTimer()
 
     --actual round cleanup/player init
     game.CleanUpMap()
+    game.SetTimeScale(1)
     for _, e in pairs(ents.GetAll()) do
         e.Map = true
     end
@@ -50,7 +51,11 @@ function RoundEnd(winner)
         net.WriteString(winner:Nick())
     net.Broadcast()
 
-    timer.Simple(PDM_TIMEAFTERROUND:GetInt(), RoundTimer)
+    timer.Simple(0.1, function()
+        local slomo = PDM_SLOMO:GetInt()/100
+        game.SetTimeScale(slomo)
+        timer.Simple(PDM_TIMEAFTERROUND:GetInt()*slomo, RoundTimer)
+    end)
 end
 
 hook.Remove("PlayerDeath", "PDM_PlayerDeath")

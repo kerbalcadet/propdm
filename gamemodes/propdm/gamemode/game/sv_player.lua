@@ -101,6 +101,6 @@ net.Receive("PDM_RequestInitDetails", function(len, ply)
 
     net.Start("PDM_RoundStart")
         net.WriteInt(PDM_KILLGOAL:GetInt(), 16)
-        net.WriteInt(PDM_ROUNDSTART, 16)
+        net.WriteInt(PDM_ROUNDSTART or 0, 16)
     net.Send(ply)
 end)
