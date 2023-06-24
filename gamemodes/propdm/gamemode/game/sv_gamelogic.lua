@@ -20,12 +20,18 @@ function RoundStart()
     net.Broadcast()
 end
 concommand.Add("pdm_roundstart", RoundStart)
+concommand.Add("pdm_reset", GAMEMODE.InitPostEntity)
 
 hook.Remove("PlayerDeath", "PDM_PlayerDeath")
 hook.Add("PlayerDeath", "PDM_PlayerDeath", function(vic, inf, att)
     if not att:IsPlayer() or vic == att then return end
     
     att:AddPoints(10)
+
+    --handle game ending
+    local pts = att:GetNW2Int("Points")
+    print(pts)
+
 
     --handle killstreaks
     local ks = att:GetNW2Int("Streak") + 1
