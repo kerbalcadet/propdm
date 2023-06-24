@@ -65,6 +65,7 @@ local rs_sub = ""
 --timer
 local t_stime = -1000
 local t_etime = -1000
+local t_last5 = false
 
 
 --###### NET MESSAGES ########
@@ -293,9 +294,25 @@ local function PDMHud()
 
     --### Round Start Timer ###--
 
-    local t = CurTime()
-    if t > t_stime and t < t_etime then
-        local txt = {text = math.ceil(t_etime - t),
+    local ct = CurTime()
+    if ct > t_stime and ct < t_etime then
+        local t = t_etime - ct
+
+        --ticking noise for last 5 secs
+        if t <= 6 and t > 5 and not t_last5 then
+            timer.Create("pdm_last5", 1, 6, function() 
+                if timer.RepsLeft("pdm_last5") == 0 then
+                    t_last5 = false
+                    LocalPlayer():EmitSound("Player.PickupWeapon")
+                    return
+                end
+
+                LocalPlayer():EmitSound("weapons/pistol/pistol_empty.wav") 
+            end)
+            t_last5 = true
+        end
+
+        local txt = {text = math.ceil(t),
         font = "Timer",
         pos = {w/2, h*3/8},
         xalign = 1,
