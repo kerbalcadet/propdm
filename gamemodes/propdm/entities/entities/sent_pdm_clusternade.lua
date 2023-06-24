@@ -41,13 +41,17 @@ function ENT:Initialize()
     self.Vel = 400
     self.UpVel = 100
     self.Fuse = 1.5
+
     self.GravRadius = 200
     self.GravPwr = 20*10^6 --has to be super large because force is applied for one frame only
     self.MinRad = 15 --range at which grav effects are unclamped (fall off) in ft
-    self.DmgRadius = 300    --gmod units not ft (probably should fix)
-    self.Dmg = 120
     self.PlyWeight = 800
+    
+    self.DmgRadius = 150    --gmod units not ft (probably should fix)
+    self.Dmg = 120
 
+    self.PropExpNum = 10
+    --rest of prop exp stats are fine as default
 
     self.Owner = self:GetOwner()
     self.Weapon = self:GetOwner():GetActiveWeapon()
@@ -71,6 +75,7 @@ function ENT:Think()
             n.DmgRadius = self.DmgRadius
             n.Dmg = self.Dmg
             n.PlyWeight = self.PlyWeight
+            n.PropExpNum = self.PropExpNum
 
             n.Owner = own
             n.Weapon = self.Weapon
