@@ -224,7 +224,7 @@ function KirbyFireProp(tab, pos, dir, vel, att)
 
 	if not ent.Map then
 		timer.Simple(PDM_DESPTIME:GetInt(), function()
-			if IsValid(ent) then ent:Dissolve(1, ent:GetPos) end
+			if IsValid(ent) then ent:Dissolve(1, ent:GetPos()) end
 		end)
 	end
 	ent.Attacker = att
