@@ -63,17 +63,13 @@ function PDM_PropExplode(tabs, pos, vel, normal, maxang, att)
     return props
 end
 
-hook.Remove("ShouldCollide", "PDM_PropExplode")
-hook.Add("ShouldCollide", "PDM_PropExplode", function()
-    
-end)
-
 --properly attribute prop damage
 hook.Remove("EntityTakeDamage", "PDM_PropDamage")
 hook.Add("EntityTakeDamage", "PDM_PropDamage", function(ent, dmg)
-    if not IsValid(ent) or not IsValid(dmg:GetInflictor()) then return end
-	if not ent:IsPlayer() or not (dmg:GetInflictor():GetClass() == "prop_physics") then return end
-	
+    local inf = dmg:GetInflictor()
+    if not IsValid(ent) or not IsValid(inf) then return end
+	if not ent:IsPlayer() or not string.StartsWith(inf:GetClass(), "prop_physics") then return end
+
 	local inf = dmg:GetInflictor()
 	if inf.Attacker then dmg:SetAttacker(inf.Attacker) end 
 	if inf.Inflictor then dmg:SetInflictor(inf.Inflictor) end
