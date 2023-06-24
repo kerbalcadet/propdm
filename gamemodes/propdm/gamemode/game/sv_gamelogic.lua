@@ -1,6 +1,5 @@
 util.AddNetworkString("PDM_RoundStart")
 function RoundStart()
-    PDM_ScoreUpdate()
     PDM_SpawnHeli()
 
     for _, p in pairs(player.GetAll()) do
@@ -39,6 +38,8 @@ function RoundTimer()
         p:SetMoveType(MOVETYPE_NONE)
         p:StripWeapons()
     end
+
+    PDM_ScoreUpdate()
 
     timer.Simple(delay, function()
         RoundStart()
