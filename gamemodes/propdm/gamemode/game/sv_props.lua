@@ -71,7 +71,7 @@ end)
 --properly attribute prop damage
 hook.Remove("EntityTakeDamage", "PDM_PropDamage")
 hook.Add("EntityTakeDamage", "PDM_PropDamage", function(ent, dmg)
-    if not IsValid(ent) then return end
+    if not IsValid(ent) or not IsValid(dmg:GetInflictor()) then return end
 	if not ent:IsPlayer() or not (dmg:GetInflictor():GetClass() == "prop_physics") then return end
 	
 	local inf = dmg:GetInflictor()
