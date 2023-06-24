@@ -242,7 +242,6 @@ local function PDMHud()
 
     --### Round Start ###--
 
-    surface.SetFont("RoundStart48")
     local t = CurTime() - rs_stime
 
     if t < (rs_fadein + rs_fadestart + rs_fadetime) then
