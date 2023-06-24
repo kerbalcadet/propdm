@@ -30,6 +30,9 @@ SWEP.CanPlace = false
 SWEP.DeathBlastDmg = 50
 SWEP.DeathBlastRad = 200
 
+SWEP.Green = Color(50, 140, 50, 120)
+SWEP.Red = Color(200, 50, 50, 120)
+
 
 function SWEP:Initialize()
     self:SetHoldType("melee")   --for some reason this doesn't work in the field
@@ -51,18 +54,38 @@ function SWEP:Think()
         tr = util.QuickTrace(tr.HitPos, Vector(0,0,-self.PlaceRange))
     end
 
-    self.CanPlace = tr.Hit
+    local plyinbox = false 
+    if tr.Hit then
+        --check if it will collide with player
+        local pos = tr.HitPos
+        local rad = 40
+        
+        for _, p in pairs(player.GetAll()) do
+            local diff = p:GetPos() - pos
+            if (diff.x^2 + diff.y^2 < rad^2) and diff.z < 64 then 
+                plyinbox = true
+                break 
+            end 
+        end
+    end
+    
+
+    self.CanPlace = tr.Hit and not plyinbox 
 
     --render sentry hologram
     if CLIENT then
         if not IsValid(self.Holo) then
         end
 
+
         local holo = self.Holo
+        local col = self.CanPlace and self.Green or self.Red
+
         if tr.Hit and not self.Holstered then
             holo:SetNoDraw(false)
             holo:SetPos(tr.HitPos)
             holo:SetAngles(Angle(0, self:GetOwner():EyeAngles().y, 0))
+            holo:SetColor(col)
         else
             holo:SetNoDraw(true)
         end
@@ -91,8 +114,9 @@ if CLIENT then
     SWEP.Holo = ClientsideModel("models/Combine_turrets/Floor_turret.mdl", RENDERGROUP_TRANSLUCENT)
     SWEP.Holo:SetRenderMode(RENDERMODE_TRANSALPHA)
     SWEP.Holo:SetMaterial("models/debug/debugwhite")
-    SWEP.Holo:SetColor(Color(50, 140, 50, 120))
+    SWEP.Holo:SetColor(SWEP.Green)
     SWEP.Holo:SetNoDraw(true)
+
 
     SWEP.WM = ClientsideModel(SWEP.WorldModel, RENDERGROUP_OPAQUE)
     SWEP.WM:SetNoDraw(true)
@@ -162,6 +186,8 @@ function ENTITY:PDM_TurretDeath()
 end
 
 function SWEP:PrimaryAttack()
+    if not self.CanPlace then return end
+
     local ply = self:GetOwner()    
     ply:SetAnimation(PLAYER_ATTACK1)
 
