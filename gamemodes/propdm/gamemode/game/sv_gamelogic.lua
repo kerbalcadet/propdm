@@ -1,6 +1,10 @@
 function RoundStart()
     game.CleanUpMap()
 
+    for _, e in pairs(ents.GetAll()) do
+        e.Map = true
+    end
+
     for _, p in pairs(player.GetAll()) do
         p:Spawn()
         gamemode.Call("PlayerInitialSpawn", p)

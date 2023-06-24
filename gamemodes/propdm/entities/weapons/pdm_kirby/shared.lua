@@ -222,6 +222,11 @@ function KirbyFireProp(tab, pos, dir, vel, att)
 	ent:SetOwner(att)
 	timer.Simple(0.2, function() if IsValid(ent) then ent:SetOwner(nil) end end)
 
+	if not ent.Map then
+		timer.Simple(PDM_DESPTIME:GetInt(), function()
+			if IsValid(ent) then ent:Dissolve(1, ent:GetPos) end
+		end)
+	end
 	ent.Attacker = att
 end
 
