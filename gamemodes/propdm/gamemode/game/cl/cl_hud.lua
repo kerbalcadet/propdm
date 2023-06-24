@@ -5,7 +5,7 @@ surface.CreateFont("Points48", { font = "CloseCaption_Bold", size = 48})
 surface.CreateFont("RoundStart", { font = "Roboto Mono", size = 80, weight = 1000})
 surface.CreateFont("RoundStartSub", {font = "Roboto Mono", size = 36, weight = 1000})
 
-local ScoreBoxCol = Color(255, 255, 255, 50)
+local ScoreBoxCol = Color(255, 255, 255, 100)
 local White = Color(255,255,255)
 
 local w = ScrW()
@@ -52,13 +52,14 @@ local ks_fadetime = 1
 local ks_stime = 0
 local ks_txt = ""
 
---round start 
+--round start / round end 
 local GreenRS = Color(135, 240, 95)
 local rs_fadein = 0.5
 local rs_fadestart = 5
 local rs_fadetime = 1
 local rs_stime = -1000
-local rs_numkills = 0
+local rs_txt = ""
+local rs_sub = ""
 
 
 --###### NET MESSAGES ########
@@ -92,7 +93,14 @@ end)
 
 net.Receive("PDM_RoundStart", function()
     rs_stime = CurTime()
-    rs_numkills = net.ReadInt(16)
+    rs_txt = "Free For All"
+    rs_sub = net.ReadInt(16).." kills to win"
+end)
+
+net.Receive("PDM_RoundEnd", function()
+    rs_stime = CurTime()
+    rs_txt = net.ReadString().." Wins!"
+    rs_sub = ""
 end)
 
 --somehow the best way to do a real client init
@@ -240,7 +248,7 @@ local function PDMHud()
         draw.TextShadow(txt2, 2, y.a)
     end
 
-    --### Round Start ###--
+    --### Round Start/End ###--
 
     local t = CurTime() - rs_stime
 
@@ -248,14 +256,14 @@ local function PDMHud()
         local c = GreenRS
         
         if t < rs_fadein then
-            c.a = 150*t/rs_fadein
+            c.a = 220*t/rs_fadein
         elseif t > rs_fadestart then
-            c.a = 150*(1 - (t - rs_fadestart)/rs_fadetime)
+            c.a = 220*(1 - (t - rs_fadestart)/rs_fadetime)
         else
-            c.a = 150
+            c.a = 220
         end
 
-        local txt = {text = "Free For All",
+        local txt = {text = rs_txt,
         font = "RoundStart",
         pos = {w/2, h*1/4},
         xalign = 1,
@@ -266,7 +274,7 @@ local function PDMHud()
         draw.DrawText(txt)
         draw.TextShadow(txt, 5, c.a)
 
-        txt.text = rs_numkills.." kills to win"
+        txt.text = rs_sub
         txt.pos = {w/2, h/4 + 64 + 5}
         txt.font = "RoundStartSub"
 

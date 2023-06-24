@@ -63,6 +63,7 @@ hook.Add("PlayerDeath", "PDM_PlayerDeath", function(vic, inf, att)
     local pts = att:GetNW2Int("Points")
     if pts >= PDM_KILLGOAL:GetInt()*10 then
         RoundEnd(att)
+        return
     end
 
     --handle killstreaks
