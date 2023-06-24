@@ -104,6 +104,9 @@ net.Receive("PDM_RoundStart", function()
 
     t_stime = net.ReadInt(16)
     t_etime = net.ReadInt(16)
+
+    pts_stime = -1000
+    ks_stime = -1000
 end)
 
 net.Receive("PDM_RoundEnd", function()
