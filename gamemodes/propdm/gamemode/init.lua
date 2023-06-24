@@ -24,5 +24,5 @@ function GM:InitPostEntity()
         util.PrecacheModel(ent.model)
     end
 
-    RoundStart()
+    RoundTimer()
 end

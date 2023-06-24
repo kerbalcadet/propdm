@@ -1,6 +1,29 @@
+util.AddNetworkString("PDM_RoundStart")
 function RoundStart()
-    game.CleanUpMap()
+    PDM_ScoreUpdate()
+    PDM_SpawnHeli()
 
+    for _, p in pairs(player.GetAll()) do
+        p:SetMoveType(MOVETYPE_WALK)
+    end
+end
+concommand.Add("pdm_roundstart", RoundStart)
+concommand.Add("pdm_reset", GAMEMODE.InitPostEntity)
+
+PDM_ROUNDSTART = 0
+function RoundTimer()
+    local delay = PDM_TIMEBEFOREROUND:GetInt()
+    local t = CurTime() + delay
+    PDM_ROUNDSTART = t
+
+    --write round start message on clients 
+    net.Start("PDM_RoundStart")
+        net.WriteInt(PDM_KILLGOAL:GetInt(), 16)
+        net.WriteInt(t, 16)
+    net.Broadcast()
+
+    --actual round cleanup/player init
+    game.CleanUpMap()
     for _, e in pairs(ents.GetAll()) do
         e.Map = true
     end
@@ -9,18 +32,24 @@ function RoundStart()
         p:Spawn()
         gamemode.Call("PlayerInitialSpawn", p)
         gamemode.Call("PlayerSpawn", p)
+
+        --freeze plys
+        p:SetMoveType(MOVETYPE_NONE)
     end
 
-    PDM_ScoreUpdate()
-    PDM_SpawnHeli()
-
-    --to write round start message on clients 
-    net.Start("PDM_RoundStart")
-        net.WriteInt(PDM_KILLGOAL:GetInt(), 16)
-    net.Broadcast()
+    timer.Simple(delay, function()
+        RoundStart()
+    end)
 end
-concommand.Add("pdm_roundstart", RoundStart)
-concommand.Add("pdm_reset", GAMEMODE.InitPostEntity)
+
+util.AddNetworkString("PDM_RoundEnd")
+function RoundEnd(winner)
+    net.Start("PDM_RoundEnd")
+        net.WriteString(winner:Nick())
+    net.Broadcast()
+
+    timer.Simple(PDM_TIMEAFTERROUND:GetInt(), RoundTimer)
+end
 
 hook.Remove("PlayerDeath", "PDM_PlayerDeath")
 hook.Add("PlayerDeath", "PDM_PlayerDeath", function(vic, inf, att)
@@ -30,8 +59,9 @@ hook.Add("PlayerDeath", "PDM_PlayerDeath", function(vic, inf, att)
 
     --handle game ending
     local pts = att:GetNW2Int("Points")
-    print(pts)
-
+    if pts >= PDM_KILLGOAL:GetInt()*10 then
+        RoundEnd(att)
+    end
 
     --handle killstreaks
     local ks = att:GetNW2Int("Streak") + 1

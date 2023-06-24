@@ -89,14 +89,14 @@ function PDM_GetScoreBoard()
     return score
 end
 
-util.AddNetworkString("PDM_RoundStart")
 util.AddNetworkString("PDM_RequestInitDetails")
 net.Receive("PDM_RequestInitDetails", function(len, ply)
     net.Start("PDM_ScoreUpdate")
-    net.WriteTable(PDM_GetScoreBoard())
+        net.WriteTable(PDM_GetScoreBoard())
     net.Send(ply)
 
     net.Start("PDM_RoundStart")
-    net.WriteInt(PDM_KILLGOAL:GetInt(), 16)
+        net.WriteInt(PDM_KILLGOAL:GetInt(), 16)
+        net.WriteInt(PDM_ROUNDSTART, 16)
     net.Send(ply)
 end)
