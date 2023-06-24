@@ -1,5 +1,5 @@
 function PDM_PropFromTable(tab, pos)
-    local ent = ents.Create("prop_physics")
+    local ent = ents.Create("prop_physics_multiplayer")
     ent:SetModel(tab.model)
     ent:SetPos(pos)
     ent:Spawn()
