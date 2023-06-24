@@ -7,6 +7,7 @@ surface.CreateFont("RoundStartSub", {font = "Roboto Mono", size = 36, weight = 1
 surface.CreateFont("Timer", { font = "CloseCaption_Bold", size = 48})
 
 local ScoreBoxCol = Color(255, 255, 255, 100)
+local Yellow = Color(253, 240, 92)
 local White = Color(255,255,255)
 
 local w = ScrW()
@@ -176,7 +177,7 @@ local function PDMHud()
         local txt = top4[1][1]..": "..top4[1][2] 
         local txtw, txth = surface.GetTextSize(txt)
 
-        local name = LocalPlayer():GetName()
+        local name = LocalPlayer():Nick()
         local b = Box32
 
         local col = top4[1][1] == name and Yellow or White
