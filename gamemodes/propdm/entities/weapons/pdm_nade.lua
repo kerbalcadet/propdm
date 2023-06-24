@@ -1,4 +1,4 @@
-SWEP.PrintName = "Gravity Grenade"
+SWEP.PrintName = "Prop Grenade"
 SWEP.Spawnable = true
 SWEP.Category = "Prop Deathmatch"
 SWEP.Slot = 4

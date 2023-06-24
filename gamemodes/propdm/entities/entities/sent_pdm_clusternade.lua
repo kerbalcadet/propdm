@@ -47,10 +47,10 @@ function ENT:Initialize()
     self.MinRad = 15 --range at which grav effects are unclamped (fall off) in ft
     self.PlyWeight = 800
     
-    self.DmgRadius = 150    --gmod units not ft (probably should fix)
-    self.Dmg = 120
+    self.DmgRadius = 200    --gmod units not ft (probably should fix)
+    self.Dmg = 90
 
-    self.PropExpNum = 10
+    self.PropExpNum = 8
     --rest of prop exp stats are fine as default
 
     self.Owner = self:GetOwner()
