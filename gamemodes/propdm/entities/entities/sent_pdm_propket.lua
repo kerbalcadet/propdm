@@ -94,6 +94,7 @@ function ENT:Explode()
             if vol <= self.PropExpMaxVol and vol >= self.PropExpMinVol and mass < self.PropExpMaxWPer then 
                 w = w + mass
                 n = n + 1
+                tab.class = "prop_physics_multiplayer"
                 table.insert(props, tab)
                 break 
             end
