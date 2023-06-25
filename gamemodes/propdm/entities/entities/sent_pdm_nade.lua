@@ -86,6 +86,7 @@ function ENT:Think()
 
                 if vol <= self.PropExpMaxVol and mass < self.PropExpMaxWPer then 
                     n = n + 1
+                    tab.class = "prop_physics_multiplayer"
                     table.insert(props, tab)
                     break 
                 end
