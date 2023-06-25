@@ -16,6 +16,9 @@ function GM:PlayerSpawn(ply)
     ply:SetWalkSpeed(200)
     ply:SetRunSpeed(400)
 
+    --handle collision with players
+    ply:SetCustomCollisionCheck(true)
+
     ply:PDM_GiveDefaultWeapons()
     ply:SetNW2Int("Streak", 0)
 
@@ -38,6 +41,11 @@ function GM:PlayerSpawn(ply)
     end
     end)
 end
+
+hook.Remove("ShouldCollide", "PDM_PlayerCollide")
+hook.Add("ShouldCollide", "PDM_PlayerCollide", function(e1, e2)
+    if e1:IsPlayer() and e2:IsPlayer() then return false end
+end)
 
 function PLAYER:PDM_GiveDefaultWeapons()
     self:StripWeapons()
