@@ -22,7 +22,7 @@ end
 
 function PDM_ResetHeliPath(reset)
     if not reset then reset = false end
-    print(reset and "initial" or "altering")
+    
     for i = 1, 6 do
         path_track_node = ents.FindByName("heli_patrol_" .. i)[1]
         path_track_node:Fire(reset and "EnablePath" or "DisablePath")
