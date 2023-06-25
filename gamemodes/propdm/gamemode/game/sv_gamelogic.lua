@@ -27,7 +27,7 @@ function RoundTimer()
     game.CleanUpMap()
     game.SetTimeScale(1)
     for _, e in pairs(ents.GetAll()) do
-        e.Map = true
+        e.map = true
     end
 
     for _, p in pairs(player.GetAll()) do

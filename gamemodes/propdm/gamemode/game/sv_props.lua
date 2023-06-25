@@ -1,5 +1,6 @@
-function PDM_PropFromTable(tab, pos)
-    local ent = ents.Create("prop_physics_multiplayer")
+function PDM_EntFromTable(tab, pos)
+    local ent = ents.Create(tab.class)
+    PrintTable(tab)
     ent:SetModel(tab.model)
     ent:SetPos(pos)
     ent:Spawn()
@@ -19,7 +20,7 @@ function PDM_PropInfo(mdl)
 end
 
 function PDM_FireProp(tab, pos, ang, vel, avel, att)
-    local ent = PDM_PropFromTable(tab, pos)
+    local ent = PDM_EntFromTable(tab, pos)
     local phys = ent:GetPhysicsObject()
 
     if not IsValid(phys) or not ent:GetMoveType() == MOVETYPE_VPHYSICS then ent:Remove() return false end

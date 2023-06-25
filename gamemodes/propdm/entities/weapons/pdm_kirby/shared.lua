@@ -152,10 +152,11 @@ function SWEP:TryAddInv(ent)
 
 	local class = ent:GetClass()
 	local mass = phys:GetMass()
-	local mdl = ent:GetModel()
+	local model = ent:GetModel()
 	local keyval = ent:GetKeyValues()
+	local map = ent.Map
 	
-	local tab = {class=class, mass=mass, mdl=mdl, keyval=keyval}
+	local tab = {class=class, mass=mass, model=model, keyval=keyval, map=map}
 	table.insert(own.KirbyInv, tab)
 	self:SetKirbyProps(#own.KirbyInv)
 	
@@ -195,23 +196,7 @@ end
 
 --fire prop from entity table
 function KirbyFireProp(tab, pos, dir, vel, att)
-	local ent = ents.Create(tab.class)
-	ent:SetModel(tab.mdl)
-	ent:PhysicsInit(SOLID_VPHYSICS)
-	ent:SetSolid(SOLID_VPHYSICS)
-	ent:SetPos(pos)	--change to depend on bounding box later
-	ent:Spawn()
-
-	local phys = ent:GetPhysicsObject()
-	local physentity = phys	--what velocity is applied to
-	
-	local pref = string.sub(tab.class, 1, 3)
-	if pref == "npc" then physentity = ent end
-
-	local mass = tab.mass
-	phys:SetMass(mass)
-	phys:Wake()
-	physentity:SetVelocity(dir*vel)
+	local ent = PDM_FireProp(tab, pos, AngleRand(), dir*vel, VectorRand(), att)
 
 	--weaken explosive props
 	local exp = ent:GetKeyValues().ExplodeDamage
@@ -222,12 +207,11 @@ function KirbyFireProp(tab, pos, dir, vel, att)
 	ent:SetOwner(att)
 	timer.Simple(0.2, function() if IsValid(ent) then ent:SetOwner(nil) end end)
 
-	if not ent.Map then
+	if not tab.map then
 		timer.Simple(PDM_DESPTIME:GetInt(), function()
 			if IsValid(ent) then ent:Dissolve(1, ent:GetPos()) end
 		end)
 	end
-	ent.Attacker = att
 end
 
 end
