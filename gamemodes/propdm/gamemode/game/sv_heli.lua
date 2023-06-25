@@ -1,5 +1,7 @@
 function PDM_SpawnHeli()
     local HSpawn = ents.FindByClass("pdm_helispawn")[1]
+    if not HSpawn then return end
+    
     local heli = ents.Create("npc_helicopter")
 
     heli:SetPos(HSpawn:GetPos())
@@ -25,11 +27,15 @@ function PDM_ResetHeliPath(reset)
     
     for i = 1, 6 do
         path_track_node = ents.FindByName("heli_patrol_" .. i)[1]
+        if not path_track_node then continue end
+
         path_track_node:Fire(reset and "EnablePath" or "DisablePath")
     end
 
     for i = 7, 27, 20 do
         path_track_node = ents.FindByName("heli_patrol_" .. i)[1]
+        if not path_track_node then continue end
+
         path_track_node:Fire(reset and "DisableAlternatePath" or "EnableAlternatePath")
     end
     
