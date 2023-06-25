@@ -20,6 +20,22 @@ function PDM_SpawnHeli()
     heli.Props = {}
 end
 
+function PDM_ResetHeliPath(reset)
+    if not reset then reset = false end
+    print(reset and "initial" or "altering")
+    for i = 1, 6 do
+        path_track_node = ents.FindByName("heli_patrol_" .. i)[1]
+        path_track_node:Fire(reset and "EnablePath" or "DisablePath")
+    end
+
+    for i = 7, 27, 20 do
+        path_track_node = ents.FindByName("heli_patrol_" .. i)[1]
+        path_track_node:Fire(reset and "DisableAlternatePath" or "EnableAlternatePath")
+    end
+    
+    if reset then timer.Simple(10, PDM_ResetHeliPath) end
+end
+
 hook.Remove("EntityFireBullets", "PDM_HeliProps")
 hook.Add("EntityFireBullets", "PDM_HeliProps", function(wep, bullet)
     --

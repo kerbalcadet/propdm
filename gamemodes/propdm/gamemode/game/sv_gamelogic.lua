@@ -1,5 +1,6 @@
 util.AddNetworkString("PDM_RoundStart")
 function RoundStart()
+    PDM_ResetHeliPath(true)
     PDM_SpawnHeli()
 
     for _, p in pairs(player.GetAll()) do
