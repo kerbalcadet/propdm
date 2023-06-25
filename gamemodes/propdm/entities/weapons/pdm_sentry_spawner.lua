@@ -266,7 +266,7 @@ hook.Add("EntityFireBullets", "PDM_SentryProps", function(wep, bullet)
         local mass, vol = PDM_PropInfo(tab.model)
         if not mass or not vol then continue end
         
-        if mass < maxw and vol < maxv then break end
+        if mass < maxw and vol < maxv then tab.class = "prop_physics_multiplayer" break end
     end
 
     --actually shoot it out 
