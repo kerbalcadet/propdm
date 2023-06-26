@@ -99,6 +99,7 @@ function ENT:Think()
                     if SERVER then 
                         self.ExpSound:Stop()
                         self.SmokeSound:Stop()
+                        self:GetOwner():Give("pdm_carepkg_nade")
                         return
                     end
                 end
