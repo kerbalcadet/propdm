@@ -36,6 +36,10 @@ function ENT:Initialize()
     end
 
     self.Fuse = self.Fuse or 3
+    self.CallTime = 4   --after fuse
+    self.SpawnTime = self.CallTime + 3
+    self.Failed = false
+
     self.DespTime = self.DespTime or 15
     self.SpawnTime = CurTime()
     self.Exploded = false
@@ -66,19 +70,43 @@ function ENT:Think()
 
             --despawning
             timer.Simple(self.DespTime, function()
-                if IsValid(self) then 
-                    if SERVER then
-                        self.ExpSound:Stop()
-                        self.SmokeSound:Stop() 
-                        self:Remove() 
+                if not IsValid(self) then return end
+
+                if SERVER then
+                    self.ExpSound:Stop()
+                    self.SmokeSound:Stop() 
+                    self:Remove() 
+                end
+                if CLIENT and not self.Failed then self.Emitter:Finish() end 
+            end)
+
+            --call plane
+            timer.Simple(self.CallTime, function()
+                local success = false
+                local pos = self:GetPos()
+                
+                local data = {start=pos, endpos=pos+Vector(0,0,100000), filter=self, MASK_NPCWORLDSTATIC}
+                local tr = util.TraceLine(data)            
+
+                if not tr.HitSky then 
+                    self.Failed = true
+
+                    if CLIENT then
+                        self.Emitter:Finish() 
+                        self:GetOwner():PrintMessage(4, "Smoke could not be seen!") 
+                        return
                     end
-                    if CLIENT then self.Emitter:Finish() end 
+                    if SERVER then 
+                        self.ExpSound:Stop()
+                        self.SmokeSound:Stop()
+                        return
+                    end
                 end
             end)
         end
 
         --fx
-        if CLIENT then
+        if CLIENT and not self.Failed then
             local pos = self:GetPos()
             local em = self.Emitter
             local part = em:Add("particles/pdm/smoke", pos)
