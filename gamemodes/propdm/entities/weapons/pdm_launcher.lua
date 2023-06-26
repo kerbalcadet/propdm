@@ -122,7 +122,7 @@ function SWEP:Launch()
     local eang = own:EyeAngles()
     local pos, ang = LocalToWorld(Vector(25, -6, -1), Angle(), epos, eang)
 
-    local rkt = ents.Create("sent_pdm_propket")
+    local rkt = ents.Create("proj_pdm_propket")
     rkt:SetOwner(own)
     rkt:SetPos(pos)
     rkt:SetAngles(own:EyeAngles())

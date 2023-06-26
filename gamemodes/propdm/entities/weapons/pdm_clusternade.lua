@@ -125,7 +125,7 @@ function SWEP:SecondaryAttack()
 end
 
 function SWEP:Throw(vel)
-    local nade = ents.Create("sent_pdm_clusternade")
+    local nade = ents.Create("proj_pdm_clusternade")
     local own = self:GetOwner()
 
     nade:SetOwner(own)
