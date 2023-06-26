@@ -58,6 +58,7 @@ hook.Add("EntityFireBullets", "PDM_HeliProps", function(wep, bullet)
     --
     
     local tab = table.Random(PDM_PROPS)
+    tab.class = "prop_physics_multiplayer"
     local pos = bullet.Src + bullet.Dir * 32
     local vel = Vector(3000, 3000, 0) * bullet.Dir + Vector(0, 0, -3000)
 
