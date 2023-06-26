@@ -41,7 +41,7 @@ function ENT:Initialize()
     self.MinRad = self.MinRad or 15 --range at which grav effects are unclamped (fall off) in ft
     self.PlyWeight = self.PlyWeight or 800
 
-    self.PropExpMaxWPer = self.PropExpMaxWPer or 100   --explained in sent_pdm_propket
+    self.PropExpMaxWPer = self.PropExpMaxWPer or 100   --explained in projpdm_propket
     self.PropExpMaxVol = self.PropExpMaxVol or 20000
     self.PropExpNum = self.PropExpNum or 20
     self.PropExpVel = self.PropExpVel or 3000

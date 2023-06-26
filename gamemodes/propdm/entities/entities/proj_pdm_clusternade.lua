@@ -64,7 +64,7 @@ function ENT:Think()
         local own = self.Owner
 
         for i=1, self.Nades do
-            local n = ents.Create("sent_pdm_nade")
+            local n = ents.Create("proj_pdm_nade")
             n:SetPos(pos)
             n:SetOwner(self.Owner)
 
