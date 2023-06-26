@@ -144,7 +144,7 @@ function SWEP:PrimaryAttack()
 
     local title = tostring(self).."cook"
     timer.Create(title, 1, math.floor(self.Fuse), function()
-        if not IsValid(self) then 
+        if not IsValid(self) or not self.Armed then 
             timer.Remove(title)
             return 
         end
