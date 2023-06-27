@@ -119,7 +119,7 @@ function ENT:Initialize()
     self.SkyHeight = self.SkyHeight or nil
     self.VVel = Vector(0,0,0)   --these are only here for safekeeping. don't fuck with
     self.Grav = Vector(0,0,-600)
-    self.Drag = Vector(0,0,0)   
+    self.Drag = 0  
 
     self.Virtual = self.Virtual or false
 
@@ -178,7 +178,8 @@ function ENT:Think()
 
         local wind = self:GetDeployed() and Vector(1,1,0)*math.sin(CurTime()*self.WindFreq)*self.WindPwr or Vector(0,0,0)
 
-        vvel = vvel + (self.Grav + self.Drag*vvel.z^2 + wind)*dt
+        --iterate pos and velocity to simulate movement
+        vvel = vvel + (self.Grav - self.Drag*vvel:GetNormalized()*vvel:LengthSqr() + wind)*dt
         vpos = vpos + vvel*dt
 
         self:SetVPos(vpos)
@@ -199,7 +200,7 @@ function ENT:Think()
 
         --simulate parachute while out of level
         elseif not self:GetDeployed() and vpos.z < self.ChuteHeight then
-            self.Drag = Vector(0,0,1)*self.ChuteDrag
+            self.Drag = self.ChuteDrag
             self:SetDeployed(true)
         end
     end
