@@ -74,7 +74,11 @@ function ENT:Think()
 
     if not self.RealInit and not self:GetVirtual() then
         self.CS:Remove()
+
+        self.Bottom:SetPos(self:GetPos())
         self.Bottom:SetParent(self)
+        
+        self.Chute:SetPos(self:GetPos() + self:GetUp()*self.ChuteHeight)
         self.Chute:SetParent(self)
     end 
 end
