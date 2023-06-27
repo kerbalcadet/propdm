@@ -16,6 +16,12 @@ if CLIENT then
 
 function ENT:Initialize()
     self.CS = ClientsideModel("models/Items/ammoCrate_Rockets.mdl")
+
+    self.Bottom = ClientsideModel("models/Items/ammoCrate_Rockets.mdl")
+    self.Bottom:SetPos(self:GetPos())
+    self.Bottom:SetModelScale(0.99)
+    self.Bottom:SetAngles(self:GetAngles() + Angle(180,0,0))
+    self.Bottom:SetParent(self)
     
     self.ChuteHeight = 75
     self.Chute = ClientsideModel("models/props_phx/construct/metal_dome360.mdl")
@@ -23,12 +29,19 @@ function ENT:Initialize()
     self.Chute:SetParent(self)
     self.Chute:SetMaterial("models/props_debris/building_template010a")
     self.Chute:SetRenderMode(RENDERMODE_TRANSCOLOR)
-    self.CColor = Color(255,255,255,255)
+    self.CColor = Color(255,255,255,220)
+    self.Chute:SetColor(self.CColor)
 
 
     
     self.ChuteAttach = true
     self.ChuteFall = false
+end
+
+function ENT:OnRemove()
+    if self.CS then self.CS:Remove() end
+    if self.Chute then self.Chute:Remove() end
+    if self.Bottom then self.Bottom:Remove() end
 end
 
 function ENT:Think()
@@ -68,6 +81,8 @@ function ENT:Draw()
         local vpos = self:GetVPos()
         self.CS:SetPos(vpos)
         self.CS:DrawModel()
+        self.Bottom:SetPos(vpos)
+        self.Bottom:DrawModel()
 
         if self:GetDeployed() then
             self.Chute:SetPos(vpos + Vector(0,0,self.ChuteHeight))
@@ -75,6 +90,7 @@ function ENT:Draw()
         end
     else
         self:DrawModel()
+        self.Bottom:DrawModel()
     end
 end
 
