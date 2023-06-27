@@ -38,10 +38,11 @@ function ENT:Initialize()
     self.Fuse = self.Fuse or 3
     self.CallTime = 4   --after fuse
     self.PlaneHeight = 6000
+    self.PkgDeployHeight = 2000
     self.SpawnTime = self.CallTime + 3
-    self.Failed = false
-
     self.DespTime = self.DespTime or 15
+    
+    self.Failed = false
     self.SpawnTime = CurTime()
     self.Exploded = false
 
@@ -71,6 +72,7 @@ function ENT:Think()
             --sound
 
             if SERVER then
+                self.ExpSound:SetSoundLevel(80)
                 self.ExpSound:Play()
                 self.ExpSound:ChangePitch(150)
                 self.SmokeSound:Play()
@@ -142,26 +144,81 @@ function ENT:Think()
     end
 end
 
-function ENT:CallPlane()
+if SERVER then
+
+local function SpawnCrate(pos)
+end
+
+end
+
+function ENT:SpawnFakeCrate(pos, skyheight, deployheight)
+    local pos = pos
+    local vel = Vector(0,0,0)
+    local grav = Vector(0,0,-600)
+
+    local title = tostring(self).."crate"
+    hook.Add("Tick", title, function()
+        local dt = engine.TickInterval()
+        vel = vel + grav*dt
+        pos = pos + vel*dt
+
+        if pos.z < (skyheight - 100) then
+            hook.Remove("Tick", title)
+
+            if CLIENT then
+                self.crate:Remove()
+                hook.Remove("PreDrawOpaqueRenderables", title)
+            end
+
+            if SERVER then
+                print("In Level!")
+            end
+        end
+    end)
+
     if CLIENT then
-        pos = self.Trace.HitPos
-        pos.z = self.PlaneHeight
-        
+        self.crate = ClientsideModel("models/Items/ammoCrate_Rockets.mdl")
+        self.crate:SetPos(pos)
+
+        hook.Add("PreDrawOpaqueRenderables", title, function(depth, sky, sky3d)
+            if sky then return end
+            
+            self.crate:SetPos(pos)
+            self.crate:DrawModel()
+        end)
+    end
+end
+
+
+
+
+function ENT:CallPlane()
+    local trpos = self.Trace.HitPos
+    local pos = Vector(trpos.x, trpos.y, self.PlaneHeight)
+    
+    local speed = 5000
+    local dist = 20000
+    local etime = dist*2/speed
+    local sky = trpos.z
+
+    if self.PlaneHeight < sky then
+        timer.Simple(etime/2, function() SpawnCrate(pos) end)
+    else
+        timer.Simple(etime/2, function() self:SpawnFakeCrate(pos, sky, self.PkgDeployHeight) end)
+    end
+
+    --render plane
+    if CLIENT then
         local rvec = VectorRand()
         rvec.z = 0
         rvec:Normalize()
 
-        local speed = 6000
-        local dist = 30000
 
         local plane = ClientsideModel("models/xqm/jetbody3_s2.mdl")
         plane:SetAngles((-rvec):Angle() + Angle(0,90,0))
         local stpos = pos + rvec*dist
         local stime = CurTime()
-        local etime = dist*2/speed
         local ppos = stpos
-
-
 
         local title = tostring(self).."drawplane"
         hook.Remove("PreDrawOpaqueRenderables", title)
@@ -177,9 +234,8 @@ function ENT:CallPlane()
                 chan:SetPos(stpos)
                 chan:Set3DEnabled(true)
                 chan:SetVolume(5)
-                chan:Set3DFadeDistance(5000, 100000)
+                chan:Set3DFadeDistance(10000, 100000)
 
-                local title = tostring(self).."sound"
                 hook.Add("Think", title, function()
                     chan:SetPos(ppos)
                 end)
