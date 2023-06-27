@@ -37,8 +37,9 @@ function ENT:Initialize()
 
     self.Fuse = self.Fuse or 3
     self.CallTime = 4   --after fuse
-    self.PlaneHeight = 6000
-    self.PkgDeployHeight = 2000
+    self.PlaneHeight = 8000
+    self.ChuteHeight = 2500
+    self.ChuteDrag = 1/250
     self.SpawnTime = self.CallTime + 3
     self.DespTime = self.DespTime or 15
     
@@ -62,6 +63,10 @@ function ENT:Initialize()
             sound = "thrusters/jet03.wav"
         })
     end
+end
+
+function ENT:SetupDataTables()
+    self:NetworkVar("Entity", 0, "Crate")
 end
 
 function ENT:Think()
@@ -146,56 +151,38 @@ function ENT:Think()
     end
 end
 
-if SERVER then
+
+
+
+
+
+
+
+
+
+
+--[[### CARE PACKAGE FUNCTIONS ###]]--
 
 function ENT:SpawnCrate(pos)
-    local crate = ents.Create("prop_physics")
-    crate:SetModel("models/Items/ammoCrate_Rockets.mdl")
+    local crate = ents.Create("pdm_carepkg")
+    crate.ChuteHeight = self.ChuteHeight
+    crate.ChuteDrag = self.ChuteDrag
     crate:SetPos(pos)
     crate:Spawn()
 end
 
+function ENT:SpawnFakeCrate(pos, vpos, skyheight)
+    local crate = ents.Create("pdm_carepkg")
+    crate.ChuteHeight = self.ChuteHeight
+    crate.ChuteDrag = self.ChuteDrag
+    crate:SetPos(pos)
+
+    crate.Virtual = true
+    crate.VPos = vpos
+    crate.SkyHeight = skyheight
+
+    crate:Spawn()
 end
-
-function ENT:SpawnFakeCrate(pos, skyheight, deployheight)
-    local pos = pos
-    local vel = Vector(0,0,0)
-    local grav = Vector(0,0,-600)
-
-    local title = tostring(self).."crate"
-    hook.Add("Tick", title, function()
-        local dt = engine.TickInterval()
-        vel = vel + grav*dt
-        pos = pos + vel*dt
-
-        if pos.z < (skyheight - 100) then
-            hook.Remove("Tick", title)
-
-            if CLIENT then
-                self.crate:Remove()
-                hook.Remove("PreDrawOpaqueRenderables", title)
-            end
-
-            if SERVER then
-                self:SpawnCrate(pos)
-            end
-        end
-    end)
-
-    if CLIENT then
-        self.crate = ClientsideModel("models/Items/ammoCrate_Rockets.mdl")
-        self.crate:SetPos(pos)
-
-        hook.Add("PreDrawOpaqueRenderables", title, function(depth, sky, sky3d)
-            if sky then return end
-            
-            self.crate:SetPos(pos)
-            self.crate:DrawModel()
-        end)
-    end
-end
-
-
 
 
 function ENT:CallPlane()
@@ -207,10 +194,12 @@ function ENT:CallPlane()
     local etime = dist*2/speed
     local sky = trpos.z
 
-    if self.PlaneHeight < sky then
-        timer.Simple(etime/2, function() SpawnCrate(pos) end)
-    else
-        timer.Simple(etime/2, function() self:SpawnFakeCrate(pos, sky, self.PkgDeployHeight) end)
+    if SERVER then
+        if self.PlaneHeight < sky then
+            timer.Simple(etime/2, function() self:SpawnCrate(pos) end)
+        else
+            timer.Simple(etime/2, function() self:SpawnFakeCrate(trpos - Vector(0,0,100), pos, sky) end)
+        end
     end
 
     --render plane
