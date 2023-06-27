@@ -37,6 +37,7 @@ function ENT:Initialize()
 
     self.Fuse = self.Fuse or 3
     self.CallTime = 4   --after fuse
+    self.PlaneHeight = 6000
     self.SpawnTime = self.CallTime + 3
     self.Failed = false
 
@@ -52,6 +53,13 @@ function ENT:Initialize()
 
     if CLIENT then
         self.Emitter = ParticleEmitter(self:GetPos(), false)
+        sound.Add({
+            name = "PlaneSound",
+            channel = CHAN_STATIC,
+            volume = 3.0,
+            level = 500,
+            sound = "thrusters/jet03.wav"
+        })
     end
 end
 
@@ -103,6 +111,10 @@ function ENT:Think()
                         return
                     end
                 end
+
+                --successful
+                self.Trace = tr
+                self:CallPlane()
             end)
         end
 
@@ -127,5 +139,61 @@ function ENT:Think()
     if CLIENT then
         self:SetNextClientThink(CurTime() + self.ParticleDelay)
         return true
+    end
+end
+
+function ENT:CallPlane()
+    if CLIENT then
+        pos = self.Trace.HitPos
+        pos.z = self.PlaneHeight
+        
+        local rvec = VectorRand()
+        rvec.z = 0
+        rvec:Normalize()
+
+        local speed = 6000
+        local dist = 30000
+
+        local plane = ClientsideModel("models/xqm/jetbody3_s2.mdl")
+        plane:SetAngles((-rvec):Angle() + Angle(0,90,0))
+        local stpos = pos + rvec*dist
+        local stime = CurTime()
+        local etime = dist*2/speed
+        local ppos = stpos
+
+
+
+        local title = tostring(self).."drawplane"
+        hook.Remove("PreDrawOpaqueRenderables", title)
+        hook.Add("PreDrawOpaqueRenderables", title, function()
+            ppos = pos + rvec*(dist - (CurTime() - stime)*speed)
+            plane:SetPos(ppos)
+            plane:DrawModel()
+        end)
+
+        --flyover sound is 10seconds, so play s before middle
+        timer.Simple(math.max(etime/2 - 5, 0), function()
+            sound.PlayFile("sound/ambient/overhead/plane3.wav", "3d", function(chan)
+                chan:SetPos(stpos)
+                chan:Set3DEnabled(true)
+                chan:SetVolume(5)
+                chan:Set3DFadeDistance(5000, 100000)
+
+                local title = tostring(self).."sound"
+                hook.Add("Think", title, function()
+                    chan:SetPos(ppos)
+                end)
+
+                timer.Simple(etime, function()
+                    chan:Stop()
+                    hook.Remove("Think", title)
+                end)
+            end)
+
+            timer.Simple(etime, function()
+                hook.Remove("PreDrawOpaqueRenderables", title)
+                plane:Remove()
+            end)
+        end)
     end
 end
