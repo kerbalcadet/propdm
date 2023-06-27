@@ -21,6 +21,10 @@ function ENT:Initialize()
     self.Chute = ClientsideModel("models/props_phx/construct/metal_dome360.mdl")
     self.Chute:SetPos(self:GetPos() + Vector(0,0,self.ChuteHeight))
     self.Chute:SetParent(self)
+    self.Chute:SetMaterial("models/props_debris/building_template010a")
+    self.Chute:SetRenderMode(RENDERMODE_TRANSCOLOR)
+    self.CColor = Color(255,255,255,255)
+
 
     
     self.ChuteAttach = true
@@ -36,15 +40,18 @@ function ENT:Think()
             self.ChuteFall = true
             self.Chute:SetParent(nil)
         
-            timer.Simple(1, function()
+            timer.Simple(2, function()
                 self.ChuteFall = false
                 self.Chute:Remove()
             end)
         end
     
         if self.ChuteFall then
-            local vel = Vector(0,0,-50)
+            local vel = Vector(0,0,-20)
             self.Chute:SetPos(self.Chute:GetPos() + vel*engine.TickInterval())
+            
+            self.CColor.a = math.Clamp(self.CColor.a - 0.5, 0, 255)
+            self.Chute:SetColor(self.CColor)
         
             self:SetNextClientThink(CurTime())
             return true
@@ -86,7 +93,7 @@ function ENT:Initialize()
     
     self.ChuteHeight = self.ChuteHeight or 2000
     self.ChuteDrag = self.ChuteDrag or 1/400
-    self.WindPwr = 100
+    self.WindPwr = 50
     self.WindFreq = 0.8
 
     self.SkyHeight = self.SkyHeight or nil
@@ -103,7 +110,7 @@ function ENT:Initialize()
         self:SetMoveType(MOVETYPE_NONE)
         self:SetCollisionGroup(COLLISION_GROUP_WORLD)
 
-            --variables for virtual crate in skybox
+        --variables for virtual crate in skybox
         self:SetVirtual(self.Virtual)
     
         self.VPos = self.VPos or nil
