@@ -209,8 +209,11 @@ function ENT:Think()
                 self:SetDeployed(true)
                 
                 self.DeploySound:Play()
+                self.DeploySound:SetSoundLevel(500)
+                
                 self.WindSound:Play()
                 self.WindSound:ChangePitch(80)
+                self.WindSound:SetSoundLevel(500)
             end
         end
     end
