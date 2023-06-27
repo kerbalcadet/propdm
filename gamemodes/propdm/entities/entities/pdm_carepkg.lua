@@ -136,6 +136,10 @@ function ENT:PhysicsCollide(data,phys)
         self:EmitSound("physics/metal/metal_barrel_impact_hard"..math.random(1,3)..".wav")
     end
 
+    --less bouncing
+    local phys = self:GetPhysicsObject()
+    local force = -data.OurNewVelocity*phys:GetMass()*0.4
+    phys:ApplyForceCenter(force)
     
     if not self:GetLanded() then 
         self:SetLanded(true)
@@ -197,8 +201,6 @@ function ENT:Think()
             local der = phys:GetAngleVelocity()*5
             phys:ApplyTorqueCenter(diff - der)
 
-            print(phys:GetAngleVelocity())
-            
         --check if parachute can be deployed
         else
             local tr = util.QuickTrace(self:GetPos(), Vector(0,0,-10000), self)
