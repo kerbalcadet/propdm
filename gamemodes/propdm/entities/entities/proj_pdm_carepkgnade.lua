@@ -92,6 +92,7 @@ function ENT:Think()
 
             --call plane
             timer.Simple(self.CallTime, function()
+
                 local success = false
                 local pos = self:GetPos()
                 
@@ -117,6 +118,7 @@ function ENT:Think()
                 --successful
                 self.Trace = tr
                 self:CallPlane()
+                self:SetCollisionGroup(COLLISION_GROUP_WORLD)
             end)
         end
 
@@ -146,7 +148,11 @@ end
 
 if SERVER then
 
-local function SpawnCrate(pos)
+function ENT:SpawnCrate(pos)
+    local crate = ents.Create("prop_physics")
+    crate:SetModel("models/Items/ammoCrate_Rockets.mdl")
+    crate:SetPos(pos)
+    crate:Spawn()
 end
 
 end
@@ -171,7 +177,7 @@ function ENT:SpawnFakeCrate(pos, skyheight, deployheight)
             end
 
             if SERVER then
-                print("In Level!")
+                self:SpawnCrate(pos)
             end
         end
     end)
