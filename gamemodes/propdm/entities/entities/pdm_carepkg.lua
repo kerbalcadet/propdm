@@ -29,7 +29,7 @@ function ENT:Initialize()
     self.Chute:SetParent(self)
     self.Chute:SetMaterial("models/props_debris/building_template010a")
     self.Chute:SetRenderMode(RENDERMODE_TRANSCOLOR)
-    self.CColor = Color(255,255,255,220)
+    self.CColor = Color(255,255,255,255)
     self.Chute:SetColor(self.CColor)
 
 

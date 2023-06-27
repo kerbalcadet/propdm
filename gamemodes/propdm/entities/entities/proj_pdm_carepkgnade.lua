@@ -102,7 +102,12 @@ function ENT:Think()
                 local pos = self:GetPos()
                 
                 local data = {start=pos, endpos=pos+Vector(0,0,100000), filter=self, MASK_NPCWORLDSTATIC}
-                local tr = util.TraceLine(data)            
+                local tr = util.TraceLine(data)         
+                
+                if not tr.HitSky then
+                    data.start = tr.HitPos + Vector(0,0,500)
+                    tr = util.TraceLine(data)
+                end
 
                 if not tr.HitSky then 
                     self.Failed = true
