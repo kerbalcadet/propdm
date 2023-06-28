@@ -185,6 +185,11 @@ function ENT:SpawnCrate(pos, vpos, vvel, skyheight)
     crate.Virtual = true
     crate.VPos = vpos
     crate.VVel = vvel
+    
+    local a = self:GetPlaneVector():Angle()
+    a.r = 0
+    crate.StartAng = a 
+    
     crate.ChuteHeight = self.ChuteHeight
     crate.ChuteDrag = self.ChuteDrag
     crate.SkyHeight = skyheight

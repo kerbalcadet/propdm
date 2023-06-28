@@ -125,6 +125,8 @@ function ENT:Initialize()
     self:SetElasticity(0)
     self:DrawShadow(true)
     
+    --[[### all of this really should be adjusted in the proj_pdm_carepkgnade file, these are just defaults in case ###]]--
+
     self.ChuteHeight = self.ChuteHeight or 3000
     self.ChuteDrag = self.ChuteDrag or 1/200
     self.DragFactor = Vector(0.5,0.5,1)
@@ -133,6 +135,8 @@ function ENT:Initialize()
     self.WindFreq = 1
     self.WindRotFreq = 0.5
     self.WindTOffset = math.Rand(-10,10)
+
+    self.StartAng = self.StartAng or Angle()
 
     self.CallHeight = self.CallHeight or self:GetPos().z
     self.SkyHeight = self.SkyHeight or nil
@@ -159,7 +163,6 @@ function ENT:Initialize()
         self:SetVVel(self.VVel)
     end
 
-    
     self:SetLanded(false)
     self:SetDeployed(false)
 
@@ -219,6 +222,7 @@ function ENT:Think()
         
         --angles
         local ang = vvel:Angle() + Angle(-90,0,0)
+        ang.y = self.StartAng.y
         self:SetVAng(ang)
     end
 
