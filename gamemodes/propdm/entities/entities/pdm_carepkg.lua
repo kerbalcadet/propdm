@@ -115,12 +115,13 @@ function ENT:Initialize()
     self:SetElasticity(0)
     self:DrawShadow(true)
     
-    self.ChuteHeight = self.ChuteHeight or 2000
-    self.ChuteDrag = self.ChuteDrag or 1/400
+    self.ChuteHeight = self.ChuteHeight or 3000
+    self.ChuteDrag = self.ChuteDrag or 1/200
     self.DragFactor = Vector(0.5,0.5,1)
     self.WindPwr = 50
     self.WindFreq = 0.8
 
+    self.CallHeight = self.CallHeight or self:GetPos().z
     self.SkyHeight = self.SkyHeight or nil
     self.VVel = Vector(0,0,0)   --these are only here for safekeeping. don't fuck with
     self.Grav = Vector(0,0,-600)
@@ -189,6 +190,7 @@ function ENT:Think()
 
         self:SetVPos(vpos)
         self.VVel = vvel
+        
 
         --pop into real level
         if vpos.z < self.SkyHeight - 200 then
@@ -204,7 +206,7 @@ function ENT:Think()
             phys:SetAngleVelocity(Vector(0,0,0))
 
         --simulate parachute while out of level
-        elseif not self:GetDeployed() and vpos.z < self.ChuteHeight then
+        elseif not self:GetDeployed() and vpos.z < self.CallHeight + self.ChuteHeight then
             self.Drag = self.ChuteDrag
             self:SetDeployed(true)
         end
@@ -226,9 +228,8 @@ function ENT:Think()
 
         --check if parachute can be deployed
         else
-            local tr = util.QuickTrace(self:GetPos(), Vector(0,0,-10000), self)
             --deploy
-            if (self:GetPos().z - tr.HitPos.z) < self.ChuteHeight then
+            if self:GetPos().z < self.CallHeight + self.ChuteHeight then
                 self:SetDeployed(true)
                 
                 self.DeploySound:Play()

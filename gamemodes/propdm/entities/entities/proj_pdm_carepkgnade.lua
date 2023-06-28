@@ -38,8 +38,6 @@ function ENT:Initialize()
     self.Fuse = self.Fuse or 3
     self.CallTime = 4   --after fuse
     self.PlaneHeight = 8000
-    self.ChuteHeight = 2500
-    self.ChuteDrag = 1/150
     self.SpawnTime = self.CallTime + 3
     self.DespTime = self.DespTime or 15
     
@@ -170,16 +168,14 @@ end
 
 function ENT:SpawnCrate(pos)
     local crate = ents.Create("pdm_carepkg")
-    crate.ChuteHeight = self.ChuteHeight
-    crate.ChuteDrag = self.ChuteDrag
+    crate.CallHeight = self:GetPos().z
     crate:SetPos(pos)
     crate:Spawn()
 end
 
 function ENT:SpawnFakeCrate(pos, vpos, skyheight)
     local crate = ents.Create("pdm_carepkg")
-    crate.ChuteHeight = self.ChuteHeight
-    crate.ChuteDrag = self.ChuteDrag
+    crate.CallHeight = self:GetPos().z
     crate:SetPos(pos)
 
     crate.Virtual = true
