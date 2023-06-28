@@ -18,6 +18,26 @@ end
 end
 
 function ENT:Initialize()
+    self.Fuse = self.Fuse or 3
+    self.CallTime = 4   --after fuse
+    self.ChuteHeight = 4000
+    self.PlaneHeight = 5000
+    self.ChuteDrag = 1/200
+    self.ChuteSlowDist = 1200   --how far away from the target point the parachute deploys to slow down
+
+    self.SpawnTime = self.CallTime + 3
+    self.DespTime = self.DespTime or 15
+
+    self.Failed = false
+    self.SpawnTime = CurTime()
+    self.Exploded = false
+
+    self.Color = Color(240, 70, 70)
+    self.ParticleDelay = 0.03 --affects density of smoke trail
+
+    self.ExpSound = CreateSound(self, "Weapon_Extinguisher.NPC_Double")
+    self.SmokeSound = CreateSound(self, "ambient/machines/gas_loop_1.wav")
+
     if SERVER then
         self:SetModel("models/weapons/w_grenade.mdl")
         self:SetMoveType(MOVETYPE_VPHYSICS)
@@ -33,23 +53,13 @@ function ENT:Initialize()
 
         self.Owner = self.Owner or self:GetOwner()
         self.Weapon = self.Weapon or self:GetOwner():GetActiveWeapon()
+
+        --generate shared plane direction for server & client
+        local pvec = VectorRand()
+        pvec.z = 0
+        pvec:Normalize()
+        self:SetPlaneVector(pvec)
     end
-
-    self.Fuse = self.Fuse or 3
-    self.CallTime = 4   --after fuse
-    self.PlaneHeight = 8000
-    self.SpawnTime = self.CallTime + 3
-    self.DespTime = self.DespTime or 15
-    
-    self.Failed = false
-    self.SpawnTime = CurTime()
-    self.Exploded = false
-
-    self.Color = Color(240, 70, 70)
-    self.ParticleDelay = 0.03 --affects density of smoke trail
-
-    self.ExpSound = CreateSound(self, "Weapon_Extinguisher.NPC_Double")
-    self.SmokeSound = CreateSound(self, "ambient/machines/gas_loop_1.wav")
 
     if CLIENT then
         self.Emitter = ParticleEmitter(self:GetPos(), false)
@@ -64,7 +74,7 @@ function ENT:Initialize()
 end
 
 function ENT:SetupDataTables()
-    self:NetworkVar("Entity", 0, "Crate")
+    self:NetworkVar("Vector", 0, "PlaneVector")
 end
 
 function ENT:Think()
@@ -166,20 +176,17 @@ end
 
 --[[### CARE PACKAGE FUNCTIONS ###]]--
 
-function ENT:SpawnCrate(pos)
-    local crate = ents.Create("pdm_carepkg")
-    crate.CallHeight = self:GetPos().z
-    crate:SetPos(pos)
-    crate:Spawn()
-end
 
-function ENT:SpawnFakeCrate(pos, vpos, skyheight)
+function ENT:SpawnCrate(pos, vpos, vvel, skyheight)
     local crate = ents.Create("pdm_carepkg")
     crate.CallHeight = self:GetPos().z
     crate:SetPos(pos)
 
     crate.Virtual = true
     crate.VPos = vpos
+    crate.VVel = vvel
+    crate.ChuteHeight = self.ChuteHeight
+    crate.ChuteDrag = self.ChuteDrag
     crate.SkyHeight = skyheight
 
     crate:Spawn()
@@ -188,38 +195,44 @@ end
 
 function ENT:CallPlane()
     local trpos = self.Trace.HitPos
-    local pos = Vector(trpos.x, trpos.y, self.PlaneHeight)
-    
-    local speed = 5000
-    local dist = 20000
-    local etime = dist*2/speed
+    local pos = Vector(trpos.x, trpos.y, self:GetPos().z + self.PlaneHeight)
     local sky = trpos.z
 
+    local speed = 5000
+    local dist = 30000
+    local pvec = self:GetPlaneVector()    --direction vector of rendered plane
+
+    local etime = dist*2/speed
+
+    --spawn crate
     if SERVER then
-        if self.PlaneHeight < sky then
-            timer.Simple(etime/2, function() self:SpawnCrate(pos) end)
-        else
-            timer.Simple(etime/2, function() self:SpawnFakeCrate(trpos - Vector(0,0,100), pos, sky) end)
-        end
+        -- use basic ballistics to predict where to drop
+        -- s = (1/2)a*t^2 --> t = (2s/a)^1/2
+        local dtime = (2*(self.PlaneHeight - self.ChuteHeight)/600)^(1/2)
+        local t_remove = self.ChuteSlowDist/speed
+        dtime = dtime + t_remove
+        
+        if dtime >= etime/2 then print("No window to drop! Try adjusting speed or height.") return end
+
+        local spawnpos = pos - pvec*dtime*speed
+        timer.Simple(etime/2 - dtime, function() self:SpawnCrate(trpos - Vector(0,0,100), spawnpos, speed*pvec, sky) end)
     end
 
     --render plane
     if CLIENT then
-        local rvec = VectorRand()
-        rvec.z = 0
-        rvec:Normalize()
 
-
+        local pvec = self:GetPlaneVector()
         local plane = ClientsideModel("models/xqm/jetbody3_s2.mdl")
-        plane:SetAngles((-rvec):Angle() + Angle(0,90,0))
-        local stpos = pos + rvec*dist
+        plane:SetAngles((pvec):Angle() + Angle(0,90,0))
+        
+        local stpos = pos - pvec*dist
         local stime = CurTime()
         local ppos = stpos
 
         local title = tostring(self).."drawplane"
         hook.Remove("PreDrawOpaqueRenderables", title)
         hook.Add("PreDrawOpaqueRenderables", title, function()
-            ppos = pos + rvec*(dist - (CurTime() - stime)*speed)
+            ppos = pos - pvec*(dist - (CurTime() - stime)*speed)
             plane:SetPos(ppos)
             plane:DrawModel()
         end)

@@ -126,8 +126,9 @@ function ENT:Initialize()
 
     self.CallHeight = self.CallHeight or self:GetPos().z
     self.SkyHeight = self.SkyHeight or nil
-    self.VVel = Vector(0,0,0)   --these are only here for safekeeping. don't fuck with
-    self.Grav = Vector(0,0,-600)
+    self.VVel = self.VVel or Vector(0,0,0)   
+
+    self.Grav = Vector(0,0,-600)    --these are only here for safekeeping. don't fuck with
     self.Drag = 0  
 
     self.Virtual = self.Virtual or false
@@ -155,8 +156,9 @@ function ENT:Initialize()
 
     local phys = self:GetPhysicsObject()
     if IsValid(phys) then
-        phys:Wake()
         phys:SetMass(500)
+        phys:SetAngleDragCoefficient(1000)
+        phys:Wake()
     end
 end
 
@@ -178,19 +180,19 @@ end
 
 
 function ENT:Think()
-    
-    --physics
     if self:GetLanded() then return end 
-
+    
     local t = CurTime() + self.WindTOffset
     local wrf = self.WindRotFreq
     local wf = self.WindFreq
     local wind = Vector(math.sin(t*wrf), math.cos(t*wrf), 0)*math.sin(CurTime()*wf)*self.WindPwr
 
-    --virtual physics
-    if self:GetVirtual() then
-        local vpos = self:GetVPos()
-        local vvel = self.VVel
+    --calculate phys
+    local vpos
+    local vvel
+    if self:GetVirtual() or not self:GetDeployed() then
+        vpos = self:GetVPos()
+        vvel = self.VVel
         local dt = engine.TickInterval()
 
         local windf = self:GetDeployed() and wind or Vector(0,0,0)
@@ -200,22 +202,21 @@ function ENT:Think()
         vvel = vvel + (self.Grav - drag + windf)*dt
         vpos = vpos + vvel*dt
 
-        self:SetVPos(vpos)
         self.VVel = vvel
-        
+    end
+
+    --virtual state checks
+    if self:GetVirtual() then
+        local inworld = util.IsInWorld(vpos)
 
         --pop into real level
-        if vpos.z < self.SkyHeight - 200 then
+        if inworld then
             self:SetVirtual(false)
+
             self:SetMoveType(MOVETYPE_VPHYSICS)
             self:SetCollisionGroup(COLLISION_GROUP_NONE)
             self:SetPos(vpos)
             self:SetAngles(Angle())
-
-            local phys = self:GetPhysicsObject()
-            phys:Wake()
-            phys:SetVelocity(vvel)
-            phys:SetAngleVelocity(Vector(0,0,0))
 
         --simulate parachute while out of level
         elseif not self:GetDeployed() and vpos.z < self.CallHeight + self.ChuteHeight then
@@ -224,9 +225,9 @@ function ENT:Think()
         end
     end
 
-
     --in-world physics 
     if not self:GetVirtual() then
+
         --simulate parachute if deployed
         if self:GetDeployed() then
             local phys = self:GetPhysicsObject()
@@ -239,19 +240,31 @@ function ENT:Think()
             phys:ApplyForceCenter(wforce*engine.TickInterval())
 
         --check if parachute can be deployed
-        else
-            --deploy
-            if self:GetPos().z < self.CallHeight + self.ChuteHeight then
-                self:SetDeployed(true)
-                
-                self.DeploySound:Play()
-                self.DeploySound:SetSoundLevel(500)
-                
-                self.WindSound:Play()
-                self.WindSound:ChangePitch(80)
-                self.WindSound:SetSoundLevel(500)
-            end
+        elseif self:GetPos().z < self.CallHeight + self.ChuteHeight then
+            self:SetDeployed(true)
+            
+            local phys = self:GetPhysicsObject()
+            phys:Wake()
+            phys:SetVelocity(vvel)
+            phys:SetAngleVelocity(Vector(0,0,0))
+            
+            self.DeploySound:Play()
+            self.DeploySound:SetSoundLevel(500)
+            
+            self.WindSound:Play()
+            self.WindSound:ChangePitch(80)
+            self.WindSound:SetSoundLevel(500)
         end
+    end
+
+    if self:GetVirtual() then
+        self:SetVPos(vpos)
+        
+    --phys should be simulated before chute opens
+    --otherwise even with drag disabled, it will deploy earlier than it should
+    elseif not self:GetVirtual() and not self:GetDeployed() then
+        self:SetPos(vpos)
+        self:SetAngles(-vvel:Angle())
     end
 
     self:NextThink(CurTime() + engine.TickInterval())
