@@ -9,6 +9,8 @@ function ENT:SetupDataTables()
     self:NetworkVar("Bool", 1, "Landed")
     self:NetworkVar("Bool", 2, "Virtual")
     self:NetworkVar("Vector", 0, "VPos")
+    self:NetworkVar("Vector", 1, "VVel")
+    self:NetworkVar("Angle", 0, "VAng")
 end
 
 if CLIENT then
@@ -17,22 +19,18 @@ if CLIENT then
 function ENT:Initialize()
     self.CS = ClientsideModel("models/Items/ammoCrate_Rockets.mdl")
 
+    self.CSInit = false
     self.RealInit = false
 
     self.Bottom = ClientsideModel("models/Items/ammoCrate_Rockets.mdl")
-    self.Bottom:SetPos(self:GetPos())
     self.Bottom:SetModelScale(0.99)
-    self.Bottom:SetAngles(self:GetAngles() + Angle(180,0,0))
-    self.BottomPlaced = false
 
     self.ChuteHeight = 75
     self.Chute = ClientsideModel("models/props_phx/construct/metal_dome360.mdl")
-    self.Chute:SetPos(self:GetPos() + Vector(0,0,self.ChuteHeight))
     self.Chute:SetMaterial("models/props_debris/building_template010a")
     self.Chute:SetRenderMode(RENDERMODE_TRANSCOLOR)
     self.CColor = Color(255,255,255,255)
     self.Chute:SetColor(self.CColor)
-
 
     
     self.ChuteAttach = true
@@ -75,10 +73,14 @@ function ENT:Think()
     if not self.RealInit and not self:GetVirtual() then
         self.CS:Remove()
 
+        self.Bottom:SetParent(nil)
         self.Bottom:SetPos(self:GetPos())
+        self.Bottom:SetAngles(self:GetAngles() + Angle(180,0,0))
         self.Bottom:SetParent(self)
         
+        self.Chute:SetParent(nil)
         self.Chute:SetPos(self:GetPos() + self:GetUp()*self.ChuteHeight)
+        self.Chute:SetAngles(self:GetAngles())
         self.Chute:SetParent(self)
     end 
 end
@@ -86,19 +88,27 @@ end
 function ENT:Draw()
     if self:GetVirtual() then
         local vpos = self:GetVPos()
-        self.CS:SetPos(vpos)
-        self.CS:DrawModel()
-        self.Bottom:SetPos(vpos)
-        self.Bottom:DrawModel()
+        local ang = self:GetVAng()
 
-        if self:GetDeployed() then
-            self.Chute:SetPos(vpos + Vector(0,0,self.ChuteHeight))
-            self.Chute:DrawModel()
+        self.CS:SetPos(vpos)
+        self.CS:SetAngles(ang)
+        self.CS:DrawModel()
+
+        if not self.CSInit then
+            self.Bottom:SetPos(vpos)
+            self.Bottom:SetAngles(ang + Angle(180,0,0))
+            self.Bottom:SetParent(self.CS)
+            
+            self.Chute:SetPos(vpos + self.CS:GetUp()*self.ChuteHeight)
+            self.Chute:SetAngles(ang)
+            self.Chute:SetParent(self.CS)
         end
+
+        self.Bottom:DrawModel()
+        if self:GetDeployed() then self.Chute:DrawModel() end
     else
         self:DrawModel()
-        self.Bottom:SetPos(self:GetPos())
-        self.Bottom:DrawModel()
+        if self:GetDeployed() and not self:GetLanded() then self.Chute:DrawModel() end
     end
 end
 
@@ -126,7 +136,6 @@ function ENT:Initialize()
 
     self.CallHeight = self.CallHeight or self:GetPos().z
     self.SkyHeight = self.SkyHeight or nil
-    self.VVel = self.VVel or Vector(0,0,0)   
 
     self.Grav = Vector(0,0,-600)    --these are only here for safekeeping. don't fuck with
     self.Drag = 0  
@@ -145,6 +154,9 @@ function ENT:Initialize()
     
         self.VPos = self.VPos or nil
         self:SetVPos(self.VPos)
+
+        self.VVel = self.VVel or Vector(0,0,0)   
+        self:SetVVel(self.VVel)
     end
 
     
@@ -190,9 +202,9 @@ function ENT:Think()
     --calculate phys
     local vpos
     local vvel
-    if self:GetVirtual() or not self:GetDeployed() then
+    if self:GetVirtual() or (not self:GetVirtual() and not self:GetDeployed()) then
         vpos = self:GetVPos()
-        vvel = self.VVel
+        vvel = self:GetVVel()
         local dt = engine.TickInterval()
 
         local windf = self:GetDeployed() and wind or Vector(0,0,0)
@@ -202,7 +214,19 @@ function ENT:Think()
         vvel = vvel + (self.Grav - drag + windf)*dt
         vpos = vpos + vvel*dt
 
-        self.VVel = vvel
+        self:SetVPos(vpos)
+        self:SetVVel(vvel)
+        
+        --angles
+        local ang = vvel:Angle() + Angle(-90,0,0)
+        self:SetVAng(ang)
+    end
+
+    --phys should be simulated before chute opens
+    --otherwise even with drag disabled, it will deploy earlier than it should
+    if not self:GetVirtual() and not self:GetDeployed() then
+        self:SetPos(vpos)
+        self:SetAngles(vvel:Angle() + Angle(-90,0,0))
     end
 
     --virtual state checks
@@ -216,7 +240,12 @@ function ENT:Think()
             self:SetMoveType(MOVETYPE_VPHYSICS)
             self:SetCollisionGroup(COLLISION_GROUP_NONE)
             self:SetPos(vpos)
-            self:SetAngles(Angle())
+            self:SetAngles(self:GetVAng())
+
+            if self:GetDeployed() then
+                local phys = self:GetPhysicsObject()
+                phys:SetVelocity(self:GetVVel())
+            end
 
         --simulate parachute while out of level
         elseif not self:GetDeployed() and vpos.z < self.CallHeight + self.ChuteHeight then
@@ -257,15 +286,6 @@ function ENT:Think()
         end
     end
 
-    if self:GetVirtual() then
-        self:SetVPos(vpos)
-        
-    --phys should be simulated before chute opens
-    --otherwise even with drag disabled, it will deploy earlier than it should
-    elseif not self:GetVirtual() and not self:GetDeployed() then
-        self:SetPos(vpos)
-        self:SetAngles(-vvel:Angle())
-    end
 
     self:NextThink(CurTime() + engine.TickInterval())
     return true
