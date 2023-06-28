@@ -132,7 +132,7 @@ function ENT:Think()
 
         --fx
         if CLIENT and not self.Failed then
-            local pos = self:GetPos()
+            local pos = self:WorldSpaceCenter() + self:GetUp()*5
             local em = self.Emitter
             local part = em:Add("particles/pdm/smoke", pos)
 
