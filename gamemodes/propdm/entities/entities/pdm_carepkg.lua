@@ -161,7 +161,7 @@ function ENT:Initialize()
 end
 
 function ENT:PhysicsCollide(data,phys)
-    if data.Speed > 100 then
+    if data.Speed > 100 and data.DeltaTime > 0.1 then
         self:EmitSound("physics/metal/metal_barrel_impact_hard"..math.random(1,3)..".wav")
     end
 
