@@ -207,7 +207,7 @@ function SWEP:Throw(nade)
     end
 
     local ammotype = self.Primary.Ammo
-    if not ammotype == "none" then
+    if not (ammotype == "none") then
         
         local clip = self:Clip1() - 1
         local ammo = own:GetAmmoCount(ammotype)
