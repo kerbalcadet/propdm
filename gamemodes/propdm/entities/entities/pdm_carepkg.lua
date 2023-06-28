@@ -118,8 +118,11 @@ function ENT:Initialize()
     self.ChuteHeight = self.ChuteHeight or 3000
     self.ChuteDrag = self.ChuteDrag or 1/200
     self.DragFactor = Vector(0.5,0.5,1)
+    
     self.WindPwr = 50
     self.WindFreq = 0.8
+    self.WindRotFreq = 1
+    self.WindTOffset = math.Rand(-10,10)
 
     self.CallHeight = self.CallHeight or self:GetPos().z
     self.SkyHeight = self.SkyHeight or nil
@@ -175,17 +178,22 @@ end
 
 
 function ENT:Think()
+    local t = CurTime() + self.WindTOffset
+    local wrf = self.WindRotFreq
+    local wf = self.WindFreq
+    local wind = Vector(math.sin(t*wrf), math.cos(t*wrf), 0)*math.sin(CurTime()*wf)*self.WindPwr
+
     --virtual physics
     if self:GetVirtual() then
         local vpos = self:GetVPos()
         local vvel = self.VVel
         local dt = engine.TickInterval()
 
-        local wind = self:GetDeployed() and Vector(1,1,0)*math.sin(CurTime()*self.WindFreq)*self.WindPwr or Vector(0,0,0)
+        local windf = self:GetDeployed() and wind or Vector(0,0,0)
 
         --iterate pos and velocity to simulate movement
         local drag = self.Drag*self.DragFactor*vvel:GetNormalized()*vvel:LengthSqr()
-        vvel = vvel + (self.Grav - drag + wind)*dt
+        vvel = vvel + (self.Grav - drag + windf)*dt
         vpos = vpos + vvel*dt
 
         self:SetVPos(vpos)
@@ -223,7 +231,7 @@ function ENT:Think()
             local cforce = -self.ChuteDrag*self.DragFactor*phys:GetMass()*vel:GetNormalized()*vel:LengthSqr()
             phys:ApplyForceOffset(cforce*engine.TickInterval(), self:GetPos() + self:GetUp()*75)
 
-            local wforce = Vector(1,1,0)*math.sin(CurTime()*self.WindFreq)*phys:GetMass()*self.WindPwr
+            local wforce = wind*phys:GetMass()
             phys:ApplyForceCenter(wforce*engine.TickInterval())
 
         --check if parachute can be deployed
