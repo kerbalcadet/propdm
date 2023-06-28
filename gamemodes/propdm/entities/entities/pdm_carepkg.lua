@@ -120,8 +120,8 @@ function ENT:Initialize()
     self.DragFactor = Vector(0.5,0.5,1)
     
     self.WindPwr = 50
-    self.WindFreq = 0.8
-    self.WindRotFreq = 1
+    self.WindFreq = 1
+    self.WindRotFreq = 0.5
     self.WindTOffset = math.Rand(-10,10)
 
     self.CallHeight = self.CallHeight or self:GetPos().z
@@ -178,6 +178,10 @@ end
 
 
 function ENT:Think()
+    
+    --physics
+    if self:GetLanded() then return end 
+
     local t = CurTime() + self.WindTOffset
     local wrf = self.WindRotFreq
     local wf = self.WindFreq
@@ -222,7 +226,7 @@ function ENT:Think()
 
 
     --in-world physics 
-    if not self:GetVirtual() and not self:GetLanded() then
+    if not self:GetVirtual() then
         --simulate parachute if deployed
         if self:GetDeployed() then
             local phys = self:GetPhysicsObject()
