@@ -28,8 +28,8 @@ end
 
 
 
-
 SWEP.Fuse = 3   --seconds 
+SWEP.CanCook = true
 SWEP.ThrowDelay = 1.3 --delay between each throw
 SWEP.Armed = false
 SWEP.Cooking = false
@@ -150,24 +150,27 @@ function SWEP:PrimaryAttack()
     if self.Armed or not self:CanPrimaryAttack() then return end
 
     self.Armed = true
-    self.Cooking = true
-    self.LastCook = CurTime()
     self.Under = false
+    
+    if self.CanCook then
+        self.Cooking = true
+        self.LastCook = CurTime()
 
-    self.SoundSpoon:Stop()
-    self.SoundSpoon:Play()
+        self.SoundSpoon:Stop()
+        self.SoundSpoon:Play()
 
-    local title = tostring(self).."cook"
-    timer.Create(title, 1, math.floor(self.Fuse), function()
-        if not IsValid(self) or not self.Armed then 
-            timer.Remove(title)
-            return 
-        end
-        
-        self.SoundTick:Stop()
-        self.SoundTick:Play()
-        self.SoundTick:ChangePitch(80)
-    end)
+        local title = tostring(self).."cook"
+        timer.Create(title, 1, math.floor(self.Fuse), function()
+            if not IsValid(self) or not self.Armed then 
+                timer.Remove(title)
+                return 
+            end
+            
+            self.SoundTick:Stop()
+            self.SoundTick:Play()
+            self.SoundTick:ChangePitch(80)
+        end)
+    end
 
     self:SendWeaponAnim(ACT_VM_PULLBACK_HIGH)
 end
@@ -212,7 +215,7 @@ function SWEP:Throw(nade)
         local clip = self:Clip1() - 1
         local ammo = own:GetAmmoCount(ammotype)
         if ammo + clip <= 0 then
-            self:Remove()
+            timer.Simple(0.5, function() self:Remove() end)
             own:SwitchLastWeapon()
         else
             self:SetClip1(1)
