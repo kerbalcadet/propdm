@@ -117,6 +117,7 @@ function ENT:Initialize()
     
     self.ChuteHeight = self.ChuteHeight or 2000
     self.ChuteDrag = self.ChuteDrag or 1/400
+    self.DragFactor = Vector(0.5,0.5,1)
     self.WindPwr = 50
     self.WindFreq = 0.8
 
@@ -172,7 +173,6 @@ function ENT:PhysicsCollide(data,phys)
 end
 
 
-
 function ENT:Think()
     --virtual physics
     if self:GetVirtual() then
@@ -183,7 +183,8 @@ function ENT:Think()
         local wind = self:GetDeployed() and Vector(1,1,0)*math.sin(CurTime()*self.WindFreq)*self.WindPwr or Vector(0,0,0)
 
         --iterate pos and velocity to simulate movement
-        vvel = vvel + (self.Grav - self.Drag*vvel:GetNormalized()*vvel:LengthSqr() + wind)*dt
+        local drag = self.Drag*self.DragFactor*vvel:GetNormalized()*vvel:LengthSqr()
+        vvel = vvel + (self.Grav - drag + wind)*dt
         vpos = vpos + vvel*dt
 
         self:SetVPos(vpos)
@@ -217,14 +218,11 @@ function ENT:Think()
             local phys = self:GetPhysicsObject()
             local vel = phys:GetVelocity()
             
-            local cforce = self.ChuteDrag*self:GetUp()*phys:GetMass()*(vel.z^2)
-            local wforce = Vector(1,1,0)*math.sin(CurTime()*self.WindFreq)*phys:GetMass()*self.WindPwr
-            phys:ApplyForceCenter((cforce + wforce)*engine.TickInterval())
+            local cforce = -self.ChuteDrag*self.DragFactor*phys:GetMass()*vel:GetNormalized()*vel:LengthSqr()
+            phys:ApplyForceOffset(cforce*engine.TickInterval(), self:GetPos() + self:GetUp()*75)
 
-            --small angle approximation for difference in angles
-            local diff = vel:GetNormalized():Cross(self:GetUp())*phys:GetMass()*(1)
-            local der = phys:GetAngleVelocity()*5
-            phys:ApplyTorqueCenter(diff - der)
+            local wforce = Vector(1,1,0)*math.sin(CurTime()*self.WindFreq)*phys:GetMass()*self.WindPwr
+            phys:ApplyForceCenter(wforce*engine.TickInterval())
 
         --check if parachute can be deployed
         else
@@ -243,7 +241,7 @@ function ENT:Think()
         end
     end
 
-    self:NextThink(CurTime())
+    self:NextThink(CurTime() + engine.TickInterval())
     return true
 end
 
