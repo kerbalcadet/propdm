@@ -6,11 +6,9 @@ SWEP.Slot = 4
 SWEP.Weight = 2
 SWEP.SlotPos = 1
 
+SWEP.CanCook = false
 SWEP.SeparateFuse = 0.5
 SWEP.ThrowDelay = 2 --delay between each throw
-SWEP.Armed = false
-SWEP.LastThrow = 0
-SWEP.Under = false
 
 
 SWEP.Primary = {
