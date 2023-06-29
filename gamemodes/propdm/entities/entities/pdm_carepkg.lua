@@ -135,7 +135,7 @@ function ENT:Initialize()
     self.ChuteDrag = self.ChuteDrag or 1/200
     self.DragFactor = Vector(0.5,0.5,1)
     
-    self.WindPwr = 50
+    self.WindPwr = 100
     self.WindFreq = 1
     self.WindRotFreq = 0.5
     self.WindTOffset = math.Rand(-10,10)
