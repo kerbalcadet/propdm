@@ -20,3 +20,11 @@ PDM_KILLSTREAKS = {
     [5] = {KS_Launcher, "Propket Launcher"},
     [7] = {KS_Sentry, "Sentry Gun"}
 }
+
+PDM_CAREPKG_WPS = {
+    "pdm_clusternade",
+    "pdm_launcher",
+    "pdm_sentry_spawner",
+    "pdm_carepkg_nade",
+    "pdm_carepkg_nade"
+}
