@@ -11,6 +11,7 @@ function ENT:SetupDataTables()
     self:NetworkVar("Vector", 0, "VPos")
     self:NetworkVar("Vector", 1, "VVel")
     self:NetworkVar("Angle", 0, "VAng")
+    self:NetworkVar("Float", 0, "OpenFraction")
 end
 
 if CLIENT then
@@ -128,6 +129,11 @@ function ENT:Initialize()
     self:PhysicsInit(SOLID_VPHYSICS)
     self:SetElasticity(0)
     self:DrawShadow(true)
+
+    self.OpenTime = 2
+    self.Open = false
+    self.LastUse = 0
+    self:SetOpenFraction(0)
     
     --[[### all of this really should be adjusted in the proj_pdm_carepkgnade file, these are just defaults in case ###]]--
 
@@ -303,12 +309,40 @@ function ENT:Think()
     end
 
 
+    --remove opening status of crate
+    local t = CurTime() - self.LastUse
+    local of = self:GetOpenFraction()
+    if of > 0 and t > 0.1 then 
+        self:SetOpenFraction(math.clamp(of - engine.TickInterval()/self.OpenTime, 0, 1))
+    end
+
     self:NextThink(CurTime() + engine.TickInterval())
     return true
 end
 
 function ENT:Use(ply)
-    print("test!")
+    if self.Open then return end
+    self.LastUse = CurTime()
+
+    local of = self:GetOpenFraction()
+    if of == 0 then self.FirstPly = ply end
+
+    local tick = engine.TickInterval()
+    of = of + tick/self.OpenTime    
+
+    if of >= 1 then
+        p = self.FirstPly or ply
+        p:Give(table.Random(PDM_CAREPKG_WEPS))
+        
+        self:EmitSound("BaseCombatCharacter.AmmoPickup")
+        
+        self.Open = true
+        timer.Simple(1, function()
+            self:Remove()
+        end)
+    else
+        self:SetOpenFraction(of)
+    end
 end
 
 end

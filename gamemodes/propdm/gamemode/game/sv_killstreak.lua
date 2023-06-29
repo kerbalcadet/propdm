@@ -21,7 +21,7 @@ PDM_KILLSTREAKS = {
     [7] = {KS_Sentry, "Sentry Gun"}
 }
 
-PDM_CAREPKG_WPS = {
+PDM_CAREPKG_WEPS = {
     "pdm_clusternade",
     "pdm_launcher",
     "pdm_sentry_spawner",
