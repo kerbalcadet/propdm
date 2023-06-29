@@ -19,8 +19,8 @@ end
 
 function ENT:Initialize()
     self.Fuse = self.Fuse or 3
-    self.CallTime = 4   --after fuse
-    self.ChuteHeight = 4000
+    self.CallTime = 5   --after fuse
+    self.ChuteHeight = 3000
     self.PlaneHeight = 5000
     self.ChuteDrag = 1/200
     self.ChuteSlowDist = 1200   --how far away from the target point the parachute deploys to slow down
@@ -148,10 +148,10 @@ function ENT:Think()
 
             local c = self.Color
             part:SetColor(c.r, c.g, c.b)
-            part:SetDieTime(4)
+            part:SetDieTime(3)
             part:SetEndAlpha(0)
             part:SetStartSize(5)
-            part:SetEndSize(120)
+            part:SetEndSize(100)
             part:SetGravity(Vector(0,0,100))
             part:SetVelocity(Vector(80, 20, 50) + VectorRand()*20)
             part:SetAngleVelocity(AngleRand()/100)
