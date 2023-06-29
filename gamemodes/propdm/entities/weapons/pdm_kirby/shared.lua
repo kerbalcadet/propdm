@@ -21,7 +21,8 @@ util.PrecacheModel( SWEP.ViewModel )
 util.PrecacheModel( SWEP.WorldModel )
 
 SWEP.MaxWeight = 400
-local MovePenaltyMul = 0.25	--multiplied by inventory weight to get movespeed penalty
+local MovePenaltyMul = (0.25)/200	--multiplied by inventory weight to get movespeed penalty
+local MovePenaltyMax = 0.7
 SWEP.Primary = {
 	DefaultClip = 0,
 	Automatic = true,
@@ -191,8 +192,10 @@ end
 
 --adjust player movement speed
 function PLAYER:ChangeMoveSpeed()
-	self:SetWalkSpeed(200 - self.KirbyWeight*MovePenaltyMul)
-	self:SetRunSpeed(400 - self.KirbyWeight*MovePenaltyMul)
+	local mp = math.Clamp(self.KirbyWeight*MovePenaltyMul, 0, MovePenaltyMax)
+
+	self:SetWalkSpeed(200*(1 - mp))
+	self:SetRunSpeed(400*(1 - mp))
 end
 
 --fire prop from entity table
