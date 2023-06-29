@@ -69,20 +69,6 @@ function ENT:Think()
             return true
         end
     end
-
-    if not self.RealInit and not self:GetVirtual() then
-        self.CS:Remove()
-
-        self.Bottom:SetParent(nil)
-        self.Bottom:SetPos(self:GetPos())
-        self.Bottom:SetAngles(self:GetAngles() + Angle(180,0,0))
-        self.Bottom:SetParent(self)
-        
-        self.Chute:SetParent(nil)
-        self.Chute:SetPos(self:GetPos() + self:GetUp()*self.ChuteHeight)
-        self.Chute:SetAngles(self:GetAngles())
-        self.Chute:SetParent(self)
-    end 
 end
 
 function ENT:Draw()
@@ -96,7 +82,7 @@ function ENT:Draw()
 
         if not self.CSInit then
             self.Bottom:SetPos(vpos)
-            self.Bottom:SetAngles(ang + Angle(180,0,0))
+            self.Bottom:SetAngles(ang + Angle(0,0,180))
             self.Bottom:SetParent(self.CS)
             
             self.Chute:SetPos(vpos + self.CS:GetUp()*self.ChuteHeight)
@@ -107,7 +93,23 @@ function ENT:Draw()
         self.Bottom:DrawModel()
         if self:GetDeployed() then self.Chute:DrawModel() end
     else
+        if not self.RealInit and not self:GetLanded() then
+            self.CS:Remove()
+
+            self.Bottom:SetPos(self:GetPos())
+            self.Bottom:SetAngles(self:GetAngles() + Angle(0,0,180))
+            self.Bottom:SetParent(self)
+            
+            self.Chute:SetPos(self:GetPos() + self:GetUp()*self.ChuteHeight)
+            self.Chute:SetAngles(self:GetAngles())
+            self.Chute:SetParent(self)
+        end 
+        
         self:DrawModel()
+
+        --self.Bottom:SetAngles(self:GetAngles() + Angle(0,0,180))
+        self.Bottom:DrawModel()
+        
         if self:GetDeployed() and not self:GetLanded() then self.Chute:DrawModel() end
     end
 end
@@ -117,6 +119,8 @@ end
 
 
 if SERVER then
+
+util.PrecacheModel("models/Items/ammoCrate_Rockets.mdl")
     
 function ENT:Initialize()
     self:SetModel("models/Items/ammoCrate_Rockets.mdl")
@@ -177,6 +181,11 @@ function ENT:Initialize()
     end
 end
 
+--keeps clientside models from being unparented 
+function ENT:UpdateTransmitState()
+    return TRANSMIT_ALWAYS
+end
+
 function ENT:PhysicsCollide(data,phys)
     if data.Speed > 100 and data.DeltaTime > 0.1 then
         self:EmitSound("physics/metal/metal_barrel_impact_hard"..math.random(1,3)..".wav")
@@ -205,15 +214,17 @@ function ENT:Think()
     --calculate phys
     local vpos
     local vvel
+    local aim
     if self:GetVirtual() or (not self:GetVirtual() and not self:GetDeployed()) then
         vpos = self:GetVPos()
         vvel = self:GetVVel()
+        aim = vvel:GetNormalized()
         local dt = engine.TickInterval()
 
         local windf = self:GetDeployed() and wind or Vector(0,0,0)
 
         --iterate pos and velocity to simulate movement
-        local drag = self.Drag*self.DragFactor*vvel:GetNormalized()*vvel:LengthSqr()
+        local drag = self.Drag*self.DragFactor*aim*vvel:LengthSqr()
         vvel = vvel + (self.Grav - drag + windf)*dt
         vpos = vpos + vvel*dt
 
@@ -235,7 +246,7 @@ function ENT:Think()
 
     --virtual state checks
     if self:GetVirtual() then
-        local inworld = util.IsInWorld(vpos)
+        local inworld = util.IsInWorld(vpos - aim*100)
 
         --pop into real level
         if inworld then
@@ -249,6 +260,7 @@ function ENT:Think()
             if self:GetDeployed() then
                 local phys = self:GetPhysicsObject()
                 phys:SetVelocity(self:GetVVel())
+                phys:SetAngleVelocity(Vector())
             end
 
         --simulate parachute while out of level
