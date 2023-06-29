@@ -45,7 +45,7 @@ function ENT:OnRemove()
 end
 
 function ENT:Think()
-    if self.Chute then
+    if IsValid(self.Chute) then
         self.Chute:SetNoDraw(not self:GetDeployed())
 
         if self.ChuteAttach and self:GetLanded() then
@@ -65,11 +65,11 @@ function ENT:Think()
             
             self.CColor.a = math.Clamp(self.CColor.a - 0.5, 0, 255)
             self.Chute:SetColor(self.CColor)
-        
-            self:SetNextClientThink(CurTime())
-            return true
         end
     end
+
+    self:SetNextClientThink(CurTime())
+    return true
 end
 
 function ENT:Draw()
@@ -129,6 +129,7 @@ function ENT:Initialize()
     self:PhysicsInit(SOLID_VPHYSICS)
     self:SetElasticity(0)
     self:DrawShadow(true)
+    self:SetAutomaticFrameAdvance(true)
 
     self.OpenTime = 2
     self.Open = false
@@ -316,7 +317,7 @@ function ENT:Think()
         self:SetOpenFraction(math.clamp(of - engine.TickInterval()/self.OpenTime, 0, 1))
     end
 
-    self:NextThink(CurTime() + engine.TickInterval())
+    self:NextThink(CurTime())
     return true
 end
 
@@ -333,11 +334,14 @@ function ENT:Use(ply)
     if of >= 1 then
         p = self.FirstPly or ply
         p:Give(table.Random(PDM_CAREPKG_WEPS))
-        
+
         self:EmitSound("BaseCombatCharacter.AmmoPickup")
+
+        self:ResetSequence(1)
+        self:SetPlaybackRate(1)
         
         self.Open = true
-        timer.Simple(1, function()
+        timer.Simple(3, function()
             self:Remove()
         end)
     else
