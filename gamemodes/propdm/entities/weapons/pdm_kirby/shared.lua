@@ -143,9 +143,10 @@ end
 
 function SWEP:TryAddInv(ent)
 	local own = self:GetOwner()
-
+	
 	local phys = ent:GetPhysicsObject()
-	if not phys or not phys:IsValid() or phys:GetMass() > self.MaxWeight or ent.NoPickup then return end 
+	local mass = phys:GetMass() or nil
+	if ent.NoPickup then return end 
 	--TODO: change to be total weight
 
 	if ent:GetClass() == "fakeground" then return end	--some addon I think? causing issues.

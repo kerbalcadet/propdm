@@ -1,9 +1,30 @@
+PDM_PROPREPLACE = {
+    "prop_",
+    "func_"
+}
+
 function PDM_EntFromTable(tab, pos)
-    local ent = ents.Create(tab.class)
+    local class = tab.class
+
+    local replace = nil
+    for _, v in pairs(PDM_PROPREPLACE) do
+        if string.StartsWith(class, v) then 
+            replace = true
+            break 
+        end
+    end
+
+    class = replace and "prop_physics_multiplayer" or class
+
+    local ent = ents.Create(class)
     ent:SetModel(tab.model)
     ent:SetPos(pos)
     ent:Spawn()
-
+    
+    local phys = ent:GetPhysicsObject()
+    local mass = tab.mass or nil
+    if mass then phys:SetMass(mass) end
+    
     return ent
 end
 
