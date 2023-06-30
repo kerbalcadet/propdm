@@ -51,7 +51,7 @@ SWEP.Secondary = {
 	Range = 500,
 	SuckPower = 4*10^5,
 	MaxVelSqr = 12000,
-	BreakTime = 3,	--time it takes to break map props
+	BreakTime = 3,	--time it takes to break map props at full power
 
 	Active = false,
 	Time = 0,	--last time the right mouse button changed
@@ -235,6 +235,47 @@ function KirbyFireProp(tab, pos, dir, vel, att)
 	end
 end
 
+--try to break an immoveable map prop
+function SWEP:KirbyTryBreak(ent, dir)
+	local brk = ent.KirbyBreak or 0
+
+	if not brk or brk <= 0 then 
+		ent.KirbyLastBreak = CurTime()
+		ent:EmitSound("physics/metal/metal_solid_strain"..math.random(1,5)..".wav")
+	elseif ent.KirbyLastBreak and CurTime() - ent.KirbyLastBreak > 3 then
+		ent.KirbyBreak = 0
+	end
+	
+	--'dislodge' map props
+	if brk >= 1 then
+		ent:EmitSound("physics/metal/metal_barrel_impact_hard"..math.random(1,3)..".wav")
+		
+		local mdl = ent:GetModel()
+		local skn = ent:GetSkin()
+		local pos = ent:GetPos()
+		local ang = ent:GetAngles()
+		
+		local newent = ents.Create("prop_physics_multiplayer")
+		newent:SetPos(pos)
+		newent:SetAngles(ang)
+		newent:SetModel(mdl)
+		newent:SetSkin(skn)
+
+		ent:Remove()
+		newent:Spawn()
+
+		local phys = newent:GetPhysicsObject()
+		if IsValid(phys) then
+			phys:SetVelocity(dir*100)
+		end
+
+	--add time to field otherwise
+	else
+		brk = brk + self.KirbyPwrFrac*(engine.TickInterval() + math.Rand(-0.05, 0.05))/self.Secondary.BreakTime
+		ent.KirbyBreak = brk
+	end
+end
+
 function SWEP:KirbySuckEnts()
 	local rspool = self.Secondary.Spool
 	local own = self:GetOwner()
@@ -255,44 +296,10 @@ function SWEP:KirbySuckEnts()
 		local distsq = math.Clamp(diff:LengthSqr(), 1, 1000)	--feet bc why not
 
 		local moveable = string.StartsWith(ent:GetClass(), "prop_physics")
-		--applies to map props, func_breakable, prop_detail, etc.
-		if not moveable then
-			local brk = ent.KirbyBreak or 0
-
-			if not brk or brk <= 0 then 
-				ent.KirbyLastBreak = CurTime()
-				ent:EmitSound("physics/metal/metal_solid_strain"..math.random(1,5)..".wav")
-			elseif ent.KirbyLastBreak and CurTime() - ent.KirbyLastBreak > 3 then
-				ent.KirbyBreak = 0
-			end
-			
-			--'dislodge' map props
-			if brk >= 1 then
-				ent:EmitSound("physics/metal/metal_barrel_impact_hard"..math.random(1,3)..".wav")
-				
-				local mdl = ent:GetModel()
-				local skn = ent:GetSkin()
-				local pos = ent:GetPos()
-				local ang = ent:GetAngles()
-				
-				local newent = ents.Create("prop_physics_multiplayer")
-				newent:SetPos(pos)
-				newent:SetAngles(ang)
-				newent:SetModel(mdl)
-				newent:SetSkin(skn)
-
-				ent:Remove()
-				newent:Spawn()
-
-				local phys = newent:GetPhysicsObject()
-				if IsValid(phys) then
-					phys:SetVelocity(dir*100)
-				end
 		
-			else
-				brk = brk + (engine.TickInterval() + math.Rand(-0.05, 0.05))/self.Secondary.BreakTime
-				ent.KirbyBreak = brk
-			end
+		--dislodge map props, func_breakable, prop_detail, etc.
+		if not moveable then
+			self:KirbyTryBreak(ent, dir)
 
 		--for normal props, apply suction force
 		else
