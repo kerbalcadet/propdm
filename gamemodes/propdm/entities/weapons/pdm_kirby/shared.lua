@@ -64,6 +64,15 @@ SWEP.Secondary = {
 SWEP.CanHolster = true
 SWEP.CanDeploy = true
 
+
+function SWEP:SetupDataTables()
+	self:NetworkVar("Int", 0, "KirbyQueue")
+	self:NetworkVar("Int", 1, "KirbyProps")
+	self:NetworkVar("Float", 0, "LSpool")
+	self:NetworkVar("Float", 1, "RSpool")
+	self:NetworkVar("Float", 2, "PwrFrac")
+end
+
 function SWEP:Initialize()
 	self:SetHoldType( "revolver" )
 	self.Sound1 = CreateSound(self, "physics/nearmiss/whoosh_large1.wav")
@@ -71,13 +80,9 @@ function SWEP:Initialize()
 	self.Sound3 = CreateSound(self, "garrysmod/balloon_pop_cute.wav")
 	self.Sound4 = CreateSound(self, "ambient.steam01")
 	self.Sound5 = CreateSound(self, "weapons/ar2/fire1.wav")
-end
 
-function SWEP:SetupDataTables()
-	self:NetworkVar("Int", 31, "KirbyQueue")
-	self:NetworkVar("Int", 30, "KirbyProps")
+	self:SetPwrFrac(1)
 end
-
 
 
 
@@ -99,6 +104,7 @@ net.Receive("PDM_DustEffect", function()
 	local dir = net.ReadVector()
 	local scale = net.ReadFloat()
 
+	if not IsValid(ent) then return end
 	if not ent.Emitter then ent.Emitter = ParticleEmitter(ent:GetPos(), false) end
 	
 	local em = ent.Emitter
@@ -319,13 +325,13 @@ function SWEP:KirbyTryBreak(ent, dir)
 		local mass = PDM_PropInfo(ent:GetModel()) or (ent:GetPhysicsObject() and ent:GetPhysicsObject():GetMass()) or self.Secondary.MinBreakTime
 		local breaktime = mass and math.Clamp(mass*self.Secondary.BreakTimeMul, self.Secondary.MinBreakTime, self.Secondary.MaxBreakTime) or self.Secondary.MinBreakTime
 
-		brk = brk + self.KirbyPwrFrac*(engine.TickInterval() + math.Rand(-0.05, 0.05))/breaktime
+		brk = brk + self:GetPwrFrac()*(engine.TickInterval() + math.Rand(-0.05, 0.05))/breaktime
 		ent.KirbyBreak = brk
 	end
 end
 
 function SWEP:KirbySuckEnts()
-	local rspool = self.Secondary.Spool
+	local rspool = self:GetRSpool()
 	local own = self:GetOwner()
 	local pos = own:EyePos()
 	local range = self.Secondary.Range*rspool
@@ -353,7 +359,7 @@ function SWEP:KirbySuckEnts()
 		else
 			slow =  ent:GetVelocity():LengthSqr() < self.Secondary.MaxVelSqr	--prevent super speed
 			
-			local power = self.Secondary.SuckPower*self.KirbyPwrFrac
+			local power = self.Secondary.SuckPower*self:GetPwrFrac()
 			local force = slow and (dir/distsq)*mass*power or Vector(0,0,0)
 			local lift = Vector(0,0,1)*mass*600*engine.TickInterval()*0.9
 			phys:ApplyForceCenter((force + lift)*rspool)
@@ -382,139 +388,138 @@ function SWEP:Think()
 
 	--[[== SECONDARY FIRE ==]]--
 
-	local rclick = own:KeyDown(IN_ATTACK2)
-
-	--spool up/down behavior
-	if rclick then
-		if not self.Secondary.Active then 
-			self.Secondary.Active = true
-			self.Secondary.Time = CurTime()
-
-			self.Sound1:Play()
-			self.Sound2:Play()
-		end
-
-		local t = CurTime() - self.Secondary.Time
-		self.Secondary.Spool = math.Clamp(t*2, 0, 1)
-	
-	else
-		if self.Secondary.Active then
-			self.Secondary.Active = false 
-			self.Secondary.Time = CurTime()
-		end
-
-		local t = CurTime() - self.Secondary.Time
-		self.Secondary.Spool = math.Clamp(1 - t*2, 0, 1)
-	end
-
-	local rspool = self.Secondary.Spool
-
-	--actual suck
 	if SERVER then
-		if rspool > 0 then
-			self.KirbyPwrFrac = 1 - own.KirbyWeight/self.MaxWeight
+		self:SetPwrFrac(1 - own.KirbyWeight/self.MaxWeight)
+		local rclick = own:KeyDown(IN_ATTACK2)
+		--spool up/down behavior
+		if rclick and self:GetPwrFrac() > 0.05 then
+			if not self.Secondary.Active then 
+				self.Secondary.Active = true
+				self.Secondary.Time = CurTime()
 
+				self.Sound1:Play()
+				self.Sound2:Play()
+			end
+
+			local t = CurTime() - self.Secondary.Time
+			self:SetRSpool(math.Clamp(t*2, 0, 1))
+		
+		else
+			if self.Secondary.Active then
+				self.Secondary.Active = false 
+				self.Secondary.Time = CurTime()
+			end
+
+			local t = CurTime() - self.Secondary.Time
+			self:SetRSpool(math.Clamp(1 - t*2, 0, 1))
+		end
+
+		local rspool = self:GetRSpool()
+
+		--actual suck
+		if rspool > 0 then
 			self:KirbySuckEnts()
 			
-			local pchange =  100 - (1 - self.KirbyPwrFrac)*50
+			local pchange =  100 - (1 - self:GetPwrFrac())*50
 			self.Sound1:ChangePitch(pchange)
 			self.Sound2:ChangePitch(pchange)
 
 		elseif not rclick then
 			self.Sound1:Stop()
 		end
+
+
+		self.Sound1:ChangeVolume(rspool)
+		self.Sound2:ChangeVolume(rspool)
 	end
 
-
-	self.Sound1:ChangeVolume(rspool)
-	self.Sound2:ChangeVolume(rspool)
-
 	--screen shake effect
-	if CLIENT and rspool > 0 then
-		util.ScreenShake(LocalPlayer():GetPos(), rspool/2, 100, 0.1, 10)
+	if CLIENT and self:GetRSpool() > 0 then
+		util.ScreenShake(LocalPlayer():GetPos(), self:GetRSpool()/2, 100, 0.1, 10)
 	end
 
 
 	--[[== PRIMARY FIRE ==]]--
 	
-	--spool up/down behavior
-	local lclick = own:KeyDown(IN_ATTACK)
-	if lclick and not self.Primary.Cooldown then
-		if not self.Primary.Active then 
-			self.Primary.Active = true
-			self.Primary.Time = CurTime()
-
-			self.Sound4:ChangeVolume(0)
-			self.Sound4:Play()
-		end
-
-		local t = CurTime() - self.Primary.Time
-		self.Primary.Spool = math.Clamp(t/self.Primary.SpoolTime, 0, 1)
-	
-	else
-		if self.Primary.Active then
-			self.Primary.Active = false 
-			self.Primary.Cooldown = true
-			self.Primary.Time = CurTime()
-		
-		elseif self.Primary.Spool == 0 then
-			self.Primary.Cooldown = false
-		end
-		
-		local t = CurTime() - self.Primary.Time
-		self.Primary.Spool = math.Clamp(1 - t*2, 0, 1)
-	end
-
-	local lspool = self.Primary.Spool
-
-	self.Sound4:ChangeVolume(lspool)
-	self.Sound4:ChangePitch(80 + 40*lspool)
-
-
-	--firing behavior
 	if SERVER then
 
-	--add props to shoot queue
-	if lclick and not self.Primary.Cooldown and own.KirbyInv and not table.IsEmpty(own.KirbyInv) then
-		local next = own.KirbyInv[#own.KirbyInv]
-		local maxw = lspool*self.Primary.MaxWeightPer	
+		--spool up/down behavior
+		local lclick = own:KeyDown(IN_ATTACK)
+		if lclick and not self.Primary.Cooldown then
+			if not self.Primary.Active then 
+				self.Primary.Active = true
+				self.Primary.Time = CurTime()
+
+				self.Sound4:ChangeVolume(0)
+				self.Sound4:Play()
+			end
+
+			local t = CurTime() - self.Primary.Time
+			self:SetLSpool(math.Clamp(t/self.Primary.SpoolTime, 0, 1))
 		
-		if (maxw + 10> own.KirbyQWeight + next.mass) then	--several light props
-			self:AddQueue(next)
-		elseif lspool == 1 and #own.KirbyQueue == 0 then	--one single heavy prop
-			self:AddQueue(next, true)
+		else
+			if self.Primary.Active then
+				self.Primary.Active = false 
+				self.Primary.Cooldown = true
+				self.Primary.Time = CurTime()
+			
+			elseif self:GetLSpool() == 0 then
+				self.Primary.Cooldown = false
+			end
+			
+			local t = CurTime() - self.Primary.Time
+			self:SetLSpool(math.Clamp(1 - t*2, 0, 1))
 		end
 
-	--actual shooting!
-	elseif self.Primary.Cooldown and not self.Primary.Shooting and own.KirbyQueue and not table.IsEmpty(own.KirbyQueue) then
-		self.Primary.Shooting = true
-		own.KirbyQWeight = 0
-		local title = tostring(self).."shoot"
+		local lspool = self:GetLSpool()
 
-		--timer to repeat firing logic
-		timer.Create(title, self.Primary.FireDelay, #own.KirbyQueue, function()
-			if not IsValid(self) or not own:Alive() then return end
-			
-			local queue = own.KirbyQueue
-			local dir = own:EyeAngles():Forward()
-			local tab = queue[#queue]
-			
-			self.Sound5:Stop()
-			self.Sound5:Play()
-			self.Sound5:ChangePitch(70)
-			KirbyFireProp(tab, own:GetShootPos() + dir*30, dir, self.Primary.BaseSpeed + self.Primary.SpeedMul/tab.mass, own)
-			
-			table.remove(queue)
-			self:SetKirbyQueue(#queue)
+		self.Sound4:ChangeVolume(lspool)
+		self.Sound4:ChangePitch(80 + 40*lspool)
 
-			own.KirbyWeight = own.KirbyWeight - tab.mass
-			own:ChangeMoveSpeed()
+
+		--firing behavior
+
+		--add props to shoot queue
+		if lclick and not self.Primary.Cooldown and own.KirbyInv and not table.IsEmpty(own.KirbyInv) then
+			local next = own.KirbyInv[#own.KirbyInv]
+			local maxw = lspool*self.Primary.MaxWeightPer	
 			
-			if timer.RepsLeft(title) == 0 then
-				self.Primary.Shooting = false
+			if (maxw + 10> own.KirbyQWeight + next.mass) then	--several light props
+				self:AddQueue(next)
+			elseif lspool == 1 and #own.KirbyQueue == 0 then	--one single heavy prop
+				self:AddQueue(next, true)
 			end
-		end)
-	end
+
+		--actual shooting!
+		elseif self.Primary.Cooldown and not self.Primary.Shooting and own.KirbyQueue and not table.IsEmpty(own.KirbyQueue) then
+			self.Primary.Shooting = true
+			own.KirbyQWeight = 0
+			local title = tostring(self).."shoot"
+
+			--timer to repeat firing logic
+			timer.Create(title, self.Primary.FireDelay, #own.KirbyQueue, function()
+				if not IsValid(self) or not own:Alive() then return end
+				
+				local queue = own.KirbyQueue
+				local dir = own:EyeAngles():Forward()
+				local tab = queue[#queue]
+				
+				self.Sound5:Stop()
+				self.Sound5:Play()
+				self.Sound5:ChangePitch(70)
+				KirbyFireProp(tab, own:GetShootPos() + dir*30, dir, self.Primary.BaseSpeed + self.Primary.SpeedMul/tab.mass, own)
+				
+				table.remove(queue)
+				self:SetKirbyQueue(#queue)
+
+				own.KirbyWeight = own.KirbyWeight - tab.mass
+				own:ChangeMoveSpeed()
+				
+				if timer.RepsLeft(title) == 0 then
+					self.Primary.Shooting = false
+				end
+			end)
+		end
 
 	end
 
