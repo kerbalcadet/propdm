@@ -48,7 +48,7 @@ SWEP.Secondary = {
 	Automatic = true,
 	Ammo = "props",
 
-	Range = 500,
+	Range = 300,
 	SuckPower = 4*10^5,
 	MaxVelSqr = 12000,
 	
