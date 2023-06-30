@@ -19,6 +19,7 @@ function PDM_SpawnHeli()
     heli:Fire("StartPatrol")
 
     heli.MaxProps = GetConVar("pdm_maxprops"):GetInt()
+    heli.NoPickup = true
     heli.Props = {}
 end
 
