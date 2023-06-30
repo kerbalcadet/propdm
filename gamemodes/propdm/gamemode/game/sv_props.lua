@@ -47,6 +47,15 @@ function PDM_FireProp(tab, pos, ang, vel, avel, att)
     if not IsValid(phys) or not ent:GetMoveType() == MOVETYPE_VPHYSICS then ent:Remove() return false end
 
     ent:SetAngles(ang or Angle(0, 0, 0))
+   
+    local minv = ent:WorldSpaceAABB()
+    local ground = util.QuickTrace(pos, Vector(0,0,-5000), ent).HitPos
+    local zdiff = minv.z - ground.z
+
+    if zdiff < 0 then
+        ent:SetPos(pos + Vector(0,0, -zdiff + 5))
+    end
+
     phys:SetVelocity(vel or Vector(0, 0, 0))
     phys:SetAngleVelocity(avel or Angle(0, 0, 0))
 
