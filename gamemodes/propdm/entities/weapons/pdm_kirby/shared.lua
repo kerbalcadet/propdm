@@ -274,7 +274,7 @@ function SWEP:KirbyTryBreak(ent, dir)
 
 	--add time to field otherwise
 	else
-		local mass = PDM_PropInfo(ent:GetModel())
+		local mass = PDM_PropInfo(ent:GetModel()) or (ent:GetPhysicsObject() and ent:GetPhysicsObject():GetMass()) or self.Secondary.MinBreakTime
 		local breaktime = mass and math.Clamp(mass*self.Secondary.BreakTimeMul, self.Secondary.MinBreakTime, self.Secondary.MaxBreakTime) or self.Secondary.MinBreakTime
 
 		brk = brk + self.KirbyPwrFrac*(engine.TickInterval() + math.Rand(-0.05, 0.05))/breaktime
