@@ -20,7 +20,7 @@ SWEP.WorldModel		= "models/weapons/w_toolgun.mdl"
 util.PrecacheModel( SWEP.ViewModel )
 util.PrecacheModel( SWEP.WorldModel )
 
-SWEP.MaxWeight = 400
+SWEP.MaxWeight = 1000
 local MovePenaltyMul = (0.25)/200	--multiplied by inventory weight to get movespeed penalty
 local MovePenaltyMax = 0.7
 SWEP.Primary = {
@@ -150,7 +150,8 @@ function SWEP:TryAddInv(ent)
 	if ent.NoPickup then return end 
 	--TODO: change to be total weight
 
-	if ent:GetClass() == "fakeground" then return end	--some addon I think? causing issues.
+	--can only pick up one superheavy object
+	if mass and mass + own.KirbyWeight > self.MaxWeight and #own.KirbyInv > 0 then return end
 
 	local class = ent:GetClass()
 	local mass = phys:GetMass()
