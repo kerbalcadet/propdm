@@ -219,6 +219,39 @@ function KirbyFireProp(tab, pos, dir, vel, att)
 	end
 end
 
+function SWEP:KirbySuckEnts()
+	local rspool = self.Secondary.Spool
+	local own = self:GetOwner()
+	local pos = own:EyePos()
+	local range = self.Secondary.Range*rspool
+
+	for _, ent in pairs(ents.FindInCone(pos, own:EyeAngles():Forward(), range, 0.8)) do
+		local phys = ent:GetPhysicsObject()
+		if not ent:IsSolid() or not phys:IsValid() or ent:IsPlayer() then continue end
+		
+		local moveable = phys:IsMoveable()
+
+		
+		local mass = phys:GetMass()
+		slow =  ent:GetVelocity():LengthSqr() < self.Secondary.MaxVelSqr	--prevent super speed
+
+		local diff = pos - ent:GetPos()
+		local dir = diff:GetNormalized()
+		local distsq = math.Clamp(diff:LengthSqr()/144, 1, 100)	--feet bc why not
+		
+		--apply suction force
+		local force = slow and (dir/distsq)*mass*self.Secondary.SuckPower or Vector(0,0,0)
+		local lift = Vector(0,0,1)*mass*600*engine.TickInterval()*0.98
+		phys:ApplyForceCenter((force + lift)*rspool)
+	end
+
+	local gpos = own:GetPos()
+	local trh =	util.TraceEntityHull({start=gpos, endpos=gpos + own:GetAimVector()*20, filter=own, ignoreworld=true}, own)
+	if IsValid(trh.Entity) then
+		self:TryAddInv(trh.Entity)
+	end
+end
+
 end
 
 
@@ -258,26 +291,7 @@ function SWEP:Think()
 	--actual suck
 	if rspool > 0 then
 		if SERVER then
-			local pos = own:EyePos()
-			local range = self.Secondary.Range*rspool
-			for _, ent in pairs(ents.FindInCone(pos, own:EyeAngles():Forward(), range, 0.8)) do
-				
-				local phys = ent:GetPhysicsObject()
-				if not ent:IsSolid() or not phys:IsValid() or ent:IsPlayer() then continue end
-				local mass = phys:GetMass()
-				slow =  ent:GetVelocity():LengthSqr() < self.Secondary.MaxVelSqr	--prevent super speed
-
-				local diff = pos - ent:GetPos()
-				local dir = diff:GetNormalized()
-				local distsq = math.Clamp(diff:LengthSqr()/144, 1, 100)	--feet bc why not
-				
-				--apply suction force
-				local force = slow and (dir/distsq)*mass*self.Secondary.SuckPower or Vector(0,0,0)
-				local lift = Vector(0,0,1)*mass*600*engine.TickInterval()*0.98
-				phys:ApplyForceCenter((force + lift)*rspool)
-			
-				if ent == own:GetTouchTrace().Entity and rclick then self:TryAddInv(ent) end
-			end
+			self:KirbySuckEnts()
 		end
 	elseif not rclick then
 		self.Sound1:Stop()
