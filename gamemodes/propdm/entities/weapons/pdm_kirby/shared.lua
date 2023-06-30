@@ -298,7 +298,7 @@ function SWEP:KirbySuckEnts()
 		else
 			slow =  ent:GetVelocity():LengthSqr() < self.Secondary.MaxVelSqr	--prevent super speed
 			
-			local power = self.Secondary.SuckPower*(1-own.KirbyWeight/self.MaxWeight)
+			local power = self.Secondary.SuckPower*self.KirbyPwrFrac
 			local force = slow and (dir/distsq)*mass*power or Vector(0,0,0)
 			local lift = Vector(0,0,1)*mass*600*engine.TickInterval()*0.9
 			phys:ApplyForceCenter((force + lift)*rspool)
@@ -357,9 +357,11 @@ function SWEP:Think()
 	--actual suck
 	if SERVER then
 		if rspool > 0 then
+			self.KirbyPwrFrac = 1 - own.KirbyWeight/self.MaxWeight
+
 			self:KirbySuckEnts()
 			
-			local pchange =  100 - (own.KirbyWeight/self.MaxWeight)*50
+			local pchange =  100 - (1 - self.KirbyPwrFrac)*50
 			self.Sound1:ChangePitch(pchange)
 			self.Sound2:ChangePitch(pchange)
 
