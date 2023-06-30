@@ -207,7 +207,6 @@ function SWEP:TryAddInv(ent)
 	if mass and mass + own.KirbyWeight > self.MaxWeight and #own.KirbyInv > 0 then return end
 
 	local class = ent:GetClass()
-	local mass = phys:GetMass()
 	local model = ent:GetModel()
 	local skn = ent:GetSkin()
 	local keyval = ent:GetKeyValues()
@@ -322,7 +321,18 @@ function SWEP:KirbyTryBreak(ent, dir)
 
 	--add time to field otherwise
 	else
-		local mass = PDM_PropInfo(ent:GetModel()) or (ent:GetPhysicsObject() and ent:GetPhysicsObject():GetMass()) or self.Secondary.MinBreakTime
+		local phys = ent:GetPhysicsObject()
+		local mass = PDM_PropInfo(ent:GetModel()) or (phys and phys:GetMass())
+		
+		--map props that have no normal model but are set to 50,000
+		if mass > 10000 and phys then
+			--https://wiki.facepunch.com/gmod/Structures/SurfacePropertyData
+			--calculation of default gmod mass data for metal
+			mass = phys:GetSurfaceArea()*0.1*0.0254^3*2700	 
+			phys:SetMass(mass)
+			print(mass)
+		end
+		
 		local breaktime = mass and math.Clamp(mass*self.Secondary.BreakTimeMul, self.Secondary.MinBreakTime, self.Secondary.MaxBreakTime) or self.Secondary.MinBreakTime
 
 		brk = brk + self:GetPwrFrac()*(engine.TickInterval() + math.Rand(-0.05, 0.05))/breaktime
