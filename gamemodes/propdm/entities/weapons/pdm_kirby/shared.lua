@@ -52,7 +52,7 @@ SWEP.Secondary = {
 	SuckPower = 4*10^5,
 	MaxVelSqr = 12000,
 	
-	BreakTimeMul = 1/100, --multiplied by weight to get time to break props at full power
+	BreakTimeMul = 1/200, --multiplied by weight to get time to break props at full power
 	MinBreakTime = 1,
 	MaxBreakTime = 10,
 
@@ -338,7 +338,7 @@ function SWEP:KirbySuckEnts()
 
 	for _, ent in pairs(ents.FindInCone(pos, own:EyeAngles():Forward(), range, 0.8)) do
 		local phys = ent:GetPhysicsObject()
-		if not ent:IsSolid() or not phys:IsValid() or ent:IsPlayer() or ent.NoPickup then continue end
+		if not ent:IsSolid() or not phys:IsValid() or ent:IsPlayer() or ent:IsNPC() or ent.NoPickup then continue end
 		
 		local mass = phys:GetMass()
 		
@@ -349,8 +349,9 @@ function SWEP:KirbySuckEnts()
 		local dir = diff:GetNormalized()
 		local distsq = math.Clamp(diff:LengthSqr(), 1, 1000)	--feet bc why not
 
+		local class = ent:GetClass()
 		local moveable = string.StartsWith(ent:GetClass(), "prop_physics")
-		
+
 		--dislodge map props, func_breakable, prop_detail, etc.
 		if not moveable then
 			self:KirbyTryBreak(ent, dir)
