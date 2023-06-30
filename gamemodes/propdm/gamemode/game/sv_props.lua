@@ -18,6 +18,7 @@ function PDM_EntFromTable(tab, pos)
 
     local ent = ents.Create(class)
     ent:SetModel(tab.model)
+    ent:SetSkin(tab.skn or 0)
     ent:SetPos(pos)
     ent:Spawn()
     

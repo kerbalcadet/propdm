@@ -183,10 +183,11 @@ function SWEP:TryAddInv(ent)
 	local class = ent:GetClass()
 	local mass = phys:GetMass()
 	local model = ent:GetModel()
+	local skn = ent:GetSkin()
 	local keyval = ent:GetKeyValues()
 	local map = ent.map
 	
-	local tab = {class=class, mass=mass, model=model, keyval=keyval, map=map}
+	local tab = {class=class, mass=mass, model=model, skn=skn, keyval=keyval, map=map}
 	table.insert(own.KirbyInv, tab)
 	self:SetKirbyProps(#own.KirbyInv)
 	
