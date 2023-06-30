@@ -48,13 +48,14 @@ SWEP.Secondary = {
 	Automatic = true,
 	Ammo = "props",
 
+	Range = 500,
+	SuckPower = 4*10^5,
+	MaxVelSqr = 12000,
+	BreakTime = 3,	--time it takes to break map props
+
 	Active = false,
-	Range = 100,
 	Time = 0,	--last time the right mouse button changed
 	Spool = 0,
-	SuckPower = 3000,
-	MaxVelSqr = 12000,
-	Range = 500,
 }
 
 SWEP.CanHolster = true
@@ -97,6 +98,11 @@ if SERVER then
 
 
 
+--[[-------------------------------------
+	PLAYER FUNCTIONS
+]]--------------------------------------
+
+
 hook.Remove("PlayerDeath", "kirbyexplode")
 hook.Add("PlayerDeath", "kirbyexplode", function(ply, inf, att)
 	if not ply.KirbyInv then return end
@@ -127,6 +133,14 @@ function PLAYER:KirbyPlayerInit()
 	
 end
 
+--adjust player movement speed
+function PLAYER:ChangeMoveSpeed()
+	local mp = math.Clamp(self.KirbyWeight*MovePenaltyMul, 0, MovePenaltyMax)
+
+	self:SetWalkSpeed(200*(1 - mp))
+	self:SetRunSpeed(400*(1 - mp))
+end
+
 --initialize inventory
 function SWEP:Equip(own)
 	if not own.KirbyInv then
@@ -141,6 +155,16 @@ function SWEP:OnRemove()
 	self.Sound4:Stop()
 	self.Sound5:Stop()
 end
+
+
+
+
+
+--[[----------------------------------------------
+	PROP FUNCTIONS AND SUCH THINGS
+]]------------------------------------------------
+
+
 
 function SWEP:TryAddInv(ent)
 	local own = self:GetOwner()
@@ -191,14 +215,6 @@ function SWEP:AddQueue(tab, heavy)
 	self:SetKirbyQueue(#own.KirbyQueue)
 end
 
---adjust player movement speed
-function PLAYER:ChangeMoveSpeed()
-	local mp = math.Clamp(self.KirbyWeight*MovePenaltyMul, 0, MovePenaltyMax)
-
-	self:SetWalkSpeed(200*(1 - mp))
-	self:SetRunSpeed(400*(1 - mp))
-end
-
 --fire prop from entity table
 function KirbyFireProp(tab, pos, dir, vel, att)
 	local ent = PDM_FireProp(tab, pos, AngleRand(), dir*vel, VectorRand(), att)
@@ -229,27 +245,76 @@ function SWEP:KirbySuckEnts()
 		local phys = ent:GetPhysicsObject()
 		if not ent:IsSolid() or not phys:IsValid() or ent:IsPlayer() then continue end
 		
-		local moveable = phys:IsMoveable()
-
-		
 		local mass = phys:GetMass()
-		slow =  ent:GetVelocity():LengthSqr() < self.Secondary.MaxVelSqr	--prevent super speed
+		
+		--don't suck props we can't hold
+		if (mass + own.KirbyWeight > self.MaxWeight) and not #own.KirbyInv == 0 then continue end
 
 		local diff = pos - ent:GetPos()
 		local dir = diff:GetNormalized()
-		local distsq = math.Clamp(diff:LengthSqr()/144, 1, 100)	--feet bc why not
+		local distsq = math.Clamp(diff:LengthSqr(), 1, 1000)	--feet bc why not
+
+		local moveable = string.StartsWith(ent:GetClass(), "prop_physics")
+		--applies to map props, func_breakable, prop_detail, etc.
+		if not moveable then
+			local brk = ent.KirbyBreak or 0
+
+			if not brk or brk <= 0 then 
+				ent.KirbyLastBreak = CurTime()
+				ent:EmitSound("physics/metal/metal_solid_strain"..math.random(1,5)..".wav")
+			elseif ent.KirbyLastBreak and CurTime() - ent.KirbyLastBreak > 3 then
+				ent.KirbyBreak = 0
+			end
+			
+			--'dislodge' map props
+			if brk >= 1 then
+				ent:EmitSound("physics/metal/metal_barrel_impact_hard"..math.random(1,3)..".wav")
+				
+				local mdl = ent:GetModel()
+				local skn = ent:GetSkin()
+				local pos = ent:GetPos()
+				local ang = ent:GetAngles()
+				
+				local newent = ents.Create("prop_physics_multiplayer")
+				newent:SetPos(pos)
+				newent:SetAngles(ang)
+				newent:SetModel(mdl)
+				newent:SetSkin(skn)
+
+				ent:Remove()
+				newent:Spawn()
+
+				local phys = newent:GetPhysicsObject()
+				if IsValid(phys) then
+					phys:SetVelocity(dir*100)
+				end
 		
-		--apply suction force
-		local power = self.Secondary.SuckPower*(1-own.KirbyWeight/self.MaxWeight)
-		local force = slow and (dir/distsq)*mass*power or Vector(0,0,0)
-		local lift = Vector(0,0,1)*mass*600*engine.TickInterval()*0.9
-		phys:ApplyForceCenter((force + lift)*rspool)
+			else
+				brk = brk + (engine.TickInterval() + math.Rand(-0.05, 0.05))/self.Secondary.BreakTime
+				ent.KirbyBreak = brk
+			end
+
+		--for normal props, apply suction force
+		else
+			slow =  ent:GetVelocity():LengthSqr() < self.Secondary.MaxVelSqr	--prevent super speed
+			
+			local power = self.Secondary.SuckPower*(1-own.KirbyWeight/self.MaxWeight)
+			local force = slow and (dir/distsq)*mass*power or Vector(0,0,0)
+			local lift = Vector(0,0,1)*mass*600*engine.TickInterval()*0.9
+			phys:ApplyForceCenter((force + lift)*rspool)
+		end
 	end
 
+	--actually find and add nearby props to inventory
 	local gpos = own:GetPos()
 	local trh =	util.TraceEntityHull({start=gpos, endpos=gpos + own:GetAimVector()*20, filter=own, ignoreworld=true}, own)
-	if IsValid(trh.Entity) then
-		self:TryAddInv(trh.Entity)
+	local tre = trh.Entity
+	
+	if IsValid(tre) then
+		local phys = tre:GetPhysicsObject()
+		if IsValid(phys) and phys:IsMoveable() then
+			self:TryAddInv(trh.Entity)
+		end
 	end
 end
 
