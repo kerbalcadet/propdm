@@ -111,7 +111,7 @@ net.Receive("PDM_DustEffect", function()
 	local p = em:Add("particles/pdm/smoke", ent:WorldSpaceCenter())
 	p:SetColor(140, 115, 90)
 	p:SetDieTime(1)
-	p:SetStartAlpha(30)
+	p:SetStartAlpha(20)
 	p:SetEndAlpha(0)
 	p:SetStartSize(scale)
 	p:SetEndSize(scale*1.5)
@@ -268,7 +268,7 @@ util.AddNetworkString("PDM_DustEffect")
 function SWEP:DustEffect(ent, dir)
 	ent:EmitSound("physics/metal/metal_solid_strain"..math.random(1,5)..".wav")
 	
-	local scale = IsValid(ent:GetPhysicsObject()) and ent:GetPhysicsObject():GetSurfaceArea()/400 or 20
+	local scale = IsValid(ent:GetPhysicsObject()) and math.Clamp(ent:GetPhysicsObject():GetSurfaceArea()/400, 10, 100) or 20
 
 	net.Start("PDM_DustEffect")
 		net.WriteEntity(ent)
