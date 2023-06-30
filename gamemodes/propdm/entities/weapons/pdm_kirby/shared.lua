@@ -240,8 +240,9 @@ function SWEP:KirbySuckEnts()
 		local distsq = math.Clamp(diff:LengthSqr()/144, 1, 100)	--feet bc why not
 		
 		--apply suction force
-		local force = slow and (dir/distsq)*mass*self.Secondary.SuckPower or Vector(0,0,0)
-		local lift = Vector(0,0,1)*mass*600*engine.TickInterval()*0.98
+		local power = self.Secondary.SuckPower*(1-own.KirbyWeight/self.MaxWeight)
+		local force = slow and (dir/distsq)*mass*power or Vector(0,0,0)
+		local lift = Vector(0,0,1)*mass*600*engine.TickInterval()*0.9
 		phys:ApplyForceCenter((force + lift)*rspool)
 	end
 
@@ -289,12 +290,17 @@ function SWEP:Think()
 	local rspool = self.Secondary.Spool
 
 	--actual suck
-	if rspool > 0 then
-		if SERVER then
+	if SERVER then
+		if rspool > 0 then
 			self:KirbySuckEnts()
+			
+			local pchange =  100 - (own.KirbyWeight/self.MaxWeight)*50
+			self.Sound1:ChangePitch(pchange)
+			self.Sound2:ChangePitch(pchange)
+
+		elseif not rclick then
+			self.Sound1:Stop()
 		end
-	elseif not rclick then
-		self.Sound1:Stop()
 	end
 
 
