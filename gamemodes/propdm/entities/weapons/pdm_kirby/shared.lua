@@ -330,7 +330,6 @@ function SWEP:KirbyTryBreak(ent, dir)
 			--calculation of default gmod mass data for metal
 			mass = phys:GetSurfaceArea()*0.1*0.0254^3*2700	 
 			phys:SetMass(mass)
-			print(mass)
 		end
 		
 		local breaktime = mass and math.Clamp(mass*self.Secondary.BreakTimeMul, self.Secondary.MinBreakTime, self.Secondary.MaxBreakTime) or self.Secondary.MinBreakTime
@@ -360,12 +359,12 @@ function SWEP:KirbySuckEnts()
 		local distsq = math.Clamp(diff:LengthSqr(), 1, 1000)	--feet bc why not
 
 		local class = ent:GetClass()
-		local moveable = string.StartsWith(ent:GetClass(), "prop_physics")
+		local moveable = ent:GetMoveType() == MOVETYPE_VPHYSICS
+		
 
 		--dislodge map props, func_breakable, prop_detail, etc.
 		if not moveable then
 			self:KirbyTryBreak(ent, dir)
-
 		--for normal props, apply suction force
 		else
 			slow =  ent:GetVelocity():LengthSqr() < self.Secondary.MaxVelSqr	--prevent super speed
