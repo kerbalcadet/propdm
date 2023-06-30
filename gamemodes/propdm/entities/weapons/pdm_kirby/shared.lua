@@ -335,7 +335,7 @@ function SWEP:KirbyTryBreak(ent, dir)
 		
 		local breaktime = mass and math.Clamp(mass*self.Secondary.BreakTimeMul, self.Secondary.MinBreakTime, self.Secondary.MaxBreakTime) or self.Secondary.MinBreakTime
 
-		brk = brk + self:GetPwrFrac()*(engine.TickInterval() + math.Rand(-0.05, 0.05))/breaktime
+		brk = brk + (engine.TickInterval() + math.Rand(-0.05, 0.05))/breaktime
 		ent.KirbyBreak = brk
 	end
 end
@@ -379,7 +379,7 @@ function SWEP:KirbySuckEnts()
 
 	--actually find and add nearby props to inventory
 	local gpos = own:GetPos()
-	local trh =	util.TraceEntityHull({start=gpos, endpos=gpos + own:GetAimVector()*20, filter=own, ignoreworld=true}, own)
+	local trh =	util.TraceEntityHull({start=gpos, endpos=gpos + own:GetAimVector()*10, filter=own, ignoreworld=true}, own)
 	local tre = trh.Entity
 	
 	if IsValid(tre) then
