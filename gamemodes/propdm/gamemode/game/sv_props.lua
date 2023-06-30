@@ -30,7 +30,7 @@ end
 
 function PDM_PropInfo(mdl)
     local info = util.GetModelInfo(mdl)
-    if not info.KeyValues then return false end
+    if not info or not info.KeyValues then return false end
 
     local tab = util.KeyValuesToTable(info.KeyValues)
     local mass = tab.editparams.totalmass or nil

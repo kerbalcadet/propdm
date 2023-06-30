@@ -51,7 +51,10 @@ SWEP.Secondary = {
 	Range = 500,
 	SuckPower = 4*10^5,
 	MaxVelSqr = 12000,
-	BreakTime = 3,	--time it takes to break map props at full power
+	
+	BreakTimeMul = 1/100, --multiplied by weight to get time to break props at full power
+	MinBreakTime = 0.5,
+	MaxBreakTime = 10,
 
 	Active = false,
 	Time = 0,	--last time the right mouse button changed
@@ -271,7 +274,10 @@ function SWEP:KirbyTryBreak(ent, dir)
 
 	--add time to field otherwise
 	else
-		brk = brk + self.KirbyPwrFrac*(engine.TickInterval() + math.Rand(-0.05, 0.05))/self.Secondary.BreakTime
+		local mass = PDM_PropInfo(ent:GetModel())
+		local breaktime = mass and math.Clamp(mass*self.Secondary.BreakTimeMul, self.Secondary.MinBreakTime, self.Secondary.MaxBreakTime) or self.Secondary.MinBreakTime
+
+		brk = brk + self.KirbyPwrFrac*(engine.TickInterval() + math.Rand(-0.05, 0.05))/breaktime
 		ent.KirbyBreak = brk
 	end
 end
