@@ -94,6 +94,26 @@ function SWEP:CustomAmmoDisplay()
 	return ad
 end
 
+net.Receive("PDM_DustEffect", function()
+	local ent = net.ReadEntity()
+	local dir = net.ReadVector()
+	local scale = net.ReadFloat()
+
+	if not ent.Emitter then ent.Emitter = ParticleEmitter(ent:GetPos(), false) end
+	
+	local em = ent.Emitter
+	local p = em:Add("particles/pdm/smoke", ent:WorldSpaceCenter())
+	p:SetColor(140, 115, 90)
+	p:SetDieTime(1)
+	p:SetStartAlpha(30)
+	p:SetEndAlpha(0)
+	p:SetStartSize(scale)
+	p:SetEndSize(scale*1.5)
+	p:SetVelocity(VectorRand()*10 + dir*50)
+	p:SetGravity(Vector())
+	p:SetAngleVelocity(AngleRand()/100)
+end)
+
 
 end
 --[[==SERVER==]]--
@@ -239,15 +259,36 @@ function KirbyFireProp(tab, pos, dir, vel, att)
 	end
 end
 
+util.AddNetworkString("PDM_DustEffect")
+function SWEP:DustEffect(ent, dir)
+	ent:EmitSound("physics/metal/metal_solid_strain"..math.random(1,5)..".wav")
+	
+	local scale = IsValid(ent:GetPhysicsObject()) and ent:GetPhysicsObject():GetSurfaceArea()/400 or 20
+
+	net.Start("PDM_DustEffect")
+		net.WriteEntity(ent)
+		net.WriteVector(dir)
+		net.WriteFloat(scale)
+	net.Send(self:GetOwner())
+end
+
 --try to break an immoveable map prop
 function SWEP:KirbyTryBreak(ent, dir)
 	local brk = ent.KirbyBreak or 0
 
+	local ct = CurTime()
 	if not brk or brk <= 0 then 
-		ent.KirbyLastBreak = CurTime()
-		ent:EmitSound("physics/metal/metal_solid_strain"..math.random(1,5)..".wav")
-	elseif ent.KirbyLastBreak and CurTime() - ent.KirbyLastBreak > 3 then
+		ent.KirbyLastBreak = ct
+		ent.KirbyLastBreakEffect = ct
+
+		self:DustEffect(ent, dir)
+	elseif ent.KirbyLastBreak and ct - ent.KirbyLastBreak > 3 then
 		ent.KirbyBreak = 0
+	end
+
+	if ct - ent.KirbyLastBreakEffect > 3 then
+		self:DustEffect(ent, dir)
+		ent.KirbyLastBreakEffect = ct
 	end
 	
 	--'dislodge' map props
