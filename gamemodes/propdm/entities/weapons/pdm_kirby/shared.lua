@@ -53,7 +53,7 @@ SWEP.Secondary = {
 	MaxVelSqr = 12000,
 	
 	BreakTimeMul = 1/100, --multiplied by weight to get time to break props at full power
-	MinBreakTime = 0.5,
+	MinBreakTime = 1,
 	MaxBreakTime = 10,
 
 	Active = false,
@@ -290,7 +290,7 @@ function SWEP:KirbySuckEnts()
 
 	for _, ent in pairs(ents.FindInCone(pos, own:EyeAngles():Forward(), range, 0.8)) do
 		local phys = ent:GetPhysicsObject()
-		if not ent:IsSolid() or not phys:IsValid() or ent:IsPlayer() then continue end
+		if not ent:IsSolid() or not phys:IsValid() or ent:IsPlayer() or ent.NoPickup then continue end
 		
 		local mass = phys:GetMass()
 		
