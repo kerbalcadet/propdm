@@ -40,6 +40,12 @@ function PDM_PropInfo(mdl)
     return mass, vol, tab
 end
 
+function PDM_CalcMass(phys)
+    --https://wiki.facepunch.com/gmod/Structures/SurfacePropertyData
+    --calculation of default gmod mass data for metal
+    return phys:GetSurfaceArea()*0.1*0.0254^3*2700
+end
+
 function PDM_FireProp(tab, pos, ang, vel, avel, att)
     local ent = PDM_EntFromTable(tab, pos)
     local phys = ent:GetPhysicsObject()
