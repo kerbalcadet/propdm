@@ -254,11 +254,17 @@ hook.Remove("EntityTakeDamage", "PDM_PropDamage")
 hook.Add("EntityTakeDamage", "PDM_PropDamage", function(ent, dmg)
     local inf = dmg:GetInflictor()
     if not IsValid(ent) or not IsValid(inf) then return end
-	if not string.StartsWith(inf:GetClass(), "prop_physics") then return end
 
-	local inf = dmg:GetInflictor()
-	if inf.Attacker then dmg:SetAttacker(inf.Attacker) end 
-	if inf.Inflictor then dmg:SetInflictor(inf.Inflictor) end
+    --attribute damage
+    if inf.Attacker then
+        local inf = dmg:GetInflictor()
+        if inf.Attacker then dmg:SetAttacker(inf.Attacker) end 
+        if inf.Inflictor then dmg:SetInflictor(inf.Inflictor) end
+    end
+
+    --kirby self damage
+    print(inf:GetVelocity():LengthSqr())
+    if ent:IsPlayer() and ent:GetActiveWeapon():GetClass() == "pdm_kirby" and inf:GetVelocity():LengthSqr() < 5000 then return true end
 end)
 
 end
