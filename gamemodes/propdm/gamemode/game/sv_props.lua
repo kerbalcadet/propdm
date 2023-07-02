@@ -3,7 +3,7 @@ PDM_PROPREPLACE = {
     "func_"
 }
 
-function PDM_EntFromTable(tab, pos)
+function PDM_EntFromTable(tab, pos, ang)
     local class = tab.class
 
     local replace = nil
@@ -26,12 +26,16 @@ function PDM_EntFromTable(tab, pos)
     local mass = tab.mass or nil
     if mass then phys:SetMass(mass) end
 
+    --npc weapons
     if not table.IsEmpty(tab.weps) then
         for _, v in pairs(tab.weps) do
             ent:Give(v)
         end
     end
-    
+
+    if ent:IsNPC() then ang = ang/2 end  --easy way to keep npc angles above ground
+    ent:SetAngles(ang)
+
     return ent
 end
 
@@ -53,13 +57,11 @@ function PDM_CalcMass(phys)
 end
 
 function PDM_FireProp(tab, pos, ang, vel, avel, att)
-    local ent = PDM_EntFromTable(tab, pos)
+    local ent = PDM_EntFromTable(tab, pos, ang)
     local phys = ent:GetPhysicsObject()
 
     if not IsValid(phys) or not ent:GetMoveType() == MOVETYPE_VPHYSICS then ent:Remove() return false end
 
-    ent:SetAngles(ang or Angle(0, 0, 0))
-   
     local minv = ent:WorldSpaceAABB()
     local ground = util.QuickTrace(pos, Vector(0,0,-5000), ent).HitPos
     local zdiff = minv.z - ground.z
