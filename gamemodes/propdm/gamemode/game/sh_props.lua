@@ -167,7 +167,8 @@ function PDM_TryBreakProp(ent, dir, amt)
 	--'dislodge' map props
 	if brk >= 1 then
 		ent:EmitSound("physics/metal/metal_sheet_impact_hard"..math.random(6,8)..".wav")
-		
+        if not ent:IsSolid() then ent:Fire("OnTrigger") end
+
 		local mdl = ent:GetModel()
 		local skn = ent:GetSkin()
 		local pos = ent:GetPos()
@@ -186,7 +187,6 @@ function PDM_TryBreakProp(ent, dir, amt)
 		if IsValid(phys) then
 			phys:SetVelocity(dir*100)
 		
-            print(phys:GetMass())
             if phys:GetMass() > 10000 then
                 phys:SetMass(PDM_CalcMass(phys, 500))
             end

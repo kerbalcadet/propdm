@@ -303,22 +303,19 @@ function SWEP:KirbySuckEnts()
 
 	for _, ent in pairs(ents.FindInCone(pos, own:EyeAngles():Forward(), range, 0.8)) do
 		local phys = ent:GetPhysicsObject()
-		if ent:IsPlayer() or ent:IsWeapon() or ent.NoPickup then continue end
+		if ent:IsPlayer() or ent:IsWeapon() or not ent:IsSolid() or not IsValid(phys) or ent.NoPickup then continue end
 
 		local class = ent:GetClass()
 		local diff = pos - ent:GetPos()
 		local dir = diff:GetNormalized()
 
 		--dislodge map props, func_breakable, prop_detail, etc.
-		local moveable = ent:GetMoveType() == MOVETYPE_VPHYSICS and phys:IsMoveable()
+		local moveable = ent:GetMoveType() == MOVETYPE_VPHYSICS and phys:IsMoveable() or ent:IsNPC()
 		if not moveable then
 			local amt = (engine.TickInterval() + math.Rand(-0.05, 0.05))
-
 			PDM_TryBreakProp(ent, dir, amt)
 		end
 
-		if not ent:IsSolid() or not phys:IsValid() then continue end
-		
 		local mass = phys:GetMass()
 		if mass > 10000 then mass = PDM_CalcMass(phys) end
 		
