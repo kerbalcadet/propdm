@@ -26,8 +26,8 @@ function PDM_EntFromTable(tab, pos)
     local mass = tab.mass or nil
     if mass then phys:SetMass(mass) end
 
-    if tab.weapons then
-        for _, v in pairs(tab.weapons) do
+    if not table.IsEmpty(tab.weps) then
+        for _, v in pairs(tab.weps) do
             ent:Give(v)
         end
     end

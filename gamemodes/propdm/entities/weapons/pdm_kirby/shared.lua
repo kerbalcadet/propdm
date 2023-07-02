@@ -347,8 +347,15 @@ function SWEP:TryAddInv(ent)
 	local skn = ent:GetSkin()
 	local keyval = ent:GetKeyValues()
 	local map = ent.map
+
+	local weps={} 
+	if ent:IsNPC() then
+		for _, v in pairs(ent:GetWeapons()) do
+			table.insert(weps, v:GetClass())
+		end
+	end
 	
-	local tab = {class=class, mass=mass, model=model, skn=skn, keyval=keyval, map=map}
+	local tab = {class=class, mass=mass, model=model, skn=skn, keyval=keyval, map=map, weps=weps}
 	table.insert(own.KirbyInv, tab)
 	self:SetKirbyProps(#own.KirbyInv)
 	
