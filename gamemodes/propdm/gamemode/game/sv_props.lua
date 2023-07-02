@@ -121,7 +121,7 @@ hook.Remove("EntityTakeDamage", "PDM_PropDamage")
 hook.Add("EntityTakeDamage", "PDM_PropDamage", function(ent, dmg)
     local inf = dmg:GetInflictor()
     if not IsValid(ent) or not IsValid(inf) then return end
-	if not ent:IsPlayer() or not string.StartsWith(inf:GetClass(), "prop_physics") then return end
+	if not string.StartsWith(inf:GetClass(), "prop_physics") then return end
 
 	local inf = dmg:GetInflictor()
 	if inf.Attacker then dmg:SetAttacker(inf.Attacker) end 
