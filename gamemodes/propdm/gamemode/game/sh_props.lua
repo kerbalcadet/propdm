@@ -27,29 +27,17 @@ end
 
 if SERVER then
 
-PDM_PROPREPLACE = {
-    "prop_",
-    "func_"
-}
-
 function PDM_EntFromTable(tab, pos, ang)
     local class = tab.class
-
-    local replace = nil
-    for _, v in pairs(PDM_PROPREPLACE) do
-        if string.StartsWith(class, v) then 
-            replace = true
-            break 
-        end
-    end
-
-    class = replace and "prop_physics_multiplayer" or class
-    local ent = ents.Create(class)
+    local ent = ents.Create("prop_physics_multiplayer")
+    
+    ent:SetPos(pos)
+    if ent:IsNPC() then ang = ang/3 end  --easy way to keep npc angles above ground
+    ent:SetAngles(ang or Angle())
     ent:SetModel(tab.model)
     ent:SetSkin(tab.skn or 0)
-    ent:SetPos(pos)
     --set individual features of the entity
-    if tab.keyval then 
+    if tab.keyval and ent:IsSolid() then 
         for k, v in pairs(tab.keyval) do
             ent:SetKeyValue(tostring(k), tostring(v))
         end
@@ -58,7 +46,11 @@ function PDM_EntFromTable(tab, pos, ang)
 
 
     local phys = ent:GetPhysicsObject()
-    if not phys or not phys:IsValid() then return ent end
+    if not phys or not phys:IsValid() then 
+        ent:PhysicsInit(SOLID_VPHYSICS)
+        ent:SetNoDraw(false)
+        return ent 
+    end
 
     local mass = tab.mass or nil
     if mass then phys:SetMass(mass) end
@@ -70,8 +62,7 @@ function PDM_EntFromTable(tab, pos, ang)
         end
     end
 
-    if ent:IsNPC() then ang = ang/3 end  --easy way to keep npc angles above ground
-    ent:SetAngles(ang)
+
 
     return ent
 end
@@ -87,20 +78,19 @@ function PDM_PropInfo(mdl)
     return mass, vol, tab
 end
 
-function PDM_CalcMass(phys)
+function PDM_CalcMass(phys, dens)
     --https://wiki.facepunch.com/gmod/Structures/SurfacePropertyData
     --calculation of default gmod mass data for metal
-    return phys:GetSurfaceArea()*0.1*0.0254^3*2700
+    local dens = dens or 2700
+    local sa = phys:GetSurfaceArea()
+    return sa*0.1*0.0254^3*dens
 end
 
 function PDM_FireProp(tab, pos, ang, vel, avel, att)
     local ent = PDM_EntFromTable(tab, pos, ang)
     local phys = ent:GetPhysicsObject()
 
-    if not IsValid(phys) then 
-        ent:SetVelocity(vel)
-        return ent
-    end
+
 
     local minv = ent:WorldSpaceAABB()
     local ground = util.QuickTrace(pos, Vector(0,0,-5000), ent).HitPos
@@ -110,7 +100,9 @@ function PDM_FireProp(tab, pos, ang, vel, avel, att)
         ent:SetPos(pos + Vector(0,0, -zdiff + 5))
     end
 
-    if ent:IsNPC() then
+    if not IsValid(phys) then 
+        
+    elseif ent:IsNPC() then
         ent:SetNavType(NAV_NONE)
         ent:SetVelocity(vel)
         ent:SetNavType(NAV_GROUND)
@@ -160,17 +152,16 @@ function PDM_TryBreakProp(ent, dir, amt)
 		ent.LastBreakEffect = ct
 	end
 
-    --add time to brk value
+    if not ent:GetModel() then return end
     local phys = ent:GetPhysicsObject()
-    local mass = PDM_PropInfo(ent:GetModel()) or (phys and phys:GetMass())
-    
+    local mass = PDM_PropInfo(ent:GetModel()) or (IsValid(phys) and phys:GetMass()) or 100
+
     --map props that have no normal model but are set to 50,000
     if mass > 10000 and phys then
         phys:SetMass(PDM_CalcMass(phys))
     end
 
     local breaktime = mass and math.Clamp(mass/200, 1, 10) or 1
-
     brk = brk + amt/breaktime
 	
 	--'dislodge' map props
@@ -194,7 +185,12 @@ function PDM_TryBreakProp(ent, dir, amt)
 		local phys = newent:GetPhysicsObject()
 		if IsValid(phys) then
 			phys:SetVelocity(dir*100)
-		end
+		
+            print(phys:GetMass())
+            if phys:GetMass() > 10000 then
+                phys:SetMass(PDM_CalcMass(phys, 500))
+            end
+        end
     else
         ent.Break = brk
     end

@@ -212,42 +212,48 @@ end
 
 function SWEP:TryAddInv(ent)
 	local phys = ent:GetPhysicsObject()
-	if not IsValid(phys) then return end
+	local own = self:GetOwner()
 
-	--kirby created props should probably not have a grabtime
-	--initialize kirbyadd, property for time it takes to grab ent
-	local ct = CurTime()
-	if not ent.KirbyAdd then
-		local mass = phys:GetMass()
-		if mass > 10000 then mass = PDM_CalcMass(phys) end
-		
-		ent.KirbyMass = mass
-		ent.KirbyAdd = math.Clamp(mass*self.Secondary.GrabTimeMul, 0, self.Secondary.MaxGrabTime)
-		ent.KirbyLastAddEffect = ct
-	end
+	--if not IsValid(phys) then return end
 
-	if ent.KirbyAdd >= 0.1 then
-		if ct - ent.KirbyLastAddEffect > 2 then
+	local mass
+	if IsValid(phys) then
+		--kirby created props should probably not have a grabtime
+		--initialize kirbyadd, property for time it takes to grab ent
+		local ct = CurTime()
+		if not ent.KirbyAdd then
+			local mass = phys:GetMass()
+			if mass > 10000 then mass = PDM_CalcMass(phys) end
+			
+			ent.KirbyMass = mass
+			ent.KirbyAdd = math.Clamp(mass*self.Secondary.GrabTimeMul, 0, self.Secondary.MaxGrabTime)
 			ent.KirbyLastAddEffect = ct
+		end
+
+		if ent.KirbyAdd >= 0.1 then
+			if ct - ent.KirbyLastAddEffect > 2 then
+				ent.KirbyLastAddEffect = ct
+				self:AddStrainEffect(ent)
+			end
+
+			ent.KirbyAdd = ent.KirbyAdd - engine.TickInterval()
+			return
+		elseif ent.KirbyMass > 1000 then
 			self:AddStrainEffect(ent)
 		end
 
-		ent.KirbyAdd = ent.KirbyAdd - engine.TickInterval()
-		return
-	elseif ent.KirbyMass > 1000 then
-		self:AddStrainEffect(ent)
-	end
 
+		--manage adding if the timer has run down
+		
+		mass = phys:GetMass() or PDM_CalcMass(phys)
+		if ent.NoPickup then return end 
+		--TODO: change to be total weight
 
-	--manage adding if the timer has run down
-	local own = self:GetOwner()
-	
-	local mass = phys:GetMass() or nil
-	if ent.NoPickup then return end 
-	--TODO: change to be total weight
-
-	--can only pick up one superheavy object
-	if mass and mass + own.KirbyWeight > self.MaxWeight and #own.KirbyInv > 0 then return end
+		--can only pick up one superheavy object
+		if mass and mass + own.KirbyWeight > self.MaxWeight and #own.KirbyInv > 0 then return end
+	else
+		mass = 100
+	end	
 
 	local class = ent:GetClass()
 	local model = ent:GetModel()
@@ -261,6 +267,7 @@ function SWEP:TryAddInv(ent)
 			table.insert(weps, v:GetClass())
 		end
 	end
+
 	
 	local tab = {class=class, mass=mass, model=model, skn=skn, keyval=keyval, map=map, weps=weps}
 	table.insert(own.KirbyInv, tab)
@@ -296,7 +303,21 @@ function SWEP:KirbySuckEnts()
 
 	for _, ent in pairs(ents.FindInCone(pos, own:EyeAngles():Forward(), range, 0.8)) do
 		local phys = ent:GetPhysicsObject()
-		if not ent:IsSolid() or not phys:IsValid() or ent:IsPlayer() or ent.NoPickup then continue end
+		if ent:IsPlayer() or ent:IsWeapon() or ent.NoPickup then continue end
+
+		local class = ent:GetClass()
+		local diff = pos - ent:GetPos()
+		local dir = diff:GetNormalized()
+
+		--dislodge map props, func_breakable, prop_detail, etc.
+		local moveable = ent:GetMoveType() == MOVETYPE_VPHYSICS and phys:IsMoveable()
+		if not moveable then
+			local amt = (engine.TickInterval() + math.Rand(-0.05, 0.05))
+
+			PDM_TryBreakProp(ent, dir, amt)
+		end
+
+		if not ent:IsSolid() or not phys:IsValid() then continue end
 		
 		local mass = phys:GetMass()
 		if mass > 10000 then mass = PDM_CalcMass(phys) end
@@ -304,25 +325,16 @@ function SWEP:KirbySuckEnts()
 		--don't suck props we can't hold
 		if (mass + own.KirbyWeight > self.MaxWeight) and not (#own.KirbyInv == 0) then continue end
 
-		local diff = pos - ent:GetPos()
-		local dir = diff:GetNormalized()
+
 		local distsq = math.Clamp(diff:LengthSqr(), 1, 100000)
 
 		--don't push yourself
 		if distsq < 5000 then return end
 
-		local class = ent:GetClass()
-		local moveable = ent:GetMoveType() == MOVETYPE_VPHYSICS and phys:IsMoveable()
 
 		if ent:IsNPC() then
 			ent:SetVelocity(dir*10)	
 
-		--dislodge map props, func_breakable, prop_detail, etc.
-		elseif not moveable then
-			local amt = (engine.TickInterval() + math.Rand(-0.05, 0.05))
-
-			PDM_TryBreakProp(ent, dir, amt)
-		
 		--for normal props, apply suction force
 		else
 			slow =  ent:GetVelocity():LengthSqr() < self.Secondary.MaxVelSqr	--prevent super speed
