@@ -222,7 +222,6 @@ end
 --helper function since multiple weapons use gravity explosions
 function PDM_GravExplode(pos, rad, pwr, minrad, plyw, att)
     for _,ent in pairs(ents.FindInSphere(pos, rad)) do
-        if ent == att then continue end
         
         local phys = ent:GetPhysicsObject()
         if not ent:IsSolid() or not phys:IsValid() then continue end
@@ -230,12 +229,12 @@ function PDM_GravExplode(pos, rad, pwr, minrad, plyw, att)
         local diff = ent:GetPos() + phys:GetMassCenter() - pos
         local dir = diff:GetNormalized()
         local dist = math.Clamp(diff:Length()/12, minrad, rad/12)	--feet bc why not
-        local mag = pwr*dist^(3/2)
+        local mag = pwr/dist^(3/2)
         local force = dir*mag
         local plyweight = plyw or 2400
 
-        if not (ent:GetMoveType() == MOVETYPE_VPHYSICS) or not phys:IsMoveable() then
-            PDM_TryBreakProp(ent, dir, 2*mag/(10^8))
+        if not ent:IsPlayer() and not ((ent:GetMoveType() == MOVETYPE_VPHYSICS) or phys:IsMoveable()) then
+            PDM_TryBreakProp(ent, dir, 2*mag/(10^6))
         end
 
         ent:SetPos(ent:GetPos()+Vector(0,0,1))  --remove ground friction
