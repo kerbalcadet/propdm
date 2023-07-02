@@ -148,6 +148,19 @@ function PDM_TryBreakProp(ent, dir, amt)
 		PDM_DustEffect(ent, dir)
 		ent.LastBreakEffect = ct
 	end
+
+    --add time to brk value
+    local phys = ent:GetPhysicsObject()
+    local mass = PDM_PropInfo(ent:GetModel()) or (phys and phys:GetMass())
+    
+    --map props that have no normal model but are set to 50,000
+    if mass > 10000 and phys then
+        phys:SetMass(PDM_CalcMass(phys))
+    end
+
+    local breaktime = mass and math.Clamp(mass/200, 1, 10) or 1
+
+    brk = brk + amt/breaktime
 	
 	--'dislodge' map props
 	if brk >= 1 then
@@ -171,22 +184,9 @@ function PDM_TryBreakProp(ent, dir, amt)
 		if IsValid(phys) then
 			phys:SetVelocity(dir*100)
 		end
-
-	--add time to field otherwise
-	else
-		local phys = ent:GetPhysicsObject()
-		local mass = PDM_PropInfo(ent:GetModel()) or (phys and phys:GetMass())
-		
-		--map props that have no normal model but are set to 50,000
-		if mass > 10000 and phys then
-			phys:SetMass(PDM_CalcMass(phys))
-		end
-    
-        local breaktime = mass and math.Clamp(mass/200, 1, 10) or 1
-
-		brk = brk + amt/breaktime
-		ent.Break = brk
-	end
+    else
+        ent.Break = brk
+    end
 end
 
 function PDM_PropExplode(tabs, pos, vel, normal, maxang, att)
@@ -222,14 +222,21 @@ end
 --helper function since multiple weapons use gravity explosions
 function PDM_GravExplode(pos, rad, pwr, minrad, plyw, att)
     for _,ent in pairs(ents.FindInSphere(pos, rad)) do
+        if ent == att then continue end
+        
         local phys = ent:GetPhysicsObject()
         if not ent:IsSolid() or not phys:IsValid() then continue end
 
         local diff = ent:GetPos() + phys:GetMassCenter() - pos
         local dir = diff:GetNormalized()
         local dist = math.Clamp(diff:Length()/12, minrad, rad/12)	--feet bc why not
-        local force = (dir/(dist^(3/2)))*pwr
+        local mag = pwr*dist^(3/2)
+        local force = dir*mag
         local plyweight = plyw or 2400
+
+        if not (ent:GetMoveType() == MOVETYPE_VPHYSICS) or not phys:IsMoveable() then
+            PDM_TryBreakProp(ent, dir, 2*mag/(10^8))
+        end
 
         ent:SetPos(ent:GetPos()+Vector(0,0,1))  --remove ground friction
 
