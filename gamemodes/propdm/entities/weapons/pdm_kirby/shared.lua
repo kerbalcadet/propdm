@@ -389,7 +389,7 @@ function SWEP:KirbySuckEnts()
 
 	for _, ent in pairs(ents.FindInCone(pos, own:EyeAngles():Forward(), range, 0.8)) do
 		local phys = ent:GetPhysicsObject()
-		if not ent:IsSolid() or not phys:IsValid() or ent:IsPlayer() or ent:IsNPC() or ent.NoPickup then continue end
+		if not ent:IsSolid() or not phys:IsValid() or ent:IsPlayer() or ent.NoPickup then continue end
 		
 		local mass = phys:GetMass()
 		if mass > 10000 then mass = PDM_CalcMass(phys) end
@@ -406,11 +406,14 @@ function SWEP:KirbySuckEnts()
 
 		local class = ent:GetClass()
 		local moveable = ent:GetMoveType() == MOVETYPE_VPHYSICS
-		
+
+		if ent:IsNPC() then
+			ent:SetVelocity(dir*10)	
 
 		--dislodge map props, func_breakable, prop_detail, etc.
-		if not moveable then
+		elseif not moveable then
 			self:KirbyTryBreak(ent, dir)
+		
 		--for normal props, apply suction force
 		else
 			slow =  ent:GetVelocity():LengthSqr() < self.Secondary.MaxVelSqr	--prevent super speed
