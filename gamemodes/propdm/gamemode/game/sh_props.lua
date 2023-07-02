@@ -49,8 +49,10 @@ function PDM_EntFromTable(tab, pos, ang)
     ent:SetSkin(tab.skn or 0)
     ent:SetPos(pos)
     --set individual features of the entity
-    for k, v in pairs(tab.keyval) do
-        ent:SetKeyValue(tostring(k), tostring(v))
+    if tab.keyval then 
+        for k, v in pairs(tab.keyval) do
+            ent:SetKeyValue(tostring(k), tostring(v))
+        end
     end
     ent:Spawn()
 
@@ -248,8 +250,14 @@ function PDM_GravExplode(pos, rad, pwr, minrad, plyw, att)
 
         ent:SetPos(ent:GetPos()+Vector(0,0,1))  --remove ground friction
 
-        if(ent:IsPlayer() or ent:IsNPC()) then     --applyforce doesn't work for players
+        if ent:IsPlayer() then     --applyforce doesn't work for players
             ent:SetVelocity(ent:GetVelocity() + force/plyw)
+        elseif ent:IsNPC() then
+            local nav = ent:GetNavType()
+            
+            ent:SetNavType(NAV_NONE)
+            ent:SetVelocity(ent:GetVelocity() + force/plyw)
+            ent:SetNavType(nav)
         else
             phys:ApplyForceCenter(force)
         end
