@@ -33,7 +33,7 @@ function PDM_EntFromTable(tab, pos, ang)
         end
     end
 
-    if ent:IsNPC() then ang = ang/2 end  --easy way to keep npc angles above ground
+    if ent:IsNPC() then ang = ang/3 end  --easy way to keep npc angles above ground
     ent:SetAngles(ang)
 
     return ent
@@ -74,6 +74,8 @@ function PDM_FireProp(tab, pos, ang, vel, avel, att)
         ent:SetNavType(NAV_NONE)
         ent:SetVelocity(vel)
         ent:SetNavType(NAV_GROUND)
+        ent:AddRelationship("player D_HT 99")
+        ent:AddEntityRelationship(att, D_LI, 99)
     else
         phys:SetVelocity(vel or Vector(0, 0, 0))
         phys:SetAngleVelocity(avel or Angle(0, 0, 0))
