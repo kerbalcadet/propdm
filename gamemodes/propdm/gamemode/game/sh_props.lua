@@ -44,15 +44,19 @@ function PDM_EntFromTable(tab, pos, ang)
     end
 
     class = replace and "prop_physics_multiplayer" or class
-
     local ent = ents.Create(class)
     ent:SetModel(tab.model)
     ent:SetSkin(tab.skn or 0)
     ent:SetPos(pos)
+    --set individual features of the entity
+    for k, v in pairs(tab.keyval) do
+        ent:SetKeyValue(tostring(k), tostring(v))
+    end
     ent:Spawn()
 
+
     local phys = ent:GetPhysicsObject()
-    if not phys or not phys:IsValid() then return end
+    if not phys or not phys:IsValid() then return ent end
 
     local mass = tab.mass or nil
     if mass then phys:SetMass(mass) end
@@ -91,7 +95,10 @@ function PDM_FireProp(tab, pos, ang, vel, avel, att)
     local ent = PDM_EntFromTable(tab, pos, ang)
     local phys = ent:GetPhysicsObject()
 
-    if not IsValid(phys) or not ent:GetMoveType() == MOVETYPE_VPHYSICS then ent:Remove() return false end
+    if not IsValid(phys) then 
+        ent:SetVelocity(vel)
+        return ent
+    end
 
     local minv = ent:WorldSpaceAABB()
     local ground = util.QuickTrace(pos, Vector(0,0,-5000), ent).HitPos
