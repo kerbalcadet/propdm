@@ -405,7 +405,7 @@ function SWEP:KirbySuckEnts()
 		if distsq < 5000 then return end
 
 		local class = ent:GetClass()
-		local moveable = ent:GetMoveType() == MOVETYPE_VPHYSICS
+		local moveable = ent:GetMoveType() == MOVETYPE_VPHYSICS and phys:IsMoveable()
 
 		if ent:IsNPC() then
 			ent:SetVelocity(dir*10)	
