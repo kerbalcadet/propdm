@@ -27,7 +27,7 @@ function PDM_EntFromTable(tab, pos, ang)
     if mass then phys:SetMass(mass) end
 
     --npc weapons
-    if not table.IsEmpty(tab.weps) then
+    if tab.weps and not table.IsEmpty(tab.weps) then
         for _, v in pairs(tab.weps) do
             ent:Give(v)
         end
