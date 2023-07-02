@@ -132,21 +132,21 @@ end
 
 --try to break an immoveable map prop
 function PDM_TryBreakProp(ent, dir, amt)
-	local brk = ent.KirbyBreak or 0
+	local brk = ent.Break or 0
 
 	local ct = CurTime()
 	if not brk or brk <= 0 then 
-		ent.KirbyLastBreak = ct
-		ent.KirbyLastBreakEffect = ct
+		ent.LastBreak = ct
+		ent.LastBreakEffect = ct
 
 		PDM_DustEffect(ent, dir)
-	elseif ent.KirbyLastBreak and ct - ent.KirbyLastBreak > 3 then
-		ent.KirbyBreak = 0
+	elseif ent.LastBreak and ct - ent.LastBreak > 3 then
+		ent.Break = 0
 	end
 
-	if ct - ent.KirbyLastBreakEffect > 3 then
+	if ct - ent.LastBreakEffect > 3 then
 		PDM_DustEffect(ent, dir)
-		ent.KirbyLastBreakEffect = ct
+		ent.LastBreakEffect = ct
 	end
 	
 	--'dislodge' map props
@@ -185,7 +185,7 @@ function PDM_TryBreakProp(ent, dir, amt)
         local breaktime = mass and math.Clamp(mass/200, 1, 10) or 1
 
 		brk = brk + amt/breaktime
-		ent.KirbyBreak = brk
+		ent.Break = brk
 	end
 end
 
