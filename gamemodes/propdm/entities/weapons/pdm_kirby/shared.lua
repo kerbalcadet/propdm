@@ -56,6 +56,10 @@ SWEP.Secondary = {
 	MinBreakTime = 1,
 	MaxBreakTime = 10,
 
+	InstantGrabWeight = SWEP.MaxWeight/2,
+	GrabTimeMul = 1/500,
+	MaxGrabTime = 10,
+
 	Active = false,
 	Time = 0,	--last time the right mouse button changed
 	Spool = 0,
@@ -195,34 +199,7 @@ end
 
 
 
-function SWEP:TryAddInv(ent)
-	local own = self:GetOwner()
-	
-	local phys = ent:GetPhysicsObject()
-	local mass = phys:GetMass() or nil
-	if ent.NoPickup then return end 
-	--TODO: change to be total weight
 
-	--can only pick up one superheavy object
-	if mass and mass + own.KirbyWeight > self.MaxWeight and #own.KirbyInv > 0 then return end
-
-	local class = ent:GetClass()
-	local model = ent:GetModel()
-	local skn = ent:GetSkin()
-	local keyval = ent:GetKeyValues()
-	local map = ent.map
-	
-	local tab = {class=class, mass=mass, model=model, skn=skn, keyval=keyval, map=map}
-	table.insert(own.KirbyInv, tab)
-	self:SetKirbyProps(#own.KirbyInv)
-	
-	own.KirbyWeight = own.KirbyWeight + mass
-	own:ChangeMoveSpeed()
-
-	self.Sound3:Stop()
-	self.Sound3:Play()
-	ent:Remove()
-end
 
 --add entity table to kirbyqueue 
 function SWEP:AddQueue(tab, heavy)
@@ -298,7 +275,7 @@ function SWEP:KirbyTryBreak(ent, dir)
 	
 	--'dislodge' map props
 	if brk >= 1 then
-		ent:EmitSound("physics/metal/metal_barrel_impact_hard"..math.random(1,3)..".wav")
+		ent:EmitSound("physics/metal/metal_sheet_impact_hard"..math.random(6,8)..".wav")
 		
 		local mdl = ent:GetModel()
 		local skn = ent:GetSkin()
@@ -326,10 +303,7 @@ function SWEP:KirbyTryBreak(ent, dir)
 		
 		--map props that have no normal model but are set to 50,000
 		if mass > 10000 and phys then
-			--https://wiki.facepunch.com/gmod/Structures/SurfacePropertyData
-			--calculation of default gmod mass data for metal
-			mass = phys:GetSurfaceArea()*0.1*0.0254^3*2700	 
-			phys:SetMass(mass)
+			phys:SetMass(PDM_CalcMass(phys))
 		end
 		
 		local breaktime = mass and math.Clamp(mass*self.Secondary.BreakTimeMul, self.Secondary.MinBreakTime, self.Secondary.MaxBreakTime) or self.Secondary.MinBreakTime
@@ -339,9 +313,88 @@ function SWEP:KirbyTryBreak(ent, dir)
 	end
 end
 
-function SWEP:KirbySuckEnts()
-	local rspool = self:GetRSpool()
+function SWEP:AddStrainEffect(ent)
+	ent:EmitSound("physics/metal/metal_sheet_impact_hard"..math.random(6,8)..".wav")
+	local size = math.Clamp(ent:GetPhysicsObject():GetVolume()^(1/3), 100, 4000)
+	util.ScreenShake(ent:GetPos(), 10, 1000, 1, size)
+end
+
+function SWEP:TryAddInv(ent)
+	local phys = ent:GetPhysicsObject()
+	if not IsValid(phys) then return end
+
+	--kirby created props should probably not have a grabtime
+	if ent:CreatedByMap() then
+		--initialize kirbyadd, property for time it takes to grab ent
+		local ct = CurTime()
+		if not ent.KirbyAdd then
+			local mass = phys:GetMass()
+			if mass > 10000 then mass = PDM_CalcMass(phys) end
+			
+			ent.KirbyMass = mass
+			ent.KirbyAdd = math.Clamp(mass*self.Secondary.GrabTimeMul, 0, self.Secondary.MaxGrabTime)
+			ent.KirbyLastAddEffect = ct
+		end
+
+		if ent.KirbyAdd >= 0.1 then
+			if ct - ent.KirbyLastAddEffect > 2 then
+				ent.KirbyLastAddEffect = ct
+				self:AddStrainEffect(ent)
+			end
+
+			ent.KirbyAdd = ent.KirbyAdd - engine.TickInterval()
+			return
+		elseif ent.KirbyMass > 1000 then
+			self:AddStrainEffect(ent)
+		end
+	end
+
+
+	--manage adding if the timer has run down
 	local own = self:GetOwner()
+	
+	local mass = phys:GetMass() or nil
+	if ent.NoPickup then return end 
+	--TODO: change to be total weight
+
+	--can only pick up one superheavy object
+	if mass and mass + own.KirbyWeight > self.MaxWeight and #own.KirbyInv > 0 then return end
+
+	local class = ent:GetClass()
+	local model = ent:GetModel()
+	local skn = ent:GetSkin()
+	local keyval = ent:GetKeyValues()
+	local map = ent.map
+	
+	local tab = {class=class, mass=mass, model=model, skn=skn, keyval=keyval, map=map}
+	table.insert(own.KirbyInv, tab)
+	self:SetKirbyProps(#own.KirbyInv)
+	
+	own.KirbyWeight = own.KirbyWeight + mass
+	own:ChangeMoveSpeed()
+
+	self.Sound3:Stop()
+	self.Sound3:Play()
+	ent:Remove()
+end
+
+function SWEP:KirbySuckEnts()
+	--actually find and add nearby props to inventory
+	local own = self:GetOwner()
+	local gpos = own:GetPos()
+	local trh =	util.TraceEntityHull({start=gpos, endpos=gpos + own:GetAimVector()*10, filter=own, ignoreworld=true}, own)
+	local tre = trh.Entity
+	
+	if IsValid(tre) then
+		local phys = tre:GetPhysicsObject()
+		if IsValid(phys) and phys:IsMoveable() then
+			self:TryAddInv(trh.Entity)
+		end
+	end
+
+
+	--pull other props closer by
+	local rspool = self:GetRSpool()
 	local pos = own:EyePos()
 	local range = self.Secondary.Range*rspool
 
@@ -350,13 +403,17 @@ function SWEP:KirbySuckEnts()
 		if not ent:IsSolid() or not phys:IsValid() or ent:IsPlayer() or ent:IsNPC() or ent.NoPickup then continue end
 		
 		local mass = phys:GetMass()
+		if mass > 10000 then mass = PDM_CalcMass(phys) end
 		
 		--don't suck props we can't hold
-		if (mass + own.KirbyWeight > self.MaxWeight) and not #own.KirbyInv == 0 then continue end
+		if (mass + own.KirbyWeight > self.MaxWeight) and not (#own.KirbyInv == 0) then continue end
 
 		local diff = pos - ent:GetPos()
 		local dir = diff:GetNormalized()
-		local distsq = math.Clamp(diff:LengthSqr(), 1, 1000)	--feet bc why not
+		local distsq = math.Clamp(diff:LengthSqr(), 1, 100000)
+
+		--don't push yourself
+		if distsq < 5000 then return end
 
 		local class = ent:GetClass()
 		local moveable = ent:GetMoveType() == MOVETYPE_VPHYSICS
@@ -373,18 +430,6 @@ function SWEP:KirbySuckEnts()
 			local force = slow and (dir/distsq)*mass*power or Vector(0,0,0)
 			local lift = Vector(0,0,1)*mass*600*engine.TickInterval()*0.9
 			phys:ApplyForceCenter((force + lift)*rspool)
-		end
-	end
-
-	--actually find and add nearby props to inventory
-	local gpos = own:GetPos()
-	local trh =	util.TraceEntityHull({start=gpos, endpos=gpos + own:GetAimVector()*10, filter=own, ignoreworld=true}, own)
-	local tre = trh.Entity
-	
-	if IsValid(tre) then
-		local phys = tre:GetPhysicsObject()
-		if IsValid(phys) and phys:IsMoveable() then
-			self:TryAddInv(trh.Entity)
 		end
 	end
 end
