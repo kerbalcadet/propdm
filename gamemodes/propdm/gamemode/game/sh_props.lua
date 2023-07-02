@@ -52,6 +52,8 @@ function PDM_EntFromTable(tab, pos, ang)
     ent:Spawn()
 
     local phys = ent:GetPhysicsObject()
+    if not phys or not phys:IsValid() then return end
+
     local mass = tab.mass or nil
     if mass then phys:SetMass(mass) end
 
@@ -263,8 +265,7 @@ hook.Add("EntityTakeDamage", "PDM_PropDamage", function(ent, dmg)
     end
 
     --kirby self damage
-    print(inf:GetVelocity():LengthSqr())
-    if ent:IsPlayer() and ent:GetActiveWeapon():GetClass() == "pdm_kirby" and inf:GetVelocity():LengthSqr() < 5000 then return true end
+    if ent:IsPlayer() and ent:GetActiveWeapon():GetClass() == "pdm_kirby" and inf:GetVelocity():LengthSqr() < 10000 then return true end
 end)
 
 end
