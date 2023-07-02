@@ -272,7 +272,7 @@ hook.Add("EntityTakeDamage", "PDM_PropDamage", function(ent, dmg)
     end
 
     --kirby self damage
-    if ent:IsPlayer() and ent:GetActiveWeapon():GetClass() == "pdm_kirby" and inf:GetVelocity():LengthSqr() < 10000 then return true end
+    if ent:IsPlayer() and IsValid(ent:GetActiveWeapon()) and ent:GetActiveWeapon():GetClass() == "pdm_kirby" and  inf:GetVelocity():LengthSqr() < 10000 then return true end
 end)
 
 end

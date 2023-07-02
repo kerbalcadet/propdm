@@ -3,9 +3,19 @@ ENT.Base = "base_entity"
 ENT.Type = "anim"
 ENT.PrintName = "Prop Grenade"
 
-function ENT:PhysicsCollide(data,phys)
+function ENT:PhysicsCollide(data, phys)
     if data.Speed > 50 then
         self:EmitSound("physics/metal/metal_grenade_impact_hard"..math.random(1,3)..".wav")
+    end
+
+    local ent = data.HitEntity
+    if data.Speed > 500 and (ent:IsPlayer() or ent:IsNPC()) then
+        local dmg = DamageInfo()
+        dmg:SetDamage(data.Speed/8)
+        dmg:SetInflictor(self)
+        dmg:SetAttacker(self:GetOwner())
+        dmg:SetDamageType(DMG_CRUSH)
+        ent:TakeDamageInfo(dmg)
     end
 end
 
@@ -30,7 +40,7 @@ function ENT:Initialize()
     local phys = self:GetPhysicsObject()
     if phys:IsValid() then 
         phys:Wake()
-        phys:SetMass(1)
+        phys:SetMass(10)
     end
 
     self.Fuse = self.Fuse or 3

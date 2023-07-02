@@ -1,13 +1,7 @@
 AddCSLuaFile()
-ENT.Base = "base_entity"
+ENT.Base = "proj_pdm_nade"
 ENT.Type = "anim"
 ENT.PrintName = "Prop Grenade"
-
-function ENT:PhysicsCollide(data,phys)
-    if data.Speed > 50 then
-        self:EmitSound("physics/metal/metal_grenade_impact_hard"..math.random(1,3)..".wav")
-    end
-end
 
 if CLIENT then
 
