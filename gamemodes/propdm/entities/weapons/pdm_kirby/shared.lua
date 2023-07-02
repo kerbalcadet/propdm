@@ -221,25 +221,7 @@ function SWEP:AddQueue(tab, heavy)
 	self:SetKirbyQueue(#own.KirbyQueue)
 end
 
---fire prop from entity table
-function KirbyFireProp(tab, pos, dir, vel, att)
-	local ent = PDM_FireProp(tab, pos, AngleRand(), dir*vel, VectorRand(), att)
 
-	--weaken explosive props
-	local exp = ent:GetKeyValues().ExplodeDamage
-	if exp and exp > 0 then ent:SetHealth(1) end
-
-	--for some reason, setowner nocollides the entities to you. 
-	--it happens to be the easiest way to do this
-	ent:SetOwner(att)
-	timer.Simple(0.2, function() if IsValid(ent) then ent:SetOwner(nil) end end)
-
-	if not tab.map then
-		timer.Simple(PDM_DESPTIME:GetInt(), function()
-			if IsValid(ent) then ent:Dissolve(1, ent:GetPos()) end
-		end)
-	end
-end
 
 util.AddNetworkString("PDM_DustEffect")
 function SWEP:DustEffect(ent, dir)
@@ -434,7 +416,55 @@ function SWEP:KirbySuckEnts()
 	end
 end
 
+--fire prop from entity table
+function KirbyFireProp(tab, pos, dir, vel, att)
+	local ent = PDM_FireProp(tab, pos, AngleRand(), dir*vel, VectorRand(), att)
+
+	--weaken explosive props
+	local exp = ent:GetKeyValues().ExplodeDamage
+	if exp and exp > 0 then ent:SetHealth(1) end
+
+	--for some reason, setowner nocollides the entities to you. 
+	--it happens to be the easiest way to do this
+	ent:SetOwner(att)
+	timer.Simple(0.2, function() if IsValid(ent) then ent:SetOwner(nil) end end)
+
+	if not tab.map then
+		timer.Simple(PDM_DESPTIME:GetInt(), function()
+			if IsValid(ent) then ent:Dissolve(1, ent:GetPos()) end
+		end)
+	end
+
+	return ent
 end
+
+--logic to handle firing of props
+function SWEP:StartFireLogic(tab)
+	local own = self:GetOwner()
+	if not IsValid(self) or not own:Alive() then return end
+	
+	local queue = own.KirbyQueue
+	local dir = own:EyeAngles():Forward()
+	local tab = queue[#queue]
+	
+	self.Sound5:Stop()
+	self.Sound5:Play()
+	self.Sound5:ChangePitch(70)
+	local ent = KirbyFireProp(tab, own:GetShootPos() + dir*30, dir, self.Primary.BaseSpeed + self.Primary.SpeedMul/tab.mass, own)
+
+	table.remove(queue)
+	self:SetKirbyQueue(#queue)
+
+	own.KirbyWeight = own.KirbyWeight - tab.mass
+	own:ChangeMoveSpeed()
+	
+	if timer.RepsLeft(tostring(self).."shoot") == 0 then
+		self.Primary.Shooting = false
+	end
+end
+
+end
+
 
 
 --[[SHARED]]--
@@ -553,26 +583,7 @@ function SWEP:Think()
 
 			--timer to repeat firing logic
 			timer.Create(title, self.Primary.FireDelay, #own.KirbyQueue, function()
-				if not IsValid(self) or not own:Alive() then return end
-				
-				local queue = own.KirbyQueue
-				local dir = own:EyeAngles():Forward()
-				local tab = queue[#queue]
-				
-				self.Sound5:Stop()
-				self.Sound5:Play()
-				self.Sound5:ChangePitch(70)
-				KirbyFireProp(tab, own:GetShootPos() + dir*30, dir, self.Primary.BaseSpeed + self.Primary.SpeedMul/tab.mass, own)
-				
-				table.remove(queue)
-				self:SetKirbyQueue(#queue)
-
-				own.KirbyWeight = own.KirbyWeight - tab.mass
-				own:ChangeMoveSpeed()
-				
-				if timer.RepsLeft(title) == 0 then
-					self.Primary.Shooting = false
-				end
+				self:StartFireLogic(tab)
 			end)
 		end
 
