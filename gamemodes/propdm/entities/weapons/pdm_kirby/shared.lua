@@ -53,7 +53,7 @@ SWEP.Secondary = {
 	MaxVelSqr = 12000,
 
 	InstantGrabWeight = SWEP.MaxWeight/2,
-	GrabTimeMul = 1/500,
+	GrabTimeMul = 1/1000,
 	MaxGrabTime = 10,
 
 	Active = false,
@@ -215,29 +215,27 @@ function SWEP:TryAddInv(ent)
 	if not IsValid(phys) then return end
 
 	--kirby created props should probably not have a grabtime
-	if ent:CreatedByMap() then
-		--initialize kirbyadd, property for time it takes to grab ent
-		local ct = CurTime()
-		if not ent.KirbyAdd then
-			local mass = phys:GetMass()
-			if mass > 10000 then mass = PDM_CalcMass(phys) end
-			
-			ent.KirbyMass = mass
-			ent.KirbyAdd = math.Clamp(mass*self.Secondary.GrabTimeMul, 0, self.Secondary.MaxGrabTime)
+	--initialize kirbyadd, property for time it takes to grab ent
+	local ct = CurTime()
+	if not ent.KirbyAdd then
+		local mass = phys:GetMass()
+		if mass > 10000 then mass = PDM_CalcMass(phys) end
+		
+		ent.KirbyMass = mass
+		ent.KirbyAdd = math.Clamp(mass*self.Secondary.GrabTimeMul, 0, self.Secondary.MaxGrabTime)
+		ent.KirbyLastAddEffect = ct
+	end
+
+	if ent.KirbyAdd >= 0.1 then
+		if ct - ent.KirbyLastAddEffect > 2 then
 			ent.KirbyLastAddEffect = ct
-		end
-
-		if ent.KirbyAdd >= 0.1 then
-			if ct - ent.KirbyLastAddEffect > 2 then
-				ent.KirbyLastAddEffect = ct
-				self:AddStrainEffect(ent)
-			end
-
-			ent.KirbyAdd = ent.KirbyAdd - engine.TickInterval()
-			return
-		elseif ent.KirbyMass > 1000 then
 			self:AddStrainEffect(ent)
 		end
+
+		ent.KirbyAdd = ent.KirbyAdd - engine.TickInterval()
+		return
+	elseif ent.KirbyMass > 1000 then
+		self:AddStrainEffect(ent)
 	end
 
 
