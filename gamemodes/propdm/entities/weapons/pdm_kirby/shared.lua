@@ -51,10 +51,6 @@ SWEP.Secondary = {
 	Range = 300,
 	SuckPower = 4*10^5,
 	MaxVelSqr = 12000,
-	
-	BreakTimeMul = 1/200, --multiplied by weight to get time to break props at full power
-	MinBreakTime = 1,
-	MaxBreakTime = 10,
 
 	InstantGrabWeight = SWEP.MaxWeight/2,
 	GrabTimeMul = 1/500,
@@ -103,26 +99,7 @@ function SWEP:CustomAmmoDisplay()
 	return ad
 end
 
-net.Receive("PDM_DustEffect", function()
-	local ent = net.ReadEntity()
-	local dir = net.ReadVector()
-	local scale = net.ReadFloat()
 
-	if not IsValid(ent) then return end
-	if not ent.Emitter then ent.Emitter = ParticleEmitter(ent:GetPos(), false) end
-	
-	local em = ent.Emitter
-	local p = em:Add("particles/pdm/smoke", ent:WorldSpaceCenter())
-	p:SetColor(140, 115, 90)
-	p:SetDieTime(1)
-	p:SetStartAlpha(20)
-	p:SetEndAlpha(0)
-	p:SetStartSize(scale)
-	p:SetEndSize(scale*1.5)
-	p:SetVelocity(VectorRand()*10 + dir*50)
-	p:SetGravity(Vector())
-	p:SetAngleVelocity(AngleRand()/100)
-end)
 
 
 end
@@ -223,77 +200,9 @@ end
 
 
 
-util.AddNetworkString("PDM_DustEffect")
-function SWEP:DustEffect(ent, dir)
-	ent:EmitSound("physics/metal/metal_solid_strain"..math.random(1,5)..".wav")
-	
-	local scale = IsValid(ent:GetPhysicsObject()) and math.Clamp(ent:GetPhysicsObject():GetSurfaceArea()/400, 10, 100) or 20
 
-	net.Start("PDM_DustEffect")
-		net.WriteEntity(ent)
-		net.WriteVector(dir)
-		net.WriteFloat(scale)
-	net.Send(self:GetOwner())
-end
 
---try to break an immoveable map prop
-function SWEP:KirbyTryBreak(ent, dir)
-	local brk = ent.KirbyBreak or 0
 
-	local ct = CurTime()
-	if not brk or brk <= 0 then 
-		ent.KirbyLastBreak = ct
-		ent.KirbyLastBreakEffect = ct
-
-		self:DustEffect(ent, dir)
-	elseif ent.KirbyLastBreak and ct - ent.KirbyLastBreak > 3 then
-		ent.KirbyBreak = 0
-	end
-
-	if ct - ent.KirbyLastBreakEffect > 3 then
-		self:DustEffect(ent, dir)
-		ent.KirbyLastBreakEffect = ct
-	end
-	
-	--'dislodge' map props
-	if brk >= 1 then
-		ent:EmitSound("physics/metal/metal_sheet_impact_hard"..math.random(6,8)..".wav")
-		
-		local mdl = ent:GetModel()
-		local skn = ent:GetSkin()
-		local pos = ent:GetPos()
-		local ang = ent:GetAngles()
-		
-		local newent = ents.Create("prop_physics_multiplayer")
-		newent:SetPos(pos)
-		newent:SetAngles(ang)
-		newent:SetModel(mdl)
-		newent:SetSkin(skn)
-
-		ent:Remove()
-		newent:Spawn()
-
-		local phys = newent:GetPhysicsObject()
-		if IsValid(phys) then
-			phys:SetVelocity(dir*100)
-		end
-
-	--add time to field otherwise
-	else
-		local phys = ent:GetPhysicsObject()
-		local mass = PDM_PropInfo(ent:GetModel()) or (phys and phys:GetMass())
-		
-		--map props that have no normal model but are set to 50,000
-		if mass > 10000 and phys then
-			phys:SetMass(PDM_CalcMass(phys))
-		end
-		
-		local breaktime = mass and math.Clamp(mass*self.Secondary.BreakTimeMul, self.Secondary.MinBreakTime, self.Secondary.MaxBreakTime) or self.Secondary.MinBreakTime
-
-		brk = brk + (engine.TickInterval() + math.Rand(-0.05, 0.05))/breaktime
-		ent.KirbyBreak = brk
-	end
-end
 
 function SWEP:AddStrainEffect(ent)
 	ent:EmitSound("physics/metal/metal_sheet_impact_hard"..math.random(6,8)..".wav")
@@ -412,7 +321,9 @@ function SWEP:KirbySuckEnts()
 
 		--dislodge map props, func_breakable, prop_detail, etc.
 		elseif not moveable then
-			self:KirbyTryBreak(ent, dir)
+			local amt = (engine.TickInterval() + math.Rand(-0.05, 0.05))
+
+			PDM_TryBreakProp(ent, dir, amt)
 		
 		--for normal props, apply suction force
 		else
