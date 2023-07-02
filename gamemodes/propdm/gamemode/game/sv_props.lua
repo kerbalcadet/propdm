@@ -21,10 +21,16 @@ function PDM_EntFromTable(tab, pos)
     ent:SetSkin(tab.skn or 0)
     ent:SetPos(pos)
     ent:Spawn()
-    
+
     local phys = ent:GetPhysicsObject()
     local mass = tab.mass or nil
     if mass then phys:SetMass(mass) end
+
+    if tab.weapons then
+        for _, v in pairs(tab.weapons) do
+            ent:Give(v)
+        end
+    end
     
     return ent
 end
@@ -62,8 +68,14 @@ function PDM_FireProp(tab, pos, ang, vel, avel, att)
         ent:SetPos(pos + Vector(0,0, -zdiff + 5))
     end
 
-    phys:SetVelocity(vel or Vector(0, 0, 0))
-    phys:SetAngleVelocity(avel or Angle(0, 0, 0))
+    if ent:IsNPC() then
+        ent:SetNavType(NAV_NONE)
+        ent:SetVelocity(vel)
+        ent:SetNavType(NAV_GROUND)
+    else
+        phys:SetVelocity(vel or Vector(0, 0, 0))
+        phys:SetAngleVelocity(avel or Angle(0, 0, 0))
+    end
 
     ent.Attacker = att
 
