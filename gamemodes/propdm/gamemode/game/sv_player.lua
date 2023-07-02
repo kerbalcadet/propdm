@@ -113,3 +113,9 @@ net.Receive("PDM_RequestInitDetails", function(len, ply)
         net.WriteInt(PDM_ROUNDSTART or 0, 16)
     net.Send(ply)
 end)
+
+--disable fall damage
+hook.Remove("GetFallDamage", "PDM_DisableFallDamage")
+hook.Add( "GetFallDamage", "PDM_DisableFallDamage", function()
+    return 0.1
+end )
