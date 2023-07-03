@@ -26,6 +26,7 @@ function ENT:Initialize()
     self.Fuse = self.Fuse or 3
     self.SpawnTime = CurTime()
     self.ExpRadius = 200
+    self.ExpForce = 20*10^6
     self.Exploded = false
 end
 
@@ -72,10 +73,11 @@ function ENT:Think()
     if self.SpawnTime + self.Fuse < CurTime() then
         local pos = self:GetPos()
 
+
         if CLIENT then
             if not self.Exploded then
                 local diff = LocalPlayer():GetPos() - pos
-                
+
                 local ef = EffectData()
                 ef:SetOrigin(pos)
                 ef:SetNormal(diff:GetNormalized())
@@ -100,17 +102,35 @@ function ENT:Think()
 
         if SERVER and not self.Exploded then
             for _, v in pairs(ents.FindInSphere(pos, self.ExpRadius)) do
-                if v == self then continue end
+                local phys = v:GetPhysicsObject()
+                local moveable = (v:GetMoveType() == MOVETYPE_VPHYSICS and IsValid(phys) and phys:IsMoveable())
+                if moveable then continue end
+
+                local mdl = v:GetModel()
+                if not mdl then continue end
+                local vmdl = v.ViewModelIndex and v:ViewModelIndex()
+                if vmdl then continue end
+
                 
                 v:EmitSound("physics/metal/metal_barrel_impact_soft"..math.random(1,4)..".wav")
+                
+                --actually replace the ent after our checks
+                local newent = PDM_ReplaceProp(v, self:GetOwner())
+                if not newent then continue end
+
+
+                local diff = (newent:GetPos() - pos - Vector(0,0,100))
+                local dir = Vector(0,0,1)
+
+                local phys = newent:GetPhysicsObject()
+                if not IsValid(phys) then continue end
+
+                phys:SetVelocity(dir*self.ExpForce/diff:LengthSqr())
             end
         
             self:EmitSound("d3_citadel.zapper_warmup")
             self:SetNoDraw(true)
-
-            timer.Simple(1, function()
-                if IsValid(self) then self:Remove() end
-            end)
+            self:Remove()
         end
 
         self.Exploded = true

@@ -132,7 +132,7 @@ function PDM_DustEffect(ent, dir)
 	net.Broadcast()
 end
 
-function PDM_ReplaceProp(ent)
+function PDM_ReplaceProp(ent, att)
     local mdl = ent:GetModel()
     local skn = ent:GetSkin()
     local pos = ent:GetPos()
@@ -144,9 +144,18 @@ function PDM_ReplaceProp(ent)
     newent:SetModel(mdl)
     newent:SetSkin(skn)
 
-    ent:Remove()
-    newent:Spawn()
+    if ent:IsPlayer() or ent:IsNPC() then
+        local dmg = DamageInfo()
+        dmg:SetDamageType(DMG_DISSOLVE)
+        dmg:SetDamage(ent:Health() or 99999)
+        dmg:SetAttacker(att or game.GetWorld())
+        dmg:SetInflictor(att or game.GetWorld())
+        ent:TakeDamageInfo(dmg)
+    else
+        ent:Remove()
+    end
 
+    newent:Spawn()
     return newent
 end
 
