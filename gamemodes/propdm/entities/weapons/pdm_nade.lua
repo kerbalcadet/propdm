@@ -35,6 +35,7 @@ SWEP.Armed = false
 SWEP.Cooking = false
 SWEP.LastThrow = 0
 SWEP.LastCook = 0
+SWEP.OverCooked = false
 SWEP.Under = false
 
 SWEP.Primary = {
@@ -93,6 +94,7 @@ function SWEP:Think()
             self.Armed = false
             self.LastThrow = CurTime()
             self.Cooking = false
+            self.OverCooked = true
             self:ThrowNade()
         end
     end 
@@ -201,7 +203,8 @@ function SWEP:Throw(nade)
     nade:Spawn()
 
     local phys = nade:GetPhysicsObject()
-    if IsValid(phys) then
+
+    if IsValid(phys) and not self.OverCooked then
         local vel = self.Under and 400 or 1300
         phys:SetVelocity(own:GetVelocity() + own:GetAimVector()*vel)
     
@@ -215,7 +218,7 @@ function SWEP:Throw(nade)
         local clip = self:Clip1() - 1
         local ammo = own:GetAmmoCount(ammotype)
         if ammo + clip <= 0 then
-            timer.Simple(0.5, function() self:Remove() end)
+            timer.Simple(0.5, function() if IsValid(self) then self:Remove() end end)
             own:SwitchLastWeapon()
         else
             self:SetClip1(1)
