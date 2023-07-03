@@ -132,6 +132,24 @@ function PDM_DustEffect(ent, dir)
 	net.Broadcast()
 end
 
+function PDM_ReplaceProp(ent)
+    local mdl = ent:GetModel()
+    local skn = ent:GetSkin()
+    local pos = ent:GetPos()
+    local ang = ent:GetAngles()
+    
+    local newent = ents.Create("prop_physics_multiplayer")
+    newent:SetPos(pos)
+    newent:SetAngles(ang)
+    newent:SetModel(mdl)
+    newent:SetSkin(skn)
+
+    ent:Remove()
+    newent:Spawn()
+
+    return newent
+end
+
 --try to break an immoveable map prop
 function PDM_TryBreakProp(ent, dir, amt)
 	local brk = ent.Break or 0
@@ -167,20 +185,7 @@ function PDM_TryBreakProp(ent, dir, amt)
 	if brk >= 1 then
 		ent:EmitSound("physics/metal/metal_sheet_impact_hard"..math.random(6,8)..".wav")
 
-		local mdl = ent:GetModel()
-		local skn = ent:GetSkin()
-		local pos = ent:GetPos()
-		local ang = ent:GetAngles()
-		
-		local newent = ents.Create("prop_physics_multiplayer")
-		newent:SetPos(pos)
-		newent:SetAngles(ang)
-		newent:SetModel(mdl)
-		newent:SetSkin(skn)
-
-		ent:Remove()
-		newent:Spawn()
-
+		local newent = PDM_ReplaceProp(ent)
 		local phys = newent:GetPhysicsObject()
 		if IsValid(phys) then
 			phys:SetVelocity(dir*100)
