@@ -28,8 +28,7 @@ end
 if SERVER then
 
 function PDM_EntFromTable(tab, pos, ang)
-    local class = tab.class
-    local ent = ents.Create("prop_physics_multiplayer")
+    local ent = ents.Create(tab.class)
     
     ent:SetPos(pos)
     if ent:IsNPC() then ang = ang/3 end  --easy way to keep npc angles above ground
@@ -167,7 +166,6 @@ function PDM_TryBreakProp(ent, dir, amt)
 	--'dislodge' map props
 	if brk >= 1 then
 		ent:EmitSound("physics/metal/metal_sheet_impact_hard"..math.random(6,8)..".wav")
-        if not ent:IsSolid() then ent:Fire("OnTrigger") end
 
 		local mdl = ent:GetModel()
 		local skn = ent:GetSkin()

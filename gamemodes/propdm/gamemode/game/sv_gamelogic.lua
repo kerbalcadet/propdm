@@ -89,3 +89,15 @@ hook.Add("PlayerDeath", "PDM_PlayerDeath", function(vic, inf, att)
         net.Send(att)
     end
 end)
+
+hook.Remove("OnNPCKilled", "PDM_NPCRagdoll")
+hook.Add("OnNPCKilled", "PDM_NPCRagdoll", function(npc)
+    npc:SetShouldServerRagdoll(true)
+end)
+
+hook.Remove("CreateEntityRagdoll", "PDM_RagdollDespawn")
+hook.Add("CreateEntityRagdoll", "PDM_RagdollDespawn", function(own, rag)
+    timer.Simple(PDM_DESPTIME:GetInt(), function()
+        rag:Dissolve(1, rag:GetPos())
+    end)
+end)
