@@ -9,8 +9,9 @@ SWEP.Primary.Ammo = "propifynade"
 
 function SWEP:ThrowNade()
     local nade = ents.Create("proj_pdm_propifynade")
-    self:Throw(nade)
     if not self.Under then
         nade.Fuse = self.Fuse - (CurTime() - self.LastCook)
     end
+
+    self:Throw(nade)
 end

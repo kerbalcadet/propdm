@@ -3,6 +3,10 @@ ENT.Base = "proj_pdm_nade"
 ENT.Type = "anim"
 ENT.PrintName = "Propify Grenade"
 
+function ENT:SetupDataTables()
+    self:NetworkVar("Float", 0, "Fuse")
+end
+
 function ENT:Initialize()
     if SERVER then
         self:SetModel("models/weapons/w_grenade.mdl")
@@ -11,6 +15,9 @@ function ENT:Initialize()
         self:PhysicsInit(SOLID_VPHYSICS)
         self:DrawShadow(true)
         self:SetCollisionGroup(COLLISION_GROUP_NONE)
+
+        self.Fuse = self.Fuse or 3
+        self:SetFuse(self.Fuse)
 
         local phys = self:GetPhysicsObject()
         if phys:IsValid() then 
@@ -23,10 +30,10 @@ function ENT:Initialize()
         self.SphereTime = 1
     end
 
-    self.Fuse = self.Fuse or 3
-    self.SpawnTime = CurTime()
     self.ExpRadius = 200
     self.ExpForce = 20*10^6
+
+    self.SpawnTime = CurTime()
     self.Exploded = false
 end
 
@@ -70,9 +77,8 @@ end
 end
 
 function ENT:Think()
-    if self.SpawnTime + self.Fuse < CurTime() then
+    if self.SpawnTime + self:GetFuse() < CurTime() then
         local pos = self:GetPos()
-
 
         if CLIENT then
             if not self.Exploded then
