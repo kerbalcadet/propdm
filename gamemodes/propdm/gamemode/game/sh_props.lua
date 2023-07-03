@@ -145,6 +145,8 @@ function PDM_ReplaceProp(ent, att)
     newent:SetSkin(skn)
 
     if ent:IsPlayer() or ent:IsNPC() then
+        ent:SetPos(pos - vector_up*10000)   --can't seem to make ragdolls despawn without a lot of jank. so just replace jank with lesser jank.
+
         local dmg = DamageInfo()
         dmg:SetDamageType(DMG_DISSOLVE)
         dmg:SetDamage(ent:Health() or 99999)
