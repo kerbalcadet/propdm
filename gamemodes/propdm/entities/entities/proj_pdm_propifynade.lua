@@ -20,7 +20,7 @@ function ENT:Initialize()
     end
 
     if CLIENT then
-        self.SphereTime = 3
+        self.SphereTime = 1
     end
 
     self.Fuse = self.Fuse or 3
@@ -33,11 +33,11 @@ if CLIENT then
 local mat = Material("models/props_combine/portalball001_sheet")
 local refract = Material("propdm_refract")
 local white = Vector(1,1,1)
-local color = Vector(0.3,0.3,0.3)
+local color = Vector(0.4,0.4,0.4)
 
 local fadein = 0.1
 local hold = 0.1
-local fadeout = 1
+local fadeout = 0.8
 
 function PropExpSphere(pos, radius, t)
     local col
