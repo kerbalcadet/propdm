@@ -133,6 +133,8 @@ function PDM_DustEffect(ent, dir)
 end
 
 function PDM_ReplaceProp(ent, att)
+    if ent.Replaced then return end
+
     local mdl = ent:GetModel()
     local skn = ent:GetSkin()
     local pos = ent:GetPos()
@@ -153,6 +155,10 @@ function PDM_ReplaceProp(ent, att)
         dmg:SetAttacker(att or game.GetWorld())
         dmg:SetInflictor(att or game.GetWorld())
         ent:TakeDamageInfo(dmg)
+    
+    elseif not ent:IsSolid() then       --don't actually remove level triggers and such
+        ent.Replaced = true
+        ent:SetNoDraw(true)
     else
         ent:Remove()
     end
