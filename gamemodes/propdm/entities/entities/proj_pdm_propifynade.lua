@@ -108,9 +108,10 @@ function ENT:Think()
 
         if SERVER and not self.Exploded then
             for _, v in pairs(ents.FindInSphere(pos, self.ExpRadius)) do
+                local prop = string.StartsWith(v:GetClass(), "prop_physics")
                 local phys = v:GetPhysicsObject()
-                local moveable = (v:GetMoveType() == MOVETYPE_VPHYSICS and IsValid(phys) and phys:IsMoveable())
-                if moveable then continue end
+                local moveable = IsValid(phys) and phys and phys:IsMoveable() 
+                if prop and moveable then continue end
 
                 local mdl = v:GetModel()
                 if not mdl then continue end
