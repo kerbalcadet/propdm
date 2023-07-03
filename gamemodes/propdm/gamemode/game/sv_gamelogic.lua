@@ -88,6 +88,9 @@ hook.Add("PlayerDeath", "PDM_PlayerDeath", function(vic, inf, att)
             net.WriteString(name)
         net.Send(att)
     end
+
+    --create global ragdoll
+    vic:SetShouldServerRagdoll(true)
 end)
 
 hook.Remove("OnNPCKilled", "PDM_NPCRagdoll")
@@ -97,7 +100,13 @@ end)
 
 hook.Remove("CreateEntityRagdoll", "PDM_RagdollDespawn")
 hook.Add("CreateEntityRagdoll", "PDM_RagdollDespawn", function(own, rag)
+    --only one ragdoll at a time
+    if IsValid(own.Ragdoll) then
+        own.Ragdoll:Dissolve(1, rag:GetPos())
+    end
+    own.Ragdoll = rag
+    
     timer.Simple(PDM_DESPTIME:GetInt(), function()
-        rag:Dissolve(1, rag:GetPos())
+        if IsValid(rag) then rag:Dissolve(1, rag:GetPos()) end
     end)
 end)
