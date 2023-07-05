@@ -275,7 +275,7 @@ hook.Add("EntityFireBullets", "PDM_SentryProps", function(wep, bullet)
 
     --table, pos, angle, vel, angvel
     local ent = PDM_FireProp(tab, pos, AngleRand(), vel, VectorRand()*100)
-    ent.Attacker = wep.Owner
+    ent:SetPhysicsAttacker(wep.Owner)
     wep:EmitSound("garrysmod/balloon_pop_cute.wav", 400, 100, 0.4)
 
     --collisions

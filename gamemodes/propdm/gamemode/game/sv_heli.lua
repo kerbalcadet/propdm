@@ -69,6 +69,7 @@ hook.Add("EntityFireBullets", "PDM_HeliProps", function(wep, bullet)
     --phys didn't work right
     if not ent then return false end
 
+    ent:SetPhysicsAttacker(wep)
     ent.Attacker = wep
     wep:EmitSound("garrysmod/balloon_pop_cute.wav", 400, 100, 0.4)
 

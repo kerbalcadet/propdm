@@ -29,6 +29,8 @@ if SERVER then
 
 function PDM_EntFromTable(tab, pos, ang)
     local ent = ents.Create(tab.class)
+
+    if not IsValid(ent) then return end
     
     ent:SetPos(pos)
     if ent:IsNPC() then ang = ang/3 end  --easy way to keep npc angles above ground
@@ -112,7 +114,7 @@ function PDM_FireProp(tab, pos, ang, vel, avel, att)
         phys:SetAngleVelocity(avel or Angle(0, 0, 0))
     end
 
-    ent.Attacker = att
+    if IsValid(att) then ent:SetPhysicsAttacker(att) end
 
     return ent
 end
@@ -278,25 +280,24 @@ function PDM_GravExplode(pos, rad, pwr, minrad, plyw, att)
             phys:ApplyForceCenter(force)
         end
 
-        ent.Attacker = att
+        ent:SetPhysicsAttacker(att)
     end
 end
 
---properly attribute prop damage
+
 hook.Remove("EntityTakeDamage", "PDM_PropDamage")
 hook.Add("EntityTakeDamage", "PDM_PropDamage", function(ent, dmg)
     local inf = dmg:GetInflictor()
     if not IsValid(ent) or not IsValid(inf) then return end
 
-    --attribute damage
-    if inf.Attacker then
-        local inf = dmg:GetInflictor()
-        if inf.Attacker then dmg:SetAttacker(inf.Attacker) end 
-        if inf.Inflictor then dmg:SetInflictor(inf.Inflictor) end
-    end
-
     --kirby self damage
     if ent:IsPlayer() and IsValid(ent:GetActiveWeapon()) and ent:GetActiveWeapon():GetClass() == "pdm_kirby" and  inf:GetVelocity():LengthSqr() < 10000 then return true end
-end)
 
+    --damage attribution override for cases like heli where it still shows "prop physics" as attacker
+    local inf = dmg:GetInflictor()
+    if IsValid(inf) and inf.Attacker then
+--        dmg:SetInflictor(inf)
+        dmg:SetAttacker(inf)
+    end
+end)
 end
