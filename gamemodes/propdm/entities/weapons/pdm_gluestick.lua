@@ -22,6 +22,10 @@ if CLIENT then
     end    
 end
 
+function SWEP:SetupDataTables()
+    self:NetworkVar("Entity", 0, "GlueEnt")
+    self:NetworkVar("Bool", 0, "Glued")
+end
 
 function SWEP:Initialize()
     self:SetHoldType("pistol")
@@ -32,10 +36,10 @@ function SWEP:Initialize()
     self.GlueMaxTime = 5
 
     --internal
-    self.GlueEnt = nil
+    self:SetGlueEnt(nil)
+    self:SetGlued(false)
     self.GlueAmt = 0  
     self.Gluing = false  
-    self.Glued = false
 
     self.EntPos = nil
     self.EntAng = nil
@@ -47,17 +51,18 @@ end
 
 --drop/reset glued obj
 function SWEP:Drop()
-    if self.Glued then
-        self.Glued = false
+    if self:GetGlued() then
+        self:SetGlued(false)
         self.GlueAmt = 0
 
-        local ent = self.GlueEnt
-        self.GlueEnt = nil
+        local ent = self:GetGlueEnt()
+        self:SetGlueEnt(nil)
 
         if IsValid(ent) then
             local phys = ent:GetPhysicsObject()
             if IsValid(phys) then
                 phys:Wake()
+                phys:EnableGravity(true)
             end
 
             ent:SetOwner(nil)
@@ -66,6 +71,43 @@ function SWEP:Drop()
 
     end
 end
+
+if SERVER then util.AddNetworkString("PDM_GlueDrop") end
+net.Receive("PDM_GlueDrop", function()
+    local wep = net.ReadEntity()
+    wep:Drop()
+end)
+
+function SWEP:Pickup(ent)
+    local own = self:GetOwner()
+
+    --clients don't automatically make phys
+    if CLIENT then ent:PhysicsInit(SOLID_VPHYSICS) end
+
+    local phys = ent:GetPhysicsObject()
+    if not IsValid(phys) then
+        if CLIENT then ent:PhysicsDestroy() end
+        return
+    end
+
+    phys:EnableGravity(false)
+    
+    ent:SetOwner(own)
+    self.EntPos, self.EntAng = WorldToLocal(ent:GetPos(), ent:GetAngles(), own:GetShootPos(), own:EyeAngles())
+    self.EntDistSq = self.EntPos:LengthSqr()
+
+    self:SetGlued(true)
+    self.Gluing = false
+end
+
+--server tells client when to pick up, so we don't have issues with initializing physics
+--for every single prop we look at or desync between the two 
+if SERVER then util.AddNetworkString("PDM_GluePickup") end
+net.Receive("PDM_GluePickup", function()
+    local wep = net.ReadEntity()
+    local ent = net.ReadEntity()
+    wep:Pickup(ent)
+end)
 
 function SWEP:Holster()
     self:Drop()
@@ -78,9 +120,12 @@ end
 
 --hold rclick to glue objects
 function SWEP:SecondaryAttack()
-    if self.Glued then return end
+    if self:GetGlued() then return end
 
     self:SetNextSecondaryFire(CurTime())
+
+    --gluing logic ahead, serverside only
+    if CLIENT then return end
 
     local own = self:GetOwner()
     local tr = util.QuickTrace(own:GetShootPos(), own:GetAimVector()*self.GlueRange, own)
@@ -92,19 +137,16 @@ function SWEP:SecondaryAttack()
 
 
     if not isprop then
-        self.GlueEnt = nil
+        self:SetGlueEnt(nil)
         self.GlueAmt = 0
         return
     end
-
-    --clients don't automatically make phys
-    if CLIENT then ent:PhysicsInit(SOLID_VPHYSICS) end
 
     local phys = ent:GetPhysicsObject()
     if not IsValid(phys) then return end
 
     --add to progress for current target
-    if ent == self.GlueEnt then
+    if ent == self:GetGlueEnt() then
         self.GlueAmt = self.GlueAmt + tick
 
         local gtime = ent.GlueTime
@@ -114,17 +156,18 @@ function SWEP:SecondaryAttack()
         end
 
         if self.GlueAmt >= gtime then
-            self.Glued = true
-            self.Gluing = false
-
-            ent:SetOwner(own)
-            self.EntPos, self.EntAng = WorldToLocal(ent:GetPos(), ent:GetAngles(), own:GetShootPos(), own:EyeAngles())
-            self.EntDistSq = self.EntPos:LengthSqr()
+            self:Pickup(ent)
+            
+            --tell client to pick up
+            net.Start("PDM_GluePickup")
+                net.WriteEntity(self)
+                net.WriteEntity(ent)
+            net.Send(own)
         end
         
     --switch target
     else   
-        self.GlueEnt = ent
+        self:SetGlueEnt(ent)
         self.GlueAmt = tick
     end
 
@@ -137,26 +180,30 @@ function SWEP:Think()
         uncomment to disable client prediction
     ]]----------------------------------------
     --if CLIENT then return end  
-    
 
     local own = SERVER and self:GetOwner() or LocalPlayer()
-    if not self.Glued or not own:Alive() then return end
+    if not self:GetGlued() or not own:Alive() then return end
 
-    local ent = self.GlueEnt
+    local ent = self:GetGlueEnt()
     if not IsValid(ent) then
         self:Drop()   --drop/reset
+      
         return 
     end
 
     local phys = ent:GetPhysicsObject()
     if not IsValid(phys) then
         self:Drop()
+
         return
     end
 
     if SERVER and (ent:GetPos() - own:GetShootPos()):LengthSqr() > (self.EntDistSq + 100^2) then
         self:Drop()
-        self:CallOnClient("Drop")
+        
+        net.Start("PDM_GlueDrop")
+            net.WriteEntity(self)
+        net.Send(own)
         return
     end 
 
