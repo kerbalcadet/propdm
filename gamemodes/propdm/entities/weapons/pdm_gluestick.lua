@@ -67,6 +67,11 @@ function SWEP:Drop()
     end
 end
 
+function SWEP:Holster()
+    self:Drop()
+    return true
+end
+
 function SWEP:Reload()
     self:Drop()
 end
