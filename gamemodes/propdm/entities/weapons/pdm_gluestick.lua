@@ -25,6 +25,8 @@ end
 function SWEP:SetupDataTables()
     self:NetworkVar("Entity", 0, "GlueEnt")
     self:NetworkVar("Bool", 0, "Glued")
+    self:NetworkVar("Vector", 0, "EntPos")
+    self:NetworkVar("Angle", 0, "EntAng")
 end
 
 function SWEP:Initialize()
@@ -36,13 +38,11 @@ function SWEP:Initialize()
     self.GlueMaxTime = 5
 
     --internal
-    self:SetGlueEnt(nil)
+    self.GlueEnt = nil
     self:SetGlued(false)
     self.GlueAmt = 0  
     self.Gluing = false  
 
-    self.EntPos = nil
-    self.EntAng = nil
     self.EntDistSq = nil
 end
 
@@ -51,25 +51,25 @@ end
 
 --drop/reset glued obj
 function SWEP:Drop()
-    if self:GetGlued() then
+    if SERVER then
         self:SetGlued(false)
         self.GlueAmt = 0
+    end
 
-        local ent = self:GetGlueEnt()
-        self:SetGlueEnt(nil)
+    local ent = self:GetGlueEnt()
+    self:SetGlueEnt(nil)
 
-        if IsValid(ent) then
-            local phys = ent:GetPhysicsObject()
-            if IsValid(phys) then
-                phys:Wake()
-                phys:EnableGravity(true)
-            end
-
-            ent:SetOwner(nil)
-            if CLIENT then ent:PhysicsDestroy() end
+    if IsValid(ent) then
+        local phys = ent:GetPhysicsObject()
+        if IsValid(phys) then
+            phys:Wake()
+            phys:EnableGravity(true)
         end
 
+        ent:SetOwner(nil)
+        if CLIENT then ent:PhysicsDestroy() end
     end
+
 end
 
 if SERVER then util.AddNetworkString("PDM_GlueDrop") end
@@ -92,11 +92,20 @@ function SWEP:Pickup(ent)
 
     phys:EnableGravity(false)
     
+    --setowner disables collisions with wielder
     ent:SetOwner(own)
-    self.EntPos, self.EntAng = WorldToLocal(ent:GetPos(), ent:GetAngles(), own:GetShootPos(), own:EyeAngles())
-    self.EntDistSq = self.EntPos:LengthSqr()
+    --for unknown reasons, recheckcollisionfilter() doesn't seem to be fixing propflying for a second. but setpos sure does.
+    ent:SetPos(ent:GetPos() + vector_up*0.1)
 
-    self:SetGlued(true)
+    if SERVER then 
+        local EntPos, EntAng = WorldToLocal(ent:GetPos(), ent:GetAngles(), own:GetShootPos(), own:EyeAngles())
+        self:SetEntPos(EntPos)
+        self:SetEntAng(EntAng)
+        self:SetGlued(true)
+        
+        self.EntDistSq = EntPos:LengthSqr()
+    end
+
     self.Gluing = false
 end
 
@@ -115,7 +124,7 @@ function SWEP:Holster()
 end
 
 function SWEP:Reload()
-    self:Drop()
+    if self:GetGlueEnt() then self:Drop() end
 end
 
 --hold rclick to glue objects
@@ -215,7 +224,7 @@ function SWEP:Think()
     local spos = own:GetShootPos()
     local ea = own:EyeAngles()
 
-    local targpos, targang = LocalToWorld(self.EntPos, self.EntAng, spos, ea)
+    local targpos, targang = LocalToWorld(self:GetEntPos(), self:GetEntAng(), spos, ea)
 
     local m = phys:GetMass()
     local k = m*(SERVER and 5000 or 3000)
