@@ -26,7 +26,7 @@ end
 function SWEP:Initialize()
     self:SetHoldType("pistol")
 
-    self.GlueRange = 100
+    self.GlueRange = 50
     self.GlueTimeMul = 1/200  --multiplied by weight to get time it takes to stick a prop
     self.GlueMinTime = 0.5
     self.GlueMaxTime = 5
@@ -39,25 +39,36 @@ function SWEP:Initialize()
 
     self.EntPos = nil
     self.EntAng = nil
+    self.EntDistSq = nil
 end
 
 function SWEP:PrimaryAttack()
 end
 
 --drop/reset glued obj
-function SWEP:Reload()
+function SWEP:Drop()
     if self.Glued then
         self.Glued = false
         self.GlueAmt = 0
 
-        if IsValid(self.GlueEnt) then
-            local phys = self.GlueEnt:GetPhysicsObject()
+        local ent = self.GlueEnt
+        self.GlueEnt = nil
+
+        if IsValid(ent) then
+            local phys = ent:GetPhysicsObject()
             if IsValid(phys) then
                 phys:Wake()
             end
+
+            ent:SetOwner(nil)
+            if CLIENT then ent:PhysicsDestroy() end
         end
-        self.GlueEnt = nil
+
     end
+end
+
+function SWEP:Reload()
+    self:Drop()
 end
 
 --hold rclick to glue objects
@@ -74,11 +85,15 @@ function SWEP:SecondaryAttack()
     local ent = tr.Entity
     local isprop = IsValid(ent) and string.StartsWith(ent:GetClass(), "prop_physics")
 
+
     if not isprop then
         self.GlueEnt = nil
         self.GlueAmt = 0
         return
     end
+
+    --clients don't automatically make phys
+    if CLIENT then ent:PhysicsInit(SOLID_VPHYSICS) end
 
     local phys = ent:GetPhysicsObject()
     if not IsValid(phys) then return end
@@ -97,7 +112,9 @@ function SWEP:SecondaryAttack()
             self.Glued = true
             self.Gluing = false
 
+            ent:SetOwner(own)
             self.EntPos, self.EntAng = WorldToLocal(ent:GetPos(), ent:GetAngles(), own:GetShootPos(), own:EyeAngles())
+            self.EntDistSq = self.EntPos:LengthSqr()
         end
         
     --switch target
@@ -109,43 +126,57 @@ function SWEP:SecondaryAttack()
 
 end
 
+--move glued entity to where it should be 
 function SWEP:Think()
-    local own = self:GetOwner()
+    --[[--------------------------------------
+        uncomment to disable client prediction
+    ]]----------------------------------------
+    --if CLIENT then return end  
+    
+
+    local own = SERVER and self:GetOwner() or LocalPlayer()
     if not self.Glued or not own:Alive() then return end
 
     local ent = self.GlueEnt
     if not IsValid(ent) then
-        self:Reload()   --drop/reset
+        self:Drop()   --drop/reset
         return 
     end
 
     local phys = ent:GetPhysicsObject()
     if not IsValid(phys) then
-        self:Reload()
+        self:Drop()
         return
     end
 
+    if SERVER and (ent:GetPos() - own:GetShootPos()):LengthSqr() > (self.EntDistSq + 100^2) then
+        self:Drop()
+        self:CallOnClient("Drop")
+        return
+    end 
+
 
     --push ent to where it's supposed to be
+    phys:Wake()
+
+    local tick = FrameTime()
     local spos = own:GetShootPos()
     local ea = own:EyeAngles()
 
     local targpos, targang = LocalToWorld(self.EntPos, self.EntAng, spos, ea)
 
     local m = phys:GetMass()
-    local k = 100*m
-    local d = 0*m
+    local k = m*(SERVER and 5000 or 3000)
+    local d = m*(SERVER and 50 or 100)
 
-    local force = k*(targpos - ent:GetPos()) + d*(ent:GetVelocity())
-    --phys:ApplyForceCenter(force)
+    local force = tick*(k*(targpos - ent:GetPos()) - d*(ent:GetVelocity()))
+    phys:ApplyForceCenter(force)
 
     local inertia = phys:GetInertia()
     local adiff = ent:WorldToLocalAngles(targang)
     local avel = phys:GetAngleVelocity()
-    local k = 0
-    local d = 1
-    local torque = inertia*(k*Vector(-adiff.r, -adiff.p, adiff.y) - d*avel)
-    phys:ApplyTorqueCenter(torque)
-
-    self:NextThink(CurTime())
+    local k = SERVER and 1000 or 1000
+    local d = SERVER and 50 or 50
+    local torque = tick*inertia*(k*Vector(adiff.r, adiff.p, adiff.y) - d*avel)
+    phys:ApplyTorqueCenter(ent:LocalToWorld(torque) - ent:GetPos())
 end
