@@ -25,6 +25,7 @@ end
 function SWEP:SetupDataTables()
     self:NetworkVar("Entity", 0, "GlueEnt")
     self:NetworkVar("Bool", 0, "Glued")
+    self:NetworkVar("Bool", 1, "Gluing")
     self:NetworkVar("Vector", 0, "EntPos")
     self:NetworkVar("Angle", 0, "EntAng")
 end
@@ -40,10 +41,12 @@ function SWEP:Initialize()
     --internal
     self.GlueEnt = nil
     self:SetGlued(false)
+    self:SetGluing(false)
     self.GlueAmt = 0  
-    self.Gluing = false  
 
     self.EntDistSq = nil
+
+    self.GluingSound = CreateSound(self, "ambient/machines/gas_loop_1.wav")
 end
 
 function SWEP:PrimaryAttack()
@@ -70,6 +73,7 @@ function SWEP:Drop()
         if CLIENT then ent:PhysicsDestroy() end
     end
 
+    self:EmitSound("weapons/bugbait/bugbait_squeeze"..math.random(1,3)..".wav")     
 end
 
 if SERVER then util.AddNetworkString("PDM_GlueDrop") end
@@ -106,7 +110,9 @@ function SWEP:Pickup(ent)
         self.EntDistSq = EntPos:LengthSqr()
     end
 
-    self.Gluing = false
+    self:SetGluing(false)
+    self:EmitSound("weapons/bugbait/bugbait_squeeze"..math.random(1,3)..".wav")  
+    self.GluingSound:Stop()   
 end
 
 --server tells client when to pick up, so we don't have issues with initializing physics
@@ -133,23 +139,30 @@ function SWEP:SecondaryAttack()
 
     self:SetNextSecondaryFire(CurTime())
 
-    --gluing logic ahead, serverside only
-    if CLIENT then return end
-
     local own = self:GetOwner()
     local tr = util.QuickTrace(own:GetShootPos(), own:GetAimVector()*self.GlueRange, own)
     local tick = engine.TickInterval()
     
     --make sure ent is a valid target
     local ent = tr.Entity
+    self.trent = ent
     local isprop = IsValid(ent) and string.StartsWith(ent:GetClass(), "prop_physics")
-
 
     if not isprop then
         self:SetGlueEnt(nil)
         self.GlueAmt = 0
         return
     end
+
+    if not self:GetGluing() and not self:GetGlued() then
+        self:SetGluing(true)
+        self.GluingSound:Stop()
+        self.GluingSound:Play()
+        self.GluingSound:ChangePitch(80)
+    end
+
+    --gluing logic ahead, serverside only
+    if CLIENT then return end
 
     local phys = ent:GetPhysicsObject()
     if not IsValid(phys) then return end
@@ -179,18 +192,25 @@ function SWEP:SecondaryAttack()
         self:SetGlueEnt(ent)
         self.GlueAmt = tick
     end
-
-
 end
 
 --move glued entity to where it should be 
 function SWEP:Think()
-    --[[--------------------------------------
-        uncomment to disable client prediction
-    ]]----------------------------------------
-    --if CLIENT then return end  
+    local own = self:GetOwner()
+    
+    --stop gluing sound after we stop holding rclick
+    if self:GetGluing() and (not own:KeyDown(IN_ATTACK2) or not IsValid(self.trent)) then
+        self:SetGluing(false)
+        self.GluingSound:Stop()        
+    end
+    
 
-    local own = SERVER and self:GetOwner() or LocalPlayer()
+    --[[--------------------------------------
+        glued obj. movement code
+        uncomment below to disable client prediction
+    ]]----------------------------------------
+    --if CLIENT then return end 
+
     if not self:GetGlued() or not own:Alive() then return end
 
     local ent = self:GetGlueEnt()
