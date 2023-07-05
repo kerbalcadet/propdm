@@ -297,7 +297,7 @@ hook.Add("EntityTakeDamage", "PDM_PropDamage", function(ent, dmg)
     local inf = dmg:GetInflictor()
     if IsValid(inf) and inf.Attacker then
 --        dmg:SetInflictor(inf)
-        dmg:SetAttacker(inf)
+        dmg:SetAttacker(inf.Attacker)
     end
 end)
 end

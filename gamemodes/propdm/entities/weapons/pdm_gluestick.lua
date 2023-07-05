@@ -108,6 +108,8 @@ function SWEP:Pickup(ent)
         self:SetGlued(true)
         
         self.EntDistSq = EntPos:LengthSqr()
+        ent:SetPhysicsAttacker(own)
+        ent.Attacker = own
     end
 
     self:SetGluing(false)
