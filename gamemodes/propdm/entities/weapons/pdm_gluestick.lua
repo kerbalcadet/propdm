@@ -71,9 +71,9 @@ function SWEP:Drop()
 
         ent:SetOwner(nil)
         if CLIENT then ent:PhysicsDestroy() end
-    end
 
-    self:EmitSound("weapons/bugbait/bugbait_squeeze"..math.random(1,3)..".wav")     
+        self:EmitSound("weapons/bugbait/bugbait_squeeze"..math.random(1,3)..".wav")     
+    end
 end
 
 if SERVER then util.AddNetworkString("PDM_GlueDrop") end
