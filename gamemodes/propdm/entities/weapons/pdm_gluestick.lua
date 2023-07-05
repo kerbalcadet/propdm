@@ -33,7 +33,7 @@ end
 function SWEP:Initialize()
     self:SetHoldType("pistol")
 
-    self.GlueRange = 50
+    self.GlueRange = 75
     self.GlueTimeMul = 1/200  --multiplied by weight to get time it takes to stick a prop
     self.GlueMinTime = 0.5
     self.GlueMaxTime = 5
