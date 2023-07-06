@@ -61,16 +61,27 @@ function SWEP:PrimaryAttack()
 end
 
 --drop/reset glued obj
-function SWEP:Drop()
+--send 'true' as argument if it's being called on both sv and cl anyway
+function SWEP:Drop(nomsg)
+    local ent = self:GetGlueEnt()
+    if not IsValid(ent) then
+        if SERVER then
+            self:SetGlued(false)
+        end
+
+        return
+    end
+
     if SERVER then
         self:SetGlued(false)
         self.GlueAmt = 0
-    end
 
-    local ent = self:GetGlueEnt()
-    self:SetGlueEnt(nil)
+        if not nomsg then
+            net.Start("PDM_GlueDrop")
+                net.WriteEntity(self)
+            net.Send(self:GetOwner())
+        end
 
-    if IsValid(ent) then
         local phys = ent:GetPhysicsObject()
         if IsValid(phys) then
             phys:Wake()
@@ -78,10 +89,13 @@ function SWEP:Drop()
         end
 
         ent:SetOwner(nil)
-        if CLIENT then ent:PhysicsDestroy() end
-
-        self:EmitSound("weapons/bugbait/bugbait_squeeze"..math.random(1,3)..".wav")     
     end
+
+    if CLIENT then 
+        self:GetGlueEnt():PhysicsDestroy() 
+    end
+
+    self:EmitSound("weapons/bugbait/bugbait_squeeze"..math.random(1,3)..".wav")     
 end
 
 if SERVER then util.AddNetworkString("PDM_GlueDrop") end
@@ -135,12 +149,12 @@ net.Receive("PDM_GluePickup", function()
 end)
 
 function SWEP:Holster()
-    self:Drop()
+    if self:GetGlued() then self:Drop(true) end
     return true
 end
 
 function SWEP:Reload()
-    if self:GetGlueEnt() then self:Drop() end
+    if self:GetGlued() then self:Drop(true) end
 end
 
 --hold rclick to glue objects
@@ -239,10 +253,6 @@ function SWEP:Think()
 
     if SERVER and (ent:GetPos() - own:GetShootPos()):LengthSqr() > (self.EntDistSq + 100^2) then
         self:Drop()
-        
-        net.Start("PDM_GlueDrop")
-            net.WriteEntity(self)
-        net.Send(own)
         return
     end 
 
