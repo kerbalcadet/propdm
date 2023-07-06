@@ -262,7 +262,7 @@ function PDM_GravExplode(pos, rad, pwr, minrad, plyw, att)
         local force = dir*mag
         local plyweight = plyw or 2400
 
-        if not ent:IsPlayer() and not ((ent:GetMoveType() == MOVETYPE_VPHYSICS) or phys:IsMoveable()) then
+        if not ent:IsPlayer() and not ((ent:GetMoveType() == MOVETYPE_VPHYSICS) or phys:IsMoveable()) and ent:IsSolid() then
             PDM_TryBreakProp(ent, dir, 2*mag/(10^6))
         end
 
