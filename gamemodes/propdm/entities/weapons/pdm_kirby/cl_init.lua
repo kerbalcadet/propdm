@@ -1,5 +1,6 @@
 include("shared.lua")
 include("cl_viewscreen.lua")
+include("cl_mdl.lua")
 
 --[[### thanks garry ###]]--
 SWEP.DrawCrosshair	= true

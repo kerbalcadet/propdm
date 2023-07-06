@@ -156,6 +156,7 @@ function SWEP:Equip(own)
 	if not own.KirbyInv then
 		own:KirbyPlayerInit()
 	end
+
 end
 
 function SWEP:OnRemove()
