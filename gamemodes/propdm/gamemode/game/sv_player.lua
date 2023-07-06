@@ -53,6 +53,7 @@ function PLAYER:PDM_GiveDefaultWeapons()
     self:Give("pdm_crowbar")
     self:Give("pdm_kirby")
     self:Give("pdm_nade")
+    self:Give("pdm_gluestick")
 end
 
 function PLAYER:SwitchLastWeapon()
