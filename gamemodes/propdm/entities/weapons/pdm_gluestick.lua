@@ -1,15 +1,17 @@
+AddCSLuaFile()
 SWEP.PrintName = "Glue Stick"
 SWEP.Category = "Prop Deathmatch"
-SWEP.Slot = 0
-SWEP.SlotPos = 2
+SWEP.Slot = 2
+SWEP.SlotPos = 0
 
 SWEP.Spawnable = true
 
 SWEP.Base = "weapon_base"
 SWEP.WorldModel = "models/weapons/w_stunbaton.mdl"
 SWEP.ViewModel = "models/weapons/v_stunstick.mdl"
-SWEP.UseHands = true
+SWEP.UseHands = false
 SWEP.Secondary.Automatic = true
+SWEP.ViewModelFOV = 70
 
 
 
@@ -20,6 +22,12 @@ if CLIENT then
         draw.SimpleText("/", "hl2b", x + width/2, y + height/2, col, 1, 1)
         draw.SimpleText("/", "hl2f", x + width/2, y + height/2, col, 1, 1)
     end    
+
+    local poff = Vector(3, -3, 27)
+    local aoff = Angle(50, 20, 0)
+    function SWEP:CalcViewModelView(vm, op, oa, p, a)
+        return LocalToWorld(poff, aoff, p, a)
+    end
 end
 
 function SWEP:SetupDataTables()
