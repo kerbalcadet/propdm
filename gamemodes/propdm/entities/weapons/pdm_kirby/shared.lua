@@ -290,8 +290,8 @@ function SWEP:KirbySuckEnts()
 	
 	if IsValid(tre) then
 		local phys = tre:GetPhysicsObject()
-		if IsValid(phys) and phys:IsMoveable() then
-			self:TryAddInv(trh.Entity)
+		if IsValid(phys) and phys:IsMoveable() and tre:GetMoveType() == MOVETYPE_VPHYSICS then
+			self:TryAddInv(tre)
 		end
 	end
 

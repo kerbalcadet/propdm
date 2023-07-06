@@ -200,6 +200,7 @@ function PDM_TryBreakProp(ent, dir, amt)
     local breaktime = mass and math.Clamp(mass/200, 1, 10) or 1
     brk = brk + amt/breaktime
 	
+
 	--'dislodge' map props
 	if brk >= 1 then
 		ent:EmitSound("physics/metal/metal_sheet_impact_hard"..math.random(6,8)..".wav")
