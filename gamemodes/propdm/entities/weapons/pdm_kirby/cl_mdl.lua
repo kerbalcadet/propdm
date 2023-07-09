@@ -14,13 +14,10 @@ panel:SetSize(size.x, size.y)
 panel:SetVisible(false)
 
 local icon = vgui.Create( "DModelPanel", panel )
+icon:SetVisible(false)
 
 function KirbyPanelVisible(bool)
     panel:SetVisible(bool)
-end
-
-function KirbyModelVisible(bool)
-    icon:SetVisible(bool)
 end
 
 function KirbyPanelModel(mdl)
@@ -35,3 +32,16 @@ function KirbyPanelModel(mdl)
     icon:SetCamPos(campos)
     icon:SetLookAt(pos)
 end
+
+--receive new queued model from server
+net.Receive("KirbyUpdateMdl", function()
+    local mdl = net.ReadString()
+    print(mdl)
+
+    if not (mdl == "nil") then
+        icon:SetVisible(true)
+        KirbyPanelModel(mdl)
+    else
+        icon:SetVisible(false)
+    end
+end)

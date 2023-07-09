@@ -1,6 +1,7 @@
 AddCSLuaFile()
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("cl_viewscreen.lua")
+AddCSLuaFile("cl_mdl.lua")
 
 -- Variables that are used on both client and server
 if CLIENT then
@@ -60,10 +61,7 @@ SWEP.Secondary = {
 	Time = 0,	--last time the right mouse button changed
 	Spool = 0,
 }
-
-SWEP.CanHolster = true
-SWEP.CanDeploy = true
-
+SWEP.CurMdl = nil
 
 function SWEP:SetupDataTables()
 	self:NetworkVar("Int", 0, "KirbyQueue")
@@ -86,7 +84,11 @@ end
 
 
 
---[[==CLIENT==]]--
+--[[---------------
+	CLIENTSIDE ONLY
+]]-----------------
+
+
 if CLIENT then
 
 	
@@ -103,7 +105,17 @@ end
 
 
 end
---[[==SERVER==]]--
+
+
+
+
+--[[---------------
+	SERVERSIDE ONLY
+]]-----------------
+
+
+
+
 if SERVER then
 
 
@@ -140,7 +152,6 @@ function PLAYER:KirbyPlayerInit()
 	self.KirbyQueue = {}
 	self.KirbyQWeight = 0	--weight of items in fire queue
 	self.KirbyWeight = 0		--total weight
-	
 end
 
 --adjust player movement speed
@@ -149,14 +160,6 @@ function PLAYER:ChangeMoveSpeed()
 
 	self:SetWalkSpeed(200*(1 - mp))
 	self:SetRunSpeed(400*(1 - mp))
-end
-
---initialize inventory
-function SWEP:Equip(own)
-	if not own.KirbyInv then
-		own:KirbyPlayerInit()
-	end
-
 end
 
 function SWEP:OnRemove()
@@ -203,13 +206,21 @@ end
 
 
 
-
-
 function SWEP:AddStrainEffect(ent)
 	ent:EmitSound("physics/metal/metal_sheet_impact_hard"..math.random(6,8)..".wav")
 	local size = math.Clamp(ent:GetPhysicsObject():GetVolume()^(1/3), 100, 4000)
 	util.ScreenShake(ent:GetPos(), 10, 1000, 1, size)
 end
+
+
+--send the first model in our queue to the client
+util.AddNetworkString("KirbyUpdateMdl")
+function SWEP:UpdateMdl(mdl)
+	net.Start("KirbyUpdateMdl")
+	net.WriteString(mdl)
+	net.Send(self:GetOwner())
+end
+
 
 function SWEP:TryAddInv(ent)
 	local phys = ent:GetPhysicsObject()
@@ -272,7 +283,12 @@ function SWEP:TryAddInv(ent)
 	
 	local tab = {class=class, mass=mass, model=model, skn=skn, keyval=keyval, map=map, weps=weps}
 	table.insert(own.KirbyInv, tab)
-	self:SetKirbyProps(#own.KirbyInv)
+	
+	local num = #own.KirbyInv
+	self:SetKirbyProps(num)
+	--send the model to display if it's the first one
+	if num == 1 then self:UpdateMdl(model) end
+
 	
 	own.KirbyWeight = own.KirbyWeight + mass
 	own:ChangeMoveSpeed()
@@ -281,6 +297,10 @@ function SWEP:TryAddInv(ent)
 	self.Sound3:Play()
 	ent:Remove()
 end
+
+
+
+
 
 function SWEP:KirbySuckEnts()
 	--actually find and add nearby props to inventory
@@ -345,6 +365,10 @@ function SWEP:KirbySuckEnts()
 	end
 end
 
+
+
+
+
 --fire prop from entity table
 function KirbyFireProp(tab, pos, dir, vel, att)
 	local ent = PDM_FireProp(tab, pos, AngleRand(), dir*vel, VectorRand(), att)
@@ -367,6 +391,8 @@ function KirbyFireProp(tab, pos, dir, vel, att)
 	return ent
 end
 
+
+
 --logic to handle firing of props
 function SWEP:StartFireLogic(tab)
 	local own = self:GetOwner()
@@ -375,7 +401,7 @@ function SWEP:StartFireLogic(tab)
 	local queue = own.KirbyQueue
 	local dir = own:EyeAngles():Forward()
 	local tab = queue[#queue]
-	
+
 	self.Sound5:Stop()
 	self.Sound5:Play()
 	self.Sound5:ChangePitch(70)
@@ -384,6 +410,11 @@ function SWEP:StartFireLogic(tab)
 	table.remove(queue)
 	self:SetKirbyQueue(#queue)
 
+	--update model displayed on client HUD
+	local mdl = #queue > 0 and queue[#queue].model or "nil"
+	self:UpdateMdl(mdl)
+
+	--adjust player vars
 	own.KirbyWeight = own.KirbyWeight - tab.mass
 	own:ChangeMoveSpeed()
 	
@@ -396,7 +427,28 @@ end
 
 
 
---[[SHARED]]--
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--[[-----------------
+	SHARED FUNCTIONS
+]]-------------------
+
+
+
+
 function SWEP:Think()
 	local own = self:GetOwner()
 
@@ -524,7 +576,27 @@ function SWEP:Think()
 end
 
 
+--SERVER: initialize inventory
+--CLIENT: Display queued model in hud panel
+function SWEP:Deploy()
+	local own = self:GetOwner()
 
+	if SERVER and not own.KirbyInv then
+		own:KirbyPlayerInit()
+	end
+
+	if CLIENT then
+		KirbyPanelVisible(true)
+	end
+end
+
+function SWEP:Holster()
+	if CLIENT then
+		KirbyPanelVisible(false)
+	end
+
+	return true
+end
 
 
 function SWEP:PrimaryAttack()
