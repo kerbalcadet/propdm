@@ -222,6 +222,7 @@ function SWEP:UpdateMdl(mdl)
 end
 
 
+
 function SWEP:TryAddInv(ent)
 	local phys = ent:GetPhysicsObject()
 	local own = self:GetOwner()
@@ -575,6 +576,33 @@ function SWEP:Think()
 	return true
 end
 
+--[[### scroll control for inventory ###]]--
+
+hook.Remove("StartCommand", "KirbyScrollInv")
+hook.Add("StartCommand", "KirbyScrollInv", function(ply, cmd)
+	if not ply:Alive() then return end
+
+	local wep = ply:GetActiveWeapon()
+	if not IsValid(wep) or not (wep:GetClass() == "pdm_kirby") then return end
+
+	if SERVER then
+		local mwheel = cmd:GetMouseWheel()
+		if mwheel == 0 then return end
+
+		local e = cmd:KeyDown(IN_USE)
+		if not e then return end
+
+		cmd:SetMouseWheel(1)
+
+		local inv = ply.KirbyInv
+		if not inv or not (#inv > 0) then return end
+
+		local first = inv[1]
+		table.remove(inv, 1)
+		table.insert(inv, first)
+		wep:UpdateMdl(first.model)
+	end
+end)
 
 --SERVER: initialize inventory
 --CLIENT: Display queued model in hud panel
