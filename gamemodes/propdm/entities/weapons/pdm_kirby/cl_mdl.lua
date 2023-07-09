@@ -2,6 +2,7 @@
     create model feed in the bottom right
 ]]---------------------------------------
 
+local col = Color(20, 20, 20, 200)
 local margin = {x = 40, y = 35}
 local size = {x = 250, y = 150}
 
@@ -11,7 +12,12 @@ local panel = vgui.Create( "DPanel" )
 
 panel:SetPos(w - margin.x - size.x, margin.y)
 panel:SetSize(size.x, size.y)
+panel:SetBackgroundColor(col)
 panel:SetVisible(false)
+
+function panel:Paint(sizex, sizey)
+    draw.RoundedBox(10, 0, 0, sizex, sizey, col)
+end
 
 local icon = vgui.Create( "DModelPanel", panel )
 icon:SetVisible(false)
@@ -36,7 +42,6 @@ end
 --receive new queued model from server
 net.Receive("KirbyUpdateMdl", function()
     local mdl = net.ReadString()
-    print(mdl)
 
     if not (mdl == "nil") then
         icon:SetVisible(true)
