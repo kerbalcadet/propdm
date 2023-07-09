@@ -30,9 +30,11 @@ function KirbyPanelModel(mdl)
     icon:SetModel(mdl)
 
     local ent = icon:GetEntity()
-    local pos = ent:WorldSpaceCenter()
-    local rad = ent:GetModelRadius() or 500
-    local campos = pos + Vector(1,0,0.5)*rad*3
+    local b1, b2 = ent:GetModelBounds()
+    local pos = (b1 + b2)/2
+    
+    local rad = (b2-b1):Length()
+    local campos = pos + Vector(1,0,0.5)*rad
     
     icon:SetSize(size.x, size.y)
     icon:SetCamPos(campos)
