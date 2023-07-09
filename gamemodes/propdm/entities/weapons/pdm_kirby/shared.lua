@@ -286,8 +286,7 @@ function SWEP:TryAddInv(ent)
 	
 	local num = #own.KirbyInv
 	self:SetKirbyProps(num)
-	--send the model to display if it's the first one
-	if num == 1 then self:UpdateMdl(model) end
+	self:UpdateMdl(model)
 
 	
 	own.KirbyWeight = own.KirbyWeight + mass
@@ -411,7 +410,8 @@ function SWEP:StartFireLogic(tab)
 	self:SetKirbyQueue(#queue)
 
 	--update model displayed on client HUD
-	local mdl = #queue > 0 and queue[#queue].model or "nil"
+	local inv = own.KirbyInv
+	local mdl = #queue > 0 and queue[#queue].model or (#inv > 0 and inv[#inv].model or "nil")
 	self:UpdateMdl(mdl)
 
 	--adjust player vars
