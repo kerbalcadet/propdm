@@ -70,68 +70,72 @@ end
 
 function ENT:Think()
     if self.SpawnTime + self.Fuse < CurTime() then
-        local pos = self:GetPos()
-        
-        --regular explosions 
-        PDM_GravExplode(pos, self.GravRadius, self.GravPwr, self.MinRad, self.PlyWeight, self.Owner)
-        
-        local wep = IsValid(self.Weapon) and self.Weapon or self
-        local dmg = DamageInfo()
-        dmg:SetDamage(self.Dmg)
-        dmg:SetDamageType(DMG_BLAST)
-        dmg:SetInflictor(wep)
-        dmg:SetAttacker(self.Owner)
-        util.BlastDamageInfo(dmg, pos, self.DmgRadius)
+        self:PropExplode(self.PropExpNum)
+    end
+end
 
-        --prop explosions
-        local props = {}
-        local n = 0
-        while n < self.PropExpNum do
-            
-            local tab = {}
-            for i = 1, 10 do
-                tab = table.Random(PDM_PROPS)
-                local mass, vol = PDM_PropInfo(tab.model)
-                if not mass or not vol then continue end
+function ENT:PropExplode(num_props)
+    local pos = self:GetPos()
+    
+    --regular explosions 
+    PDM_GravExplode(pos, self.GravRadius, self.GravPwr, self.MinRad, self.PlyWeight, self.Owner)
+    
+    local wep = IsValid(self.Weapon) and self.Weapon or self
+    local dmg = DamageInfo()
+    dmg:SetDamage(self.Dmg)
+    dmg:SetDamageType(DMG_BLAST)
+    dmg:SetInflictor(wep)
+    dmg:SetAttacker(self.Owner)
+    util.BlastDamageInfo(dmg, pos, self.DmgRadius)
 
-                if vol <= self.PropExpMaxVol and mass < self.PropExpMaxWPer then 
-                    n = n + 1
-                    tab.class = "prop_physics_multiplayer"
-                    table.insert(props, tab)
-                    break 
-                end
+    --prop explosions
+    local props = {}
+    local n = 0
+    while n < num_props do
+        
+        local tab = {}
+        for i = 1, 10 do
+            tab = table.Random(PDM_PROPS)
+            local mass, vol = PDM_PropInfo(tab.model)
+            if not mass or not vol then continue end
+
+            if vol <= self.PropExpMaxVol and mass < self.PropExpMaxWPer then 
+                n = n + 1
+                tab.class = "prop_physics_multiplayer"
+                table.insert(props, tab)
+                break 
             end
         end
-
-        local tr = util.QuickTrace(pos, Vector(0,0,-15), self)
-        local normal = tr.HitWorld and Vector(0,0,1) or Vector(0,0,0)
-        local props = PDM_PropExplode(props, pos, self.PropExpVel, normal, self.PropExpAng, self:GetOwner())
-        
-        timer.Simple(self.PropDespTime, function()
-            for _, p in pairs(props) do
-                if IsValid(p) then p:Dissolve(1, p:GetPos()) end
-            end
-        end)
-
-        --fx
-        local num = math.random(4)
-        self:EmitSound("weapons/physcannon/superphys_launch"..num..".wav", 350)
-        self.ExpSound:Play()
-        self.ExpSound:ChangeVolume(0.7)
-
-        local ef = EffectData()
-        ef:SetOrigin(pos)
-
-        ef:SetScale(150)
-        util.Effect("ThumperDust", ef)
-
-        ef:SetScale(0.75)
-        ef:SetMagnitude(1)
-        ef:SetFlags(0x4)    --no sound
-        util.Effect("Explosion", ef)
-
-        self:Remove()
     end
+
+    local tr = util.QuickTrace(pos, Vector(0,0,-15), self)
+    local normal = tr.HitWorld and Vector(0,0,1) or Vector(0,0,0)
+    local props = PDM_PropExplode(props, pos, self.PropExpVel, normal, self.PropExpAng, self:GetOwner())
+    
+    timer.Simple(self.PropDespTime, function()
+        for _, p in pairs(props) do
+            if IsValid(p) then p:Dissolve(1, p:GetPos()) end
+        end
+    end)
+
+    --fx
+    local num = math.random(4)
+    self:EmitSound("weapons/physcannon/superphys_launch"..num..".wav", 350)
+    self.ExpSound:Play()
+    self.ExpSound:ChangeVolume(0.7)
+
+    local ef = EffectData()
+    ef:SetOrigin(pos)
+
+    ef:SetScale(150)
+    util.Effect("ThumperDust", ef)
+
+    ef:SetScale(0.75)
+    ef:SetMagnitude(1)
+    ef:SetFlags(0x4)    --no sound
+    util.Effect("Explosion", ef)
+
+    self:Remove()
 end
 
 end
