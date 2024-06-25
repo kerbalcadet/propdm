@@ -70,11 +70,11 @@ end
 
 function ENT:Think()
     if self.SpawnTime + self.Fuse < CurTime() then
-        self:PropExplode(self.PropExpNum)
+        self:PropExplode()
     end
 end
 
-function ENT:PropExplode(num_props)
+function ENT:PropExplode()
     local pos = self:GetPos()
     
     --regular explosions 
@@ -91,7 +91,7 @@ function ENT:PropExplode(num_props)
     --prop explosions
     local props = {}
     local n = 0
-    while n < num_props do
+    while n < self.PropExpNum do
         
         local tab = {}
         for i = 1, 10 do
