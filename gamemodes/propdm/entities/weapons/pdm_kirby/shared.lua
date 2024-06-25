@@ -32,9 +32,9 @@ SWEP.Primary = {
 
 	SpoolTime = 0.75,	--time to reach max firing capacity
 	MaxWeightPer = 400, -- max weight to have multiple things fire at once
-	BaseSpeed = 1000,
+	BaseSpeed = 2000,
 	SpeedMul = 30000,	--divided by object weight to get speed on firing
-	FireDelay = 0.1, 	--delay between each shot
+	FireDelay = 0.05, 	--delay between each shot
 	Active = false,
 	Shooting = false,
 	Cooldown = false,
@@ -407,6 +407,7 @@ function SWEP:StartFireLogic(tab)
 	self.Sound5:Stop()
 	self.Sound5:Play()
 	self.Sound5:ChangePitch(70)
+	
 	local ent = KirbyFireProp(tab, own:GetShootPos() + dir*30, dir, self.Primary.BaseSpeed + self.Primary.SpeedMul/tab.mass, own)
 
 	table.remove(queue)
