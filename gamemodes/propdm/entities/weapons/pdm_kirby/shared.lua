@@ -22,7 +22,7 @@ util.PrecacheModel( SWEP.ViewModel )
 util.PrecacheModel( SWEP.WorldModel )
 
 SWEP.MaxWeight = 1000
-local MovePenaltyMul = (0.25)/200	--multiplied by inventory weight to get movespeed penalty
+local MovePenaltyMul = (0.1)/200	--multiplied by inventory weight to get movespeed penalty
 local MovePenaltyMax = 0.7
 SWEP.Primary = {
 	DefaultClip = 0,
@@ -556,7 +556,7 @@ function SWEP:Think()
 			--if (maxw + 10> own.KirbyQWeight + next.mass) then	--several light props
 				self:AddQueue(next)
 			--elseif lspool == 1 and #own.KirbyQueue == 0 then	--one single heavy prop
-				--self:AddQueue(next, true)
+				--`self:AddQueue(next, true)
 			--end
 
 			self.NextAddToQueue = CurTime() + self.Primary.QueueDelay
