@@ -15,10 +15,15 @@ function KS_Sentry(ply)
     ply:Give("pdm_sentry_spawner")
 end
 
+function KS_CarePkg(ply)
+    ply:Give("pdm_carepkg_nade")
+end
+
 PDM_KILLSTREAKS = {
-    [3] = {KS_Clusternade, "Cluster Grenade"},
+    [2] = {KS_Clusternade, "Cluster Grenade"},
+    [3] = {KS_CarePkg, "Care Package"},
     [5] = {KS_Launcher, "Propket Launcher"},
-    [7] = {KS_Sentry, "Sentry Gun"}
+    [7] = {KS_Sentry, "Sentry Gun"},
 }
 
 PDM_CAREPKG_WEPS = {
@@ -26,5 +31,6 @@ PDM_CAREPKG_WEPS = {
     "pdm_launcher",
     "pdm_sentry_spawner",
     "pdm_carepkg_nade",
-    "pdm_carepkg_nade"
+    "pdm_propify_nade",
+    "pdm_emergency_nade"
 }
