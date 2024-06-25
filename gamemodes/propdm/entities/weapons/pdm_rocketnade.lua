@@ -13,8 +13,8 @@ SWEP.Primary = {
     Ammo = "rocketnade"
 }
 
-
+local angoffset = Angle(90, 0, 0)
 function SWEP:ThrowNade()
     local nade = ents.Create("proj_pdm_rocketnade")
-    self:Throw(nade)
+    self:Throw(nade, angoffset, nil, 0)
 end

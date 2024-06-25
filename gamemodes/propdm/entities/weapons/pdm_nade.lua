@@ -185,7 +185,8 @@ function SWEP:SecondaryAttack()
     self.Under = true
 end
 
-function SWEP:Throw(nade, setvel, setangvel)
+--setang:angle (offset from eyeang), setvel & setangvel: float
+function SWEP:Throw(nade, setang, setvel, setangvel)
     local own = self:GetOwner()
 
     nade:SetOwner(own)
@@ -197,9 +198,10 @@ function SWEP:Throw(nade, setvel, setangvel)
     local pos = self.Under
     and gpos + right*6 + Vector(0,0,56) 
     or gpos + right*6 + Vector(0,0,66)
-    
+    local angoffset = setang or Angle()
+
     nade:SetPos(pos)
-    nade:SetAngles(own:EyeAngles())
+    nade:SetAngles(own:EyeAngles() + angoffset)
     nade:Spawn()
 
     local phys = nade:GetPhysicsObject()
