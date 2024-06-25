@@ -185,7 +185,7 @@ function SWEP:SecondaryAttack()
     self.Under = true
 end
 
-function SWEP:Throw(nade)
+function SWEP:Throw(nade, setvel, setangvel)
     local own = self:GetOwner()
 
     nade:SetOwner(own)
@@ -205,10 +205,10 @@ function SWEP:Throw(nade)
     local phys = nade:GetPhysicsObject()
 
     if IsValid(phys) and not self.OverCooked then
-        local vel = self.Under and 400 or 1300
+        local vel = setvel or (self.Under and 400 or 1300)
         phys:SetVelocity(own:GetVelocity() + own:GetAimVector()*vel)
     
-        local angvel = self.Under and 200 or 300
+        local angvel = setangvel or (self.Under and 200 or 300)
         phys:SetAngleVelocity(VectorRand()*angvel)
     end
 
