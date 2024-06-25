@@ -17,7 +17,7 @@ function ENT:Initialize()
         phys:SetMass(2)
     end
 
-    self.RocketDelay = self.RocketDelay or 1    --seconds
+    self.RocketDelay = self.RocketDelay or 0.25    --seconds
     self.RocketBurn = self.RocketBurn or 5
     self.RocketPower = 2000
     
@@ -46,8 +46,10 @@ function ENT:Initialize()
 end
 
 function ENT:Think()
-    if SERVER and CurTime() > self.SpawnTime + self.RocketDelay + self.RocketBurn then
-        self:PropExplode()
+    if CurTime() > self.SpawnTime + self.RocketDelay + self.RocketBurn then
+        self:StopSound("weapons/rpg/rocket1.wav")
+               
+        if SERVER then self:PropExplode() end
         return
     end
 
@@ -59,7 +61,7 @@ function ENT:Think()
                 self.RocketFX = CreateParticleSystem(self, "Rocket_Smoke", 1, 0, Vector())
             end
             
-            --todo: sound
+            self:EmitSound("weapons/rpg/rocket1.wav", 100, 100, 0.3)
         end
 
         if CLIENT then return end
