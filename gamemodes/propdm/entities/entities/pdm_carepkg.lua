@@ -333,7 +333,8 @@ function ENT:Use(ply)
 
     if of >= 1 then
         p = self.FirstPly or ply
-        p:Give(table.Random(PDM_CAREPKG_WEPS))
+        local wep = table.Random(PDM_CAREPKG_WEPS)
+        p:Give(wep)
 
         self:EmitSound("BaseCombatCharacter.AmmoPickup")
 
