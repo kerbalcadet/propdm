@@ -56,6 +56,7 @@ function ENT:PhysicsCollide(data, phys)
     if ent:IsPlayer() or ent:IsNPC() or string.StartsWith(ent:GetClass(), "prop") then
         self.StuckEntity = ent
         self:SetParent(ent)
+        ent:SetPhysicsAttacker(self.Owner)
     end
 end
 
