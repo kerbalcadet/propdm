@@ -40,7 +40,8 @@ SWEP.Primary = {
 	Cooldown = false,
 	Time = 0,
 	Queue = {},
-	QueueWeight = 0
+	QueueWeight = 0,
+	QueueDelay = 0.1
 
 }
 SWEP.Secondary = {
@@ -56,6 +57,7 @@ SWEP.Secondary = {
 	InstantGrabWeight = SWEP.MaxWeight/2,
 	GrabTimeMul = 1/1000,
 	MaxGrabTime = 10,
+	
 
 	Active = false,
 	Time = 0,	--last time the right mouse button changed
@@ -547,15 +549,17 @@ function SWEP:Think()
 		--firing behavior
 
 		--add props to shoot queue
-		if lclick and not self.Primary.Cooldown and own.KirbyInv and not table.IsEmpty(own.KirbyInv) then
+		if lclick and not self.Primary.Cooldown and own.KirbyInv and not table.IsEmpty(own.KirbyInv) and CurTime() > (self.NextAddToQueue or 0) then
 			local next = own.KirbyInv[#own.KirbyInv]
-			local maxw = lspool*self.Primary.MaxWeightPer	
+			--local maxw = lspool*self.Primary.MaxWeightPer	
 			
-			if (maxw + 10> own.KirbyQWeight + next.mass) then	--several light props
+			--if (maxw + 10> own.KirbyQWeight + next.mass) then	--several light props
 				self:AddQueue(next)
-			elseif lspool == 1 and #own.KirbyQueue == 0 then	--one single heavy prop
-				self:AddQueue(next, true)
-			end
+			--elseif lspool == 1 and #own.KirbyQueue == 0 then	--one single heavy prop
+				--self:AddQueue(next, true)
+			--end
+
+			self.NextAddToQueue = CurTime() + self.Primary.QueueDelay
 
 		--actual shooting!
 		elseif self.Primary.Cooldown and not self.Primary.Shooting and own.KirbyQueue and not table.IsEmpty(own.KirbyQueue) then
