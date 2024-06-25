@@ -55,8 +55,8 @@ SWEP.Secondary = {
 	MaxVelSqr = 12000,
 
 	InstantGrabWeight = SWEP.MaxWeight/2,
-	GrabTimeMul = 1/1000,
-	MaxGrabTime = 10,
+	GrabTimeMul = 1/3000,
+	MaxGrabTime = 5,
 	
 
 	Active = false,
