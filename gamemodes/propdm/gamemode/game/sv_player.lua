@@ -25,6 +25,23 @@ function GM:PlayerSpawn(ply)
     local col = team.GetColor(ply:Team())
     ply:SetColor(col)
 
+    --health regen
+    if PDM_HEALTHREGEN:GetInt() then
+        local title = tostring(ply).."_regen"
+        timer.Create(title, PDM_HEALTHREGEN_INTERVAL:GetInt(), 0, function()
+        if not IsValid(ply) then
+            timer.Remove(title)
+            return 
+        end
+
+        local health = ply:Health()
+        if health < 100 then
+            ply:SetHealth(health + 1)
+        end
+        end)
+    end
+
+    --grenade regen
     local title = tostring(ply).."_givenade"
     timer.Create(title, 60, 0, function()
         if not IsValid(ply) then

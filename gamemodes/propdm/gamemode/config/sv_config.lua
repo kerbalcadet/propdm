@@ -4,3 +4,5 @@ PDM_MAXPROPS = CreateConVar("pdm_maxprops", 100, 0, "Number of props the heli ca
 PDM_TIMEBEFOREROUND = CreateConVar("pdm_timebeforeround", 15, 0, "Number of seconds before a round starts", 0)
 PDM_TIMEAFTERROUND = CreateConVar("pdm_timeafterround", 10, 0, "Number of seconds after a round ends before the timer starts for the next one", 0)
 PDM_SLOMO = CreateConVar("pdm_slomo", 25, 0, "Timescale (1 to 100%) for slomo when the round ends", 1, 100)
+PDM_HEALTHREGEN = CreateConVar("pdm_healthregen", 1, 0, "Health regeneration toggle", 0, 1)
+PDM_HEALTHREGEN_INTERVAL = CreateConVar("pdm_healthregen_interval", 2, 0, "Interval in seconds between health regen events ", 0.1, 100)
