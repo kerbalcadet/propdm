@@ -11,7 +11,10 @@ SWEP.WorldModel = "models/weapons/w_grenade.mdl"
 util.PrecacheModel(SWEP.ViewModel)
 util.PrecacheModel(SWEP.WorldModel)
 
-
+game.AddAmmoType( {
+    name = "pdm_propnade",
+    dmgtype = DMG_BLAST
+})
 
 --[[### To make derivative nades, use ENT.Base = "pdm_nade" and
         replace the ThrowNade() function ###]]--
@@ -42,7 +45,7 @@ SWEP.Primary = {
     ClipSize = 1,
     DefaultClip = 1,
     Automatic = false, 
-    Ammo = "grenade"
+    Ammo = "pdm_propnade"
 }
 
 SWEP.Secondary = {
