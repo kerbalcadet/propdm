@@ -14,6 +14,9 @@ SWEP.FireDelay = 0.6
 SWEP.NadeVel = 2000
 SWEP.Fuse = 2
 
+SWEP.Reloading = false
+SWEP.CancelReload = false
+
 SWEP.Primary.ClipSize = 6
 SWEP.DrawAmmo = true
 SWEP.Primary.Ammo = "pdm_propnade"
@@ -29,6 +32,7 @@ function SWEP:Initialize()
     self.ShootSound = CreateSound(self, "NPC_Combine.GrenadeLaunch")
     self.RackSound = CreateSound(self, "weapons/shotgun/shotgun_cock.wav")
     self.EmptySound = CreateSound(self, "weapons/shotgun/shotgun_empty.wav")
+    self.LoadSound = CreateSound(self, "weapons/shotgun/shotgun_reload3.wav")
 end
 
 if CLIENT then
@@ -43,6 +47,12 @@ end
 
 
 function SWEP:PrimaryAttack()
+    if self.Reloading then
+        self.CancelReload = true
+
+        return
+    end
+
     if self:Clip1() < 1 then
         self.EmptySound:Stop()
         self.EmptySound:Play()
@@ -84,4 +94,58 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:SecondaryAttack()
+end
+
+--reloading logic
+function SWEP:LoadRound()
+    self:SendWeaponAnim(ACT_VM_RELOAD)
+    self:GetOwner():SetAnimation(PLAYER_RELOAD)
+    
+    self.LoadSound:Stop()
+    self.LoadSound:Play()
+
+    if SERVER then
+        self:GetOwner():RemoveAmmo(1, "pdm_propnade")
+        self:SetClip1(self:Clip1() + 1)
+    end
+end
+
+function SWEP:FinishLoading()
+    self:SendWeaponAnim(ACT_SHOTGUN_RELOAD_FINISH)
+
+    self.Reloading = false
+    self.CancelReload = false
+end
+
+function SWEP:Reload()
+    if self.Reloading then return end
+
+    local numrounds = math.min(self.Primary.ClipSize - self:Clip1(), self:Ammo1() - self:Clip1())
+    if numrounds < 1 then return end
+
+    self:SendWeaponAnim(ACT_SHOTGUN_RELOAD_START)
+
+    self:LoadRound()
+    if numrounds < 2 then return end
+
+    self.Reloading = true
+    
+    local title = self:GetName().."reload" 
+    timer.Create(title, 0.7, numrounds - 1, function()
+        if self.CancelReload then
+            timer.Remove(title)
+
+            self:FinishLoading()
+            return
+        end
+
+        self:LoadRound()
+
+        if timer.RepsLeft(title) < 1 then
+            timer.Simple(0.4, function()
+                self:FinishLoading()
+                return
+            end)
+        end
+    end)
 end
