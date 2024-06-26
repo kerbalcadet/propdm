@@ -195,9 +195,14 @@ function SWEP:Throw(nade, setang, setvel, setangvel)
     local aim = own:GetAimVector()
     local gpos = own:GetPos()
     local right = aim:Cross(Vector(0,0,1))
+    
     local pos = self.Under
-    and gpos + right*6 + Vector(0,0,56) 
-    or gpos + right*6 + Vector(0,0,66)
+        and gpos + right*6 + Vector(0,0,56) 
+        or gpos + right*6 + Vector(0,0,66)
+    if own:Crouching() then
+        pos = pos - Vector(0,0,32)
+    end
+
     local angoffset = setang or Angle()
 
     nade:SetPos(pos)
