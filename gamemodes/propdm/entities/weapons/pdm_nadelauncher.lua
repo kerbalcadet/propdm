@@ -11,7 +11,7 @@ SWEP.Weight = 5
 SWEP.SlotPos = 1
 
 SWEP.FireDelay = 0.6
-SWEP.NadeVel = 2000
+SWEP.NadeVel = 1500
 SWEP.Fuse = 2
 
 SWEP.Reloading = false
@@ -21,7 +21,7 @@ SWEP.LastLoad = 0
 SWEP.Primary.ClipSize = 3
 SWEP.DrawAmmo = true
 SWEP.Primary.Ammo = "pdm_propnade"
-SWEP.Primary.DefaultClip = 9
+SWEP.Primary.DefaultClip = 6
 SWEP.Automatic = false
 
 SWEP.Secondary.ClipSize = 24

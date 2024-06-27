@@ -1,0 +1,51 @@
+"TableToKeyValues"
+{
+	"parentid"		"0"
+	"icon"		"icon16/folder.png"
+	"id"		"45"
+	"contents"
+	{
+		"1"
+		{
+			"type"		"model"
+			"model"		"models/props_c17/oildrum001_explosive.mdl"
+		}
+		"2"
+		{
+			"type"		"model"
+			"model"		"models/props_junk/propane_tank001a.mdl"
+		}
+		"3"
+		{
+			"type"		"model"
+			"model"		"models/props_phx/ww2bomb.mdl"
+		}
+		"4"
+		{
+			"type"		"model"
+			"model"		"models/props_phx/oildrum001_explosive.mdl"
+		}
+		"5"
+		{
+			"type"		"model"
+			"model"		"models/props_phx/mk-82.mdl"
+		}
+		"6"
+		{
+			"type"		"model"
+			"model"		"models/props_phx/torpedo.mdl"
+		}
+		"7"
+		{
+			"type"		"model"
+			"model"		"models/props_phx/misc/flakshell_big.mdl"
+		}
+		"8"
+		{
+			"type"		"model"
+			"model"		"models/props_phx/misc/potato_launcher_explosive.mdl"
+		}
+	}
+	"name"		"explosives"
+	"version"		"3"
+}
