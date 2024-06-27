@@ -104,7 +104,7 @@ function SWEP:Think()
         return
     end
 
-    numleft = math.min(self.Primary.ClipSize - self:Clip1(), self:Ammo1() - self:Clip1())
+    numleft = math.min(self.Primary.ClipSize - self:Clip1(), self:Ammo1())
     if numleft < 1 then 
         self:FinishLoading()
         return 
