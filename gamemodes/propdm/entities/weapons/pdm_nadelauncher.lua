@@ -18,10 +18,10 @@ SWEP.Reloading = false
 SWEP.CancelReload = false
 SWEP.LastLoad = 0
 
-SWEP.Primary.ClipSize = 6
+SWEP.Primary.ClipSize = 3
 SWEP.DrawAmmo = true
 SWEP.Primary.Ammo = "pdm_propnade"
-SWEP.Primary.DefaultClip = 12
+SWEP.Primary.DefaultClip = 9
 SWEP.Automatic = false
 
 SWEP.Secondary.ClipSize = 24
@@ -45,6 +45,8 @@ end
 
 
 function SWEP:PrimaryAttack()
+    if self:GetOwner():KeyDown(IN_RELOAD) then return end
+
     if self.Reloading then
         self.CancelReload = true
 
@@ -97,7 +99,7 @@ function SWEP:SecondaryAttack()
 end
 
 function SWEP:Think()
-    if not self.Reloading or CurTime() < self.LastLoad + 0.7 then return end
+    if not self.Reloading or CurTime() < self.LastLoad + 1 then return end
 
     if self.CancelReload then
         self:FinishLoading()
@@ -112,6 +114,12 @@ function SWEP:Think()
 
     self:LoadRound()
     self.LastLoad = CurTime()
+
+    --remove delay for returning to deployed
+    if numleft < 2 then
+        self.LastLoad = CurTime() - 0.5
+        return
+    end
 end
 
 --reloading logic
