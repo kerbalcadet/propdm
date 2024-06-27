@@ -47,7 +47,7 @@ function ENT:Initialize()
     self.MinRad = 15 --range at which grav effects are unclamped (fall off) in ft
     self.PlyWeight = 800
     
-    self.DmgRadius = 400    --gmod units not ft (probably should fix)
+    self.DmgRadius = 600    --gmod units not ft (probably should fix)
     self.Dmg = 90
 
     self.PropExpNum = 8
@@ -95,7 +95,7 @@ function ENT:Think()
             local phys = n:GetPhysicsObject()
 
             phys:SetVelocity(self.Forward*self.Vel + sideaim*self.SideVel)
-            phys:SetAngleVelocity(VectorRand()*15)
+            phys:SetAngleVelocity(VectorRand()*10)
         end
 
         self:EmitSound("NPC_Combine.GrenadeLaunch", 300)
