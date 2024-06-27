@@ -97,7 +97,6 @@ function ENT:PropExplode()
         local tab = {}
         for i = 1, 10 do
             tab = table.Random(self.Spawnlist)
-            PrintTable(tab)
             local mass, vol = PDM_PropInfo(tab.model)
             if not mass or not vol then continue end
 
