@@ -17,6 +17,7 @@ function ENT:Initialize()
         phys:SetMass(1)
     end
 
+    self.Spawnlist = PDM_PROPS
     self.RocketDelay = self.RocketDelay or 0.2    --seconds
     self.RocketBurn = self.RocketBurn or 5
     self.RocketPower = 100
