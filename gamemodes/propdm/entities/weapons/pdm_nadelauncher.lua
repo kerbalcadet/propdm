@@ -16,6 +16,7 @@ SWEP.Fuse = 2
 
 SWEP.Reloading = false
 SWEP.CancelReload = false
+SWEP.LastLoad = 0
 
 SWEP.Primary.ClipSize = 6
 SWEP.DrawAmmo = true
@@ -30,9 +31,6 @@ SWEP.Secondary.Ammo = "none"
 function SWEP:Initialize()
     self:SetHoldType("shotgun")
     self.ShootSound = CreateSound(self, "NPC_Combine.GrenadeLaunch")
-    self.RackSound = CreateSound(self, "weapons/shotgun/shotgun_cock.wav")
-    self.EmptySound = CreateSound(self, "weapons/shotgun/shotgun_empty.wav")
-    self.LoadSound = CreateSound(self, "weapons/shotgun/shotgun_reload3.wav")
 end
 
 if CLIENT then
@@ -54,40 +52,42 @@ function SWEP:PrimaryAttack()
     end
 
     if self:Clip1() < 1 then
-        self.EmptySound:Stop()
-        self.EmptySound:Play()
-        
+        self:EmitSound("weapons/shotgun/shotgun_empty.wav", 100)
         return
     end
 
     local own = self:GetOwner()
-    local aim = own:EyeAngles()
-    local epos = own:EyePos()
+    if SERVER then 
+        local aim = own:EyeAngles()
+        local epos = own:EyePos()
 
-    local pos, ang = LocalToWorld(Vector(25, -6, -1), Angle(), epos, aim)
+        local pos, ang = LocalToWorld(Vector(25, -6, -1), Angle(), epos, aim)
 
-    local nade = ents.Create("proj_pdm_nade")
-    nade:SetOwner(own)
-    nade:SetPos(pos)
-    nade:SetAngles(aim + Angle(90,0,0))
-    nade:Spawn()
-    nade:GetPhysicsObject():SetVelocity(aim:Forward()*self.NadeVel)
-    nade.Fuse = 1
+        local nade = ents.Create("proj_pdm_nade")
+        nade:SetOwner(own)
+        nade:SetPos(pos)
+        nade:SetAngles(aim + Angle(90,0,0))
+        nade:Spawn()
+        nade:GetPhysicsObject():SetVelocity(aim:Forward()*self.NadeVel)
+        nade.Fuse = 1
+
+        self:TakePrimaryAmmo(1)
+    end
 
     self.ShootSound:Stop()
     self.ShootSound:Play()
     self.ShootSound:ChangePitch(80)
 
-    self:TakePrimaryAmmo(1)
 
     --anims
     self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
     own:SetAnimation(PLAYER_ATTACK1)
     
     timer.Simple(0.3, function()
+        if not self:IsValid() then return end
+
         self:SendWeaponAnim(ACT_SHOTGUN_PUMP)
-        self.RackSound:Stop()
-        self.RackSound:Play()
+        self:EmitSound("weapons/shotgun/shotgun_cock.wav", 70)
     end)
 
     self:SetNextPrimaryFire(CurTime() + self.FireDelay)
@@ -96,13 +96,29 @@ end
 function SWEP:SecondaryAttack()
 end
 
+function SWEP:Think()
+    if not self.Reloading or CurTime() < self.LastLoad + 0.7 then return end
+
+    if self.CancelReload then
+        self:FinishLoading()
+        return
+    end
+
+    numleft = math.min(self.Primary.ClipSize - self:Clip1(), self:Ammo1() - self:Clip1())
+    if numleft < 1 then 
+        self:FinishLoading()
+        return 
+    end
+
+    self:LoadRound()
+    self.LastLoad = CurTime()
+end
+
 --reloading logic
 function SWEP:LoadRound()
     self:SendWeaponAnim(ACT_VM_RELOAD)
-    self:GetOwner():SetAnimation(PLAYER_RELOAD)
     
-    self.LoadSound:Stop()
-    self.LoadSound:Play()
+    self:EmitSound("weapons/shotgun/shotgun_reload3.wav", 100)
 
     if SERVER then
         self:GetOwner():RemoveAmmo(1, "pdm_propnade")
@@ -119,33 +135,5 @@ end
 
 function SWEP:Reload()
     if self.Reloading then return end
-
-    local numrounds = math.min(self.Primary.ClipSize - self:Clip1(), self:Ammo1() - self:Clip1())
-    if numrounds < 1 then return end
-
-    self:SendWeaponAnim(ACT_SHOTGUN_RELOAD_START)
-
-    self:LoadRound()
-    if numrounds < 2 then return end
-
     self.Reloading = true
-    
-    local title = self:GetName().."reload" 
-    timer.Create(title, 0.7, numrounds - 1, function()
-        if self.CancelReload then
-            timer.Remove(title)
-
-            self:FinishLoading()
-            return
-        end
-
-        self:LoadRound()
-
-        if timer.RepsLeft(title) < 1 then
-            timer.Simple(0.4, function()
-                self:FinishLoading()
-                return
-            end)
-        end
-    end)
 end
