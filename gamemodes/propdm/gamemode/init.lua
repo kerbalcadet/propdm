@@ -14,6 +14,7 @@ AddCSLuaFile("game/cl/cl_fonts.lua")
 AddCSLuaFile("game/cl/cl_hud.lua")
 
 function GM:InitPostEntity()
+    --load spawnlists
     local t1 = FILE:LoadList("gamemodes/propdm/gamemode/config/spawnlists/construction.txt", "GAME")
     local t2 = FILE:LoadList("gamemodes/propdm/gamemode/config/spawnlists/comic.txt", "GAME")
 
@@ -21,6 +22,12 @@ function GM:InitPostEntity()
     table.Add(PDM_PROPS, t2.contents)
 
     for _, ent in pairs(PDM_PROPS) do
+        util.PrecacheModel(ent.model)
+    end
+    
+    PDM_EXPPROPS = FILE:LoadList("gamemodes/propdm/gamemode/config/spawnlists/explosives.txt", "GAME").contents
+
+    for _, ent in pairs(PDM_EXPPROPS) do
         util.PrecacheModel(ent.model)
     end
 

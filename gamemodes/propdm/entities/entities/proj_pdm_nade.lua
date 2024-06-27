@@ -51,6 +51,7 @@ function ENT:Initialize()
     self.MinRad = self.MinRad or 15 --range at which grav effects are unclamped (fall off) in ft
     self.PlyWeight = self.PlyWeight or 800
 
+    self.Spawnlist = self.Spawnlist or PDM_PROPS
     self.PropExpMaxWPer = self.PropExpMaxWPer or 100   --explained in projpdm_propket
     self.PropExpMaxVol = self.PropExpMaxVol or 20000
     self.PropExpNum = self.PropExpNum or 20
@@ -95,7 +96,8 @@ function ENT:PropExplode()
         
         local tab = {}
         for i = 1, 10 do
-            tab = table.Random(PDM_PROPS)
+            tab = table.Random(self.Spawnlist)
+            PrintTable(tab)
             local mass, vol = PDM_PropInfo(tab.model)
             if not mass or not vol then continue end
 
