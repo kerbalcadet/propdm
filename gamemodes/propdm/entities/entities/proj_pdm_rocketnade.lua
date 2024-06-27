@@ -19,7 +19,7 @@ function ENT:Initialize()
 
     self.Spawnlist = PDM_PROPS
     self.RocketDelay = self.RocketDelay or 0.2    --seconds
-    self.RocketBurn = self.RocketBurn or 5
+    self.RocketBurn = self.RocketBurn or 3
     self.RocketPower = 100
     self.PlayerPush = 50
     self.PropPush = 500
@@ -54,7 +54,12 @@ end
 
 function ENT:PhysicsCollide(data, phys)
     local ent = data.HitEntity
-    if ent:IsPlayer() or ent:IsNPC() or string.StartsWith(ent:GetClass(), "prop") then
+
+    if ent:IsWorld() then
+        self.StuckEntity = ent
+        self:SetParent(ent)
+
+    elseif ent:IsPlayer() or ent:IsNPC() or string.StartsWith(ent:GetClass(), "prop") then
         self.StuckEntity = ent
         self:SetParent(ent)
         ent:SetPhysicsAttacker(self.Owner)
@@ -91,14 +96,18 @@ function ENT:Think()
         local world_up = Vector(0,0,1)
         local tickrate = engine.TickInterval()
         local g = -physenv.GetGravity().z
+
         if not self.StuckEntity then
             local phys = self:GetPhysicsObject()
             if not phys then return end
-            
             phys:ApplyForceCenter(nade_up*self.RocketPower + world_up*g*tickrate)
         
+        elseif self.StuckEntity:IsWorld() then
+            return
+
         elseif not self.StuckEntity:IsValid() then 
             return
+
         elseif self.StuckEntity:IsNPC() or self.StuckEntity:IsPlayer() then
             self.StuckEntity:SetGroundEntity(nil)
             self.StuckEntity:SetVelocity(nade_up*self.PlayerPush)
