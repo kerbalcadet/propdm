@@ -95,7 +95,7 @@ function ENT:Think()
             local phys = n:GetPhysicsObject()
 
             phys:SetVelocity(self.Forward*self.Vel + sideaim*self.SideVel)
-            phys:SetAngleVelocity(VectorRand()*10)
+            phys:SetAngleVelocity(VectorRand()*20)
         end
 
         self:EmitSound("NPC_Combine.GrenadeLaunch", 300)
