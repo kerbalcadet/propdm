@@ -1,7 +1,7 @@
 AddCSLuaFile()
 ENT.Base = "base_entity"
 ENT.Type = "anim"
-ENT.PrintName = "Cluster Grenade"
+ENT.PrintName = "Cluster Rocketnade"
 
 function ENT:PhysicsCollide(data,phys)
     if data.Speed > 50 then
@@ -33,7 +33,7 @@ function ENT:Initialize()
         phys:SetMass(1)
     end
 
-    self.Fuse = 3   --for nadelets
+    self.RocketBurn = 4   --for nadelets
     self.SeparateFuse = self.SeparateFuse or 0.2
     self.SpawnTime = CurTime()
 
@@ -47,7 +47,7 @@ function ENT:Initialize()
     self.MinRad = 15 --range at which grav effects are unclamped (fall off) in ft
     self.PlyWeight = 800
     
-    self.DmgRadius = 200    --gmod units not ft (probably should fix)
+    self.DmgRadius = 400    --gmod units not ft (probably should fix)
     self.Dmg = 90
 
     self.PropExpNum = 8
@@ -66,13 +66,18 @@ function ENT:Think()
         
         local pos = self:GetPos()
         local own = self.Owner
+        local ang = self:GetAngles()
 
-        for i=1, self.Nades do
+        for i=1, self.Nades do            
+            local vel = self:GetVelocity()
+            local sideaim = VectorRand():Cross(vel):GetNormalized()
+            
             local n = ents.Create("proj_pdm_rocketnade")
-            n:SetPos(pos)
+            n:SetPos(pos + sideaim*0)
+            n:SetAngles(ang)
             n:SetOwner(self.Owner)
 
-            n.Fuse = self.Fuse + math.Rand(0, 0.2)
+            n.RocketBurn = self.RocketBurn + math.Rand(0, 0.2)
             n.GravRadius = self.GravRadius
             n.GravPwr = self.GravPwr
             n.MinRad = self.MinRad
@@ -85,12 +90,12 @@ function ENT:Think()
             n.Weapon = self.Weapon
 
             n:Spawn()
-            local vel = self:GetVelocity()
-            local phys = n:GetPhysicsObject()
-            local aim = VectorRand():Cross(vel):GetNormalized()
+            n:SetCollisionGroup(COLLISION_GROUP_INTERACTIVE)
 
-            phys:SetVelocity(self.Forward*self.Vel + aim*self.SideVel)
-            phys:SetAngleVelocity(VectorRand()*5)
+            local phys = n:GetPhysicsObject()
+
+            phys:SetVelocity(self.Forward*self.Vel + sideaim*self.SideVel)
+            phys:SetAngleVelocity(VectorRand()*15)
         end
 
         self:EmitSound("NPC_Combine.GrenadeLaunch", 300)

@@ -1,4 +1,4 @@
-SWEP.PrintName = "Cluster Rocket Grenade"
+SWEP.PrintName = "Cluster Rocketnade"
 SWEP.Spawnable = true
 SWEP.Category = "Prop Deathmatch"
 SWEP.Base = "pdm_nade"
@@ -17,8 +17,9 @@ SWEP.Primary = {
     Ammo = "clusterrocketnade"
 }
 
+local angoffset = Angle(90, 0, 0)
 function SWEP:ThrowNade()
     local nade = ents.Create("proj_pdm_cluster_rocketnade")
     nade.Forward = self:GetOwner():GetAimVector()
-    self:Throw(nade)
+    self:Throw(nade, angoffset, nil, 0)
 end
