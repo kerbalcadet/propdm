@@ -20,7 +20,7 @@ function ENT:Initialize()
     self.Spawnlist = PDM_PROPS
     self.RocketDelay = self.RocketDelay or 0.2    --seconds
     self.RocketBurn = self.RocketBurn or 3
-    self.RocketPower = 100
+    self.RocketPower = 50
     self.PlayerPush = 50
     self.PropPush = 500
 
@@ -63,6 +63,8 @@ function ENT:PhysicsCollide(data, phys)
         self.StuckEntity = ent
         self:SetParent(ent)
         ent:SetPhysicsAttacker(self.Owner)
+
+        self.RocketBurn = self.RocketBurn + 3
     end
 end
 
