@@ -31,8 +31,10 @@ function SWEP:CalcViewModelView(vm, op, oa, p, a)
 end
 
 local worldModel = ClientsideModel(SWEP.ViewModel)
-local poff_world = Vector(20, -10, -5)
-local aoff_world = Angle(180,40,-12)
+worldModel:SetNoDraw(true)
+
+local poff_world = Vector(7, -21, -4)
+local aoff_world = Angle(180,-15,-12)
 function SWEP:DrawWorldModel()
     --lifted straight from the wiki
     local owner = self:GetOwner()
