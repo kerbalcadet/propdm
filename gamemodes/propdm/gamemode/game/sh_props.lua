@@ -87,6 +87,13 @@ function PDM_CalcMass(phys, dens)
     return sa*0.1*0.0254^3*dens
 end
 
+function PDM_SetupDespawn(ent, time)
+    time = time or PDM_DESPTIME:GetInt() 
+    timer.Simple(time, function()
+        if IsValid(ent) then ent:Dissolve(1, ent:GetPos()) end
+    end)
+end
+
 function PDM_FireProp(tab, pos, ang, vel, avel, att)
     local ent = PDM_EntFromTable(tab, pos, ang)
     local phys = ent:GetPhysicsObject()

@@ -122,9 +122,7 @@ function HeliPrimary(len, ply)
         table.remove(heli.Props, 1)
     end
 
-    timer.Simple(PDM_DESPTIME:GetInt(), function()
-        if IsValid(ent) then ent:Dissolve(1, ent:GetPos()) end
-    end)
+    PDM_SetupDespawn(ent)
 end
 net.Receive("HeliFirePrimary", HeliPrimary)
 
