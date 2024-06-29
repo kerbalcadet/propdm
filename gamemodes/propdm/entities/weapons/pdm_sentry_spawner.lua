@@ -259,23 +259,11 @@ hook.Add("EntityFireBullets", "PDM_SentryProps", function(wep, bullet)
     --find prop under volume and weight limit
     local maxv = 30000
     local maxw = 100
-    
-    local tab = {}
-    for i=1,10 do
-        tab = table.Random(PDM_PROPS)
-        local mass, vol = PDM_PropInfo(tab.model)
-        if not mass or not vol then continue end
-        
-        if mass < maxw and vol < maxv then tab.class = "prop_physics_multiplayer" break end
-    end
-
-    --actually shoot it out 
     local pos = bullet.Src + bullet.Dir * 32
     local vel = 4000 * bullet.Dir
 
     --table, pos, angle, vel, angvel
-    local ent = PDM_FireProp(tab, pos, AngleRand(), vel, VectorRand()*100)
-    ent:SetPhysicsAttacker(wep.Owner)
+    local ent = PDM_FireRandomProp(pos, AngleRand(), vel, AngleRand()*100, wep.Owner, maxw, maxv)
     wep:EmitSound("garrysmod/balloon_pop_cute.wav", 400, 100, 0.4)
 
     --collisions
@@ -290,9 +278,7 @@ hook.Add("EntityFireBullets", "PDM_SentryProps", function(wep, bullet)
         table.remove(wep.Props, 1)
     end
 
-    timer.Simple(PDM_DESPTIME:GetInt(), function()
-        if IsValid(ent) then ent:Dissolve(1, ent:GetPos()) end
-    end)
+    PDM_SetupDespawn(ent)
 
     -- return false IOT NOT fire the original bullet(s)
     return false
