@@ -21,6 +21,8 @@ function PDM_SpawnHeli()
     heli.MaxProps = GetConVar("pdm_maxprops"):GetInt()
     heli.NoPickup = true
     heli.Props = {}
+
+    PDM_HELI = heli
 end
 
 function PDM_ResetHeliPath(reset)

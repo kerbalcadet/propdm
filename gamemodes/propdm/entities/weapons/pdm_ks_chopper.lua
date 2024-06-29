@@ -21,35 +21,14 @@ function SWEP:KS_Effect()
     HeliInitTime = CurTime()
 
     if SERVER then
-        local HSpawn = ents.FindByClass("pdm_helispawn")[1]
-        if not HSpawn then
-            own:ChatPrint("ERR: Could not find heli spawn!")
+        local heli = PDM_HELI
+        if not heli:IsValid() then 
+            own:ChatPrint("Could not find helicopter!")
             return 
         end
 
-        self.heli = ents.Create("npc_helicopter")
-        local heli = self.heli
-        heli:SetPos(HSpawn:GetPos())
         heli:AddRelationship("player D_NU 99")
-        heli:SetKeyValue("Initial Speed", "100")
-        heli:AddFlags(524288)   --ignore avoidsphere
-
-        heli:Spawn()
-        heli:Activate()
-        heli:Fire("SetTrack", "heli_patrol_1")
-        heli:Fire("StartPatrol")
         heli:Fire("GunOff")
-        heli:SetCollisionGroup(COLLISION_GROUP_WORLD)
-        heli.Props = {}
-
-        --scare off first heli
-        local sphere = ents.Create("npc_heli_avoidsphere")
-        self.sphere = sphere
-
-        sphere:SetKeyValue("Radius", 10000)
-        sphere:SetPos(own:GetPos() + Vector(0,0,10000))
-        sphere:Spawn()
-        sphere:Activate()
 
         --communicate w client
         own:SetNW2Entity("Heli", heli)
@@ -70,9 +49,10 @@ function SWEP:KS_Effect()
             return 
         end
 
-        if self.heli and self.heli:IsValid() then
-            self.heli:Remove()
-            self.sphere:Remove()
+        local heli = PDM_HELI
+        if heli and heli:IsValid() then
+            heli:AddRelationship("player D_HT 99")
+            heli:Fire("GunOn")
         end
 
         if self:IsValid() then
@@ -113,6 +93,7 @@ function HeliPrimary(len, ply)
     end
     
     heli:EmitSound("garrysmod/balloon_pop_cute.wav", 400, 100, 0.4)
+    heli:EmitSound("weapons/airboat/airboat_gun_energy1.wav", 400, 100, 0.4)
 
     --despawning
     table.insert(heli.Props, ent)
@@ -149,7 +130,7 @@ function HeliSecondary(len, ply)
 
     rkt:Spawn()
 
-    heli:EmitSound("weapons/rpg/rocketfire1.wav", 300, 80)
+    heli:EmitSound("weapons/rpg/rocketfire1.wav", 400, 80, 1)
 end
 net.Receive("HeliFireSecondary", HeliSecondary)
 
