@@ -69,6 +69,9 @@ function SWEP:PrimaryAttack()
     self.Used = true
 end
 
+function SWEP:SecondaryAttack()
+end
+
 function SWEP:KS_Effect()
     return
 end
