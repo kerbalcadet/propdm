@@ -9,6 +9,7 @@ local HeliPrimaryDelay = 0.1
 local HeliSecondaryDelay = 5
 local gunsight_offset = Vector(125,0,-100)
 local MaxProps = 20
+local HeliInitTime = 0
 
 function SWEP:Initialize()
     self:SetHoldType("duel")
@@ -17,6 +18,7 @@ end
 function SWEP:KS_Effect()
     local own = self:GetOwner()
     local hooktitle = tostring(own).."heli"
+    HeliInitTime = CurTime()
 
     if SERVER then
         local HSpawn = ents.FindByClass("pdm_helispawn")[1]
@@ -30,6 +32,7 @@ function SWEP:KS_Effect()
         heli:SetPos(HSpawn:GetPos())
         heli:AddRelationship("player D_NU 99")
         heli:SetKeyValue("Initial Speed", "100")
+        heli:AddFlags(524288)   --ignore avoidsphere
 
         heli:Spawn()
         heli:Activate()
@@ -39,13 +42,17 @@ function SWEP:KS_Effect()
         heli:SetCollisionGroup(COLLISION_GROUP_WORLD)
         heli.Props = {}
 
+        --scare off first heli
+        local sphere = ents.Create("npc_heli_avoidsphere")
+        self.sphere = sphere
+
+        sphere:SetKeyValue("Radius", 10000)
+        sphere:SetPos(own:GetPos() + Vector(0,0,10000))
+        sphere:Spawn()
+        sphere:Activate()
+
         --communicate w client
         own:SetNW2Entity("Heli", heli)
-
-        --heli logic
-        hook.Add("Think", hooktitle, function() 
-            HeliThink(heli, own)
-        end)
     end
 
     if CLIENT then
@@ -63,11 +70,9 @@ function SWEP:KS_Effect()
             return 
         end
 
-        --server only
-        hook.Remove("Think", hooktitle)
-
         if self.heli and self.heli:IsValid() then
             self.heli:Remove()
+            self.sphere:Remove()
         end
 
         if self:IsValid() then
@@ -84,17 +89,13 @@ if SERVER then
 util.AddNetworkString("HeliFirePrimary")
 util.AddNetworkString("HeliFireSecondary")
 
---main helilogic
-function HeliThink(heli, own)
-end
-
 --chaingun
 function HeliPrimary(len, ply)
     local heli = ply:GetNW2Entity("Heli")
     if not heli:IsValid() then return end
 
     if not heli.LastPrimaryFire then heli.LastPrimaryFire = 0 end
-    if heli.LastPrimaryFire + HeliPrimaryDelay > CurTime() then return end
+    if heli.LastPrimaryFire + HeliPrimaryDelay > CurTime() or CurTime() < HeliInitTime + 5 then return end
     heli.LastPrimaryFire = CurTime()
 
     --actual firing
@@ -132,7 +133,7 @@ function HeliSecondary(len, ply)
     if not heli:IsValid() then return end
 
     if not heli.LastSecondaryFire then heli.LastSecondaryFire = 0 end
-    if heli.LastSecondaryFire + HeliSecondaryDelay > CurTime() then return end
+    if heli.LastSecondaryFire + HeliSecondaryDelay > CurTime() or CurTime() < HeliInitTime + 5 then return end
     heli.LastSecondaryFire = CurTime()
 
     local ang = ply:EyeAngles()
@@ -159,12 +160,18 @@ end
 --######### CLIENT ##########
 if CLIENT then
 
+local introTime = 3
 function CalcView(ply, origin, angles, fov, znear, zfar)
+    if CurTime() < HeliInitTime + introTime then 
+        local view = {fov = fov - 30*(CurTime() - HeliInitTime)/introTime}
+        return view
+    end
+
     local heli = LocalPlayer():GetNW2Entity("Heli")
     if not heli:IsValid() then return end
     local view = {
         origin = heli:LocalToWorld(gunsight_offset),
-        fov = 70,
+        fov = 60,
         drawviewer = true
     }
 
