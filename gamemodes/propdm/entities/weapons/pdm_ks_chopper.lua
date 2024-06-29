@@ -100,22 +100,11 @@ function HeliPrimary(len, ply)
     --actual firing
     local maxv = 10000
     local maxw = 100
-    
-    local tab = {}
-    for i=1,10 do
-        tab = table.Random(PDM_PROPS)
-        local mass, vol = PDM_PropInfo(tab.model)
-        if not mass or not vol then continue end
-        
-        if mass < maxw and vol < maxv then tab.class = "prop_physics_multiplayer" break end
-    end
-
     local forward = ply:EyeAngles():Forward()
     local pos = heli:LocalToWorld(gunsight_offset) + forward*100
     local vel = forward*8000
 
-    local ent = PDM_FireProp(tab, pos, AngleRand(), vel, VectorRand()*100)
-    ent:SetPhysicsAttacker(ply)
+    local ent = PDM_FireRandomProp(pos, AngleRand(), vel, AngleRand()*20, ply, maxw, maxv)
 
     local phys = ent:GetPhysicsObject() 
     if phys:IsValid() then

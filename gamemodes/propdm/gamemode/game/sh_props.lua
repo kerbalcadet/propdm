@@ -90,9 +90,6 @@ end
 function PDM_FireProp(tab, pos, ang, vel, avel, att)
     local ent = PDM_EntFromTable(tab, pos, ang)
     local phys = ent:GetPhysicsObject()
-
-
-
     local minv = ent:WorldSpaceAABB()
     local ground = util.QuickTrace(pos, Vector(0,0,-5000), ent).HitPos
     local zdiff = minv.z - ground.z
@@ -115,6 +112,27 @@ function PDM_FireProp(tab, pos, ang, vel, avel, att)
     end
 
     if IsValid(att) then ent:SetPhysicsAttacker(att) end
+
+    return ent
+end
+
+--maxw = max weight, maxv = max volume
+function PDM_FireRandomProp(pos, ang, vel, avel, att, maxw, maxv, proplist)
+    maxw = maxw or 9999999
+    maxv = maxv or 9999999
+    proplist = proplist or PDM_PROPS
+
+    local tab = {}
+    for i=1,10 do
+        tab = table.Random(PDM_PROPS)
+        local mass, vol = PDM_PropInfo(tab.model)
+        if not mass or not vol then continue end
+        
+        if mass < maxw and vol < maxv then tab.class = "prop_physics_multiplayer" break end
+    end
+
+    local ent = PDM_FireProp(tab, pos, AngleRand(), vel, VectorRand()*100)
+    ent:SetPhysicsAttacker(att)
 
     return ent
 end
@@ -301,4 +319,5 @@ hook.Add("EntityTakeDamage", "PDM_PropDamage", function(ent, dmg)
         dmg:SetAttacker(inf.Attacker)
     end
 end)
+
 end
