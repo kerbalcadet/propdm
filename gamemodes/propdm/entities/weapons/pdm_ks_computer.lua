@@ -14,6 +14,8 @@ SWEP.Secondary.Automatic = true
 SWEP.ViewModelFOV = 70
 
 SWEP.Used = false
+SWEP.DrawAmmo = false
+SWEP.Primary.Ammo = "nil"
 
 if CLIENT then
 
