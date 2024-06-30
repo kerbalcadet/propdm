@@ -43,6 +43,7 @@ function SWEP:KS_Effect()
             render.SetLightingMode(2)
             hook.Add("RenderScreenspaceEffects", hooktitle, RenderFX)
             hook.Add("PostDrawOpaqueRenderables", hooktitle, RenderPlayers)
+            hook.Add("HUDShouldDraw", hooktitle, function() return false end)
         end)
     end
 
@@ -150,6 +151,7 @@ function RemoveHooks(hooktitle)
     hook.Remove("CalcView", hooktitle)
     hook.Remove("RenderScreenspaceEffects", hooktitle)
     hook.Remove("PostDrawOpaqueRenderables", hooktitle)
+    hook.Remove("HUDShouldDraw", hooktitle)
 end
 
 function CalcView(ply, origin, angles, fov, znear, zfar)
@@ -212,7 +214,7 @@ function RenderFX()
     DrawMaterialOverlay("models/shadertest/shader3", 0.003)
     DrawColorModify(fx)
 
-    DrawBloom(0.5,1.0,2,2,2,1, 1, 1, 1)
+    DrawBloom(0.5,1.0,2,2,2,1, 1, 1, 1) 
     DrawBokehDOF(1, 0.1, 0.000001)
     DrawSharpen(0.2, 1)
 
