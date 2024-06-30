@@ -32,7 +32,7 @@ SWEP.Primary = {
 
 	SpoolTime = 0.75,	--time to reach max firing capacity
 	MaxWeightPer = 400, -- max weight to have multiple things fire at once
-	BaseSpeed = 2000,
+	BaseSpeed = 1500,
 	SpeedMul = 30000,	--divided by object weight to get speed on firing
 	FireDelay = 0.05, 	--delay between each shot
 	Active = false,
