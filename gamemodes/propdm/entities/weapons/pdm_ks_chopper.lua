@@ -49,11 +49,7 @@ function SWEP:KS_Effect()
     timer.Simple(self.HeliTime, function()
         if CLIENT then
             render.SetLightingMode(0)
-            
-            hook.Remove("CreateMove", hooktitle)
-            hook.Remove("CalcView", hooktitle)
-            hook.Remove("RenderScreenspaceEffects", hooktitle)
-            hook.Remove("PostDrawOpaqueRenderables", hooktitle)
+            RemoveHooks(hooktitle)
             return 
         end
 
@@ -149,6 +145,13 @@ end
 --######### CLIENT ##########
 if CLIENT then
 
+function RemoveHooks(hooktitle)
+    hook.Remove("CreateMove", hooktitle)
+    hook.Remove("CalcView", hooktitle)
+    hook.Remove("RenderScreenspaceEffects", hooktitle)
+    hook.Remove("PostDrawOpaqueRenderables", hooktitle)
+end
+
 function CalcView(ply, origin, angles, fov, znear, zfar)
     if CurTime() < HeliInitTime + introTime then 
         local view = {fov = fov - 30*(CurTime() - HeliInitTime)/introTime}
@@ -156,7 +159,11 @@ function CalcView(ply, origin, angles, fov, znear, zfar)
     end
 
     local heli = LocalPlayer():GetNW2Entity("Heli")
-    if not heli:IsValid() then return end
+    if not heli:IsValid() then 
+        RemoveHooks(tostring(LocalPlayer()).."heli")
+        render.SetLightingMode(0)
+        return 
+    end
     local view = {
         origin = heli:LocalToWorld(gunsight_offset),
         fov = 60,
