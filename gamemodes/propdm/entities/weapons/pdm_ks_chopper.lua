@@ -4,7 +4,7 @@ SWEP.Category = "Prop Deathmatch"
 SWEP.Base = "pdm_ks_computer"
 SWEP.Spawnable = true
 
-SWEP.HeliTime = 45
+SWEP.HeliTime = 60
 local HeliPrimaryDelay = 0.1
 local HeliSecondaryDelay = 5
 local gunsight_offset = Vector(125,0,-100)
@@ -182,18 +182,34 @@ function ControlThink(ucmd)
     ucmd:SetMouseWheel(0)
 end
 
+
+--########HUD########
+
+--FLIR
 local fx = {
     ["$pp_colour_colour"] = 0,
 	["$pp_colour_contrast"] = 0.9,
 	["$pp_colour_brightness"] = 0.02
 }
 local FlirMat = Material("phoenix_storms/concrete0")
+
+--HUD
 local BoxColor = Color(218,74,74)
+local GunsightColor = Color(255,255,255,255)
+local heli_gunsight_mat = Material("brick/brick_model")
+
+local ScrW = ScrW()
 local ScrH = ScrH()
+
 function RenderFX()
     DrawMaterialOverlay("models/shadertest/shader3", 0.003)
     DrawColorModify(fx)
 
+    DrawBloom(0.5,1.0,2,2,2,1, 1, 1, 1)
+    DrawBokehDOF(1, 0.1, 0.000001)
+    DrawSharpen(0.2, 1)
+
+    --HUD
     render.SetLightingMode(0)
     for _, p in ipairs(player.GetAll()) do
         if not p:Alive() or p == LocalPlayer() then continue end
@@ -208,9 +224,9 @@ function RenderFX()
         surface.DrawOutlinedRect(posx - w/2, posy - w/2, w, w, thickness)
     end
 
-    DrawBloom(0.5,1.0,2,2,2,1, 1, 1, 1)
-    DrawBokehDOF(2, 0.1, 0.000001)
-    DrawSharpen(0.2, 1)
+    DrawMaterialOverlay("heli_gunsight/heli_gunsight", 0)
+    DrawBokehDOF(1, 0.1, 0.000001)
+
 
     render.SetLightingMode(2)
 end
