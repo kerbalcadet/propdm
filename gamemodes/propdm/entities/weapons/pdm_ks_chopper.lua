@@ -10,6 +10,7 @@ local HeliSecondaryDelay = 5
 local gunsight_offset = Vector(125,0,-100)
 local MaxProps = 20
 local HeliInitTime = 0
+local introTime = 3
 
 function SWEP:Initialize()
     self:SetHoldType("duel")
@@ -35,17 +36,24 @@ function SWEP:KS_Effect()
     end
 
     if CLIENT then
-        hook.Add("CreateMove", hooktitle, function(ucmd)
-            ControlThink(ucmd)
-        end)
-
         hook.Add("CalcView", hooktitle, CalcView)
+        hook.Add("CreateMove", hooktitle, ControlThink)
+        
+        timer.Simple(introTime, function() 
+            render.SetLightingMode(2)
+            hook.Add("RenderScreenspaceEffects", hooktitle, RenderFX)
+            hook.Add("PostDrawOpaqueRenderables", hooktitle, RenderPlayers)
+        end)
     end
 
     timer.Simple(self.HeliTime, function()
         if CLIENT then
+            render.SetLightingMode(0)
+            
             hook.Remove("CreateMove", hooktitle)
             hook.Remove("CalcView", hooktitle)
+            hook.Remove("RenderScreenspaceEffects", hooktitle)
+            hook.Remove("PostDrawOpaqueRenderables", hooktitle)
             return 
         end
 
@@ -141,7 +149,6 @@ end
 --######### CLIENT ##########
 if CLIENT then
 
-local introTime = 3
 function CalcView(ply, origin, angles, fov, znear, zfar)
     if CurTime() < HeliInitTime + introTime then 
         local view = {fov = fov - 30*(CurTime() - HeliInitTime)/introTime}
@@ -173,6 +180,55 @@ function ControlThink(ucmd)
     ucmd:ClearButtons()
     ucmd:ClearMovement()
     ucmd:SetMouseWheel(0)
+end
+
+local fx = {
+    ["$pp_colour_colour"] = 0,
+	["$pp_colour_contrast"] = 0.9,
+	["$pp_colour_brightness"] = 0.02
+}
+local FlirMat = Material("phoenix_storms/concrete0")
+local BoxColor = Color(218,74,74)
+local ScrH = ScrH()
+function RenderFX()
+    DrawMaterialOverlay("models/shadertest/shader3", 0.003)
+    DrawColorModify(fx)
+
+    render.SetLightingMode(0)
+    for _, p in ipairs(player.GetAll()) do
+        if not p:Alive() or p == LocalPlayer() then continue end
+        
+        local ts = p:GetPos():ToScreen()
+        local posx = ts.x
+        local posy = ts.y
+        local w = ScrH/14
+        local thickness = ScrH/400
+
+        surface.SetDrawColor(BoxColor)
+        surface.DrawOutlinedRect(posx - w/2, posy - w/2, w, w, thickness)
+    end
+
+    DrawBloom(0.5,1.0,2,2,2,1, 1, 1, 1)
+    DrawBokehDOF(2, 0.1, 0.000001)
+    DrawSharpen(0.2, 1)
+
+    render.SetLightingMode(2)
+end
+
+function RenderPlayers()
+    render.MaterialOverride(FlirMat)
+    render.SuppressEngineLighting(true)
+    render.SetColorModulation(5,5,5)
+
+    for _, p in ipairs(player.GetAll()) do
+        if not p:Alive() then continue end
+
+        p:DrawModel()
+    end
+
+    render.SuppressEngineLighting(false)
+    render.SetColorModulation(1,1,1)
+    render.MaterialOverride(nil)
 end
 
 end
