@@ -247,5 +247,9 @@ function RenderPlayers()
     render.MaterialOverride(nil)
 end
 
+function SWEP:DoDrawCrosshair()
+    return self.Used
+end
+
 end
 
