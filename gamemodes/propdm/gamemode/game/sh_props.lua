@@ -116,6 +116,7 @@ function PDM_FireProp(tab, pos, ang, vel, avel, att)
     else
         phys:SetVelocity(vel or Vector(0, 0, 0))
         phys:SetAngleVelocity(avel or Angle(0, 0, 0))
+        phys:EnableDrag(false)
     end
 
     if IsValid(att) then ent:SetPhysicsAttacker(att) end
