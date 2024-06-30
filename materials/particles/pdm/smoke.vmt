@@ -2,4 +2,6 @@
 {
 	"$basetexture" "particles/pdm/smoke"
 	"$translucent" 1
+	"$vertexcolor" 1
+	"$vertexalpha" 1
 }
