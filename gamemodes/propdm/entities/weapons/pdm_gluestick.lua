@@ -19,8 +19,8 @@ if CLIENT then
     local col = Color(255,240,50)
 
     function SWEP:DrawWeaponSelection(x, y, width, height)
-        draw.SimpleText("/", "hl2b", x + width/2, y + height/2, col, 1, 1)
-        draw.SimpleText("/", "hl2f", x + width/2, y + height/2, col, 1, 1)
+        draw.SimpleText("n", "hl2b", x + width/2, y + height/2, col, 1, 1)
+        draw.SimpleText("n", "hl2f", x + width/2, y + height/2, col, 1, 1)
     end    
 
     local poff = Vector(3, -3, 27)
