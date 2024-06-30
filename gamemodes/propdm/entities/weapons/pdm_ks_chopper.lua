@@ -28,7 +28,7 @@ function SWEP:KS_Effect()
             return 
         end
 
-        heli:AddRelationship("player D_NU 99")
+        --heli:AddRelationship("player D_NU 99")
         heli:Fire("GunOff")
 
         --communicate w client
