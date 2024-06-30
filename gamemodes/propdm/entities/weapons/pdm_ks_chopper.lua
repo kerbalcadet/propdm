@@ -43,7 +43,9 @@ function SWEP:KS_Effect()
             render.SetLightingMode(2)
             hook.Add("RenderScreenspaceEffects", hooktitle, RenderFX)
             hook.Add("PostDrawOpaqueRenderables", hooktitle, RenderPlayers)
-            hook.Add("HUDShouldDraw", hooktitle, function() return false end)
+            hook.Add("HUDShouldDraw", hooktitle, function(name) 
+                if not (name == "CHudGMod") then return false end
+            end)
         end)
     end
 
