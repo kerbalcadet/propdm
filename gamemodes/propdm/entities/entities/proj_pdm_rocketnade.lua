@@ -57,7 +57,7 @@ function ENT:PhysicsCollide(data, phys)
 
     if ent:IsWorld() then
         self.StuckEntity = ent
-        self:SetParent(ent)
+        self:SetMoveType(MOVETYPE_NONE)
 
     elseif ent:IsPlayer() or ent:IsNPC() or string.StartsWith(ent:GetClass(), "prop") then
         self.StuckEntity = ent
