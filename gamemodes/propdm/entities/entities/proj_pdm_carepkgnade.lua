@@ -98,40 +98,7 @@ function ENT:Think()
             end)
 
             --call plane
-            timer.Simple(self.CallTime, function()
-
-                local success = false
-                local pos = self:GetPos()
-                
-                local data = {start=pos, endpos=pos+Vector(0,0,100000), filter=self, MASK_NPCWORLDSTATIC}
-                local tr = util.TraceLine(data)         
-                
-                if not tr.HitSky then
-                    data.start = tr.HitPos + Vector(0,0,500)
-                    tr = util.TraceLine(data)
-                end
-
-                if not tr.HitSky then 
-                    self.Failed = true
-
-                    if CLIENT then
-                        self.Emitter:Finish() 
-                        self:GetOwner():PrintMessage(4, "Smoke could not be seen!") 
-                        return
-                    end
-                    if SERVER then 
-                        self.ExpSound:Stop()
-                        self.SmokeSound:Stop()
-                        self:GetOwner():Give("pdm_carepkg_nade")
-                        return
-                    end
-                end
-
-                --successful
-                self.Trace = tr
-                self:CallPlane()
-                self:SetCollisionGroup(COLLISION_GROUP_WORLD)
-            end)
+            self:PreCallPlane()
         end
 
         --fx
@@ -144,6 +111,43 @@ function ENT:Think()
         self:SetNextClientThink(CurTime() + self.ParticleDelay)
         return true
     end
+end
+
+function ENT:PreCallPlane()
+    timer.Simple(self.CallTime, function()
+
+        local success = false
+        local pos = self:GetPos()
+        
+        local data = {start=pos, endpos=pos+Vector(0,0,100000), filter=self, MASK_NPCWORLDSTATIC}
+        local tr = util.TraceLine(data)         
+        
+        if not tr.HitSky then
+            data.start = tr.HitPos + Vector(0,0,500)
+            tr = util.TraceLine(data)
+        end
+
+        if not tr.HitSky then 
+            self.Failed = true
+
+            if CLIENT then
+                self.Emitter:Finish() 
+                self:GetOwner():PrintMessage(4, "Smoke could not be seen!") 
+                return
+            end
+            if SERVER then 
+                self.ExpSound:Stop()
+                self.SmokeSound:Stop()
+                self:GetOwner():Give("pdm_carepkg_nade")
+                return
+            end
+        end
+
+        --successful
+        self.Trace = tr
+        self:CallPlane()
+        self:SetCollisionGroup(COLLISION_GROUP_WORLD)
+    end)
 end
 
 function ENT:EmitParticle()
