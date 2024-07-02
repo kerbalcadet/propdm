@@ -124,20 +124,35 @@ function PDM_FireProp(tab, pos, ang, vel, avel, att)
     return ent
 end
 
+function PDM_SelectRandomProp(maxw, maxv, proplist)
+    local tab = {}
+
+    for i=1,10 do
+        tab = table.Random(proplist)
+        local mass, vol = PDM_PropInfo(tab.model)
+        if not mass or not vol then continue end
+        
+        if mass < maxw and vol < maxv then tab.class = "prop_physics_multiplayer" break end
+    end
+
+    return tab
+end
+
+function PDM_SelectRandomProps(num, maxw, maxv, proplist)
+    local props = {}
+    for i=1,num do
+        table.insert(props, PDM_SelectRandomProp(maxw, maxv, proplist))
+    end
+    return props
+end
+
 --maxw = max weight, maxv = max volume
 function PDM_FireRandomProp(pos, ang, vel, avel, att, maxw, maxv, proplist)
     maxw = maxw or 9999999
     maxv = maxv or 9999999
     proplist = proplist or PDM_PROPS
 
-    local tab = {}
-    for i=1,10 do
-        tab = table.Random(PDM_PROPS)
-        local mass, vol = PDM_PropInfo(tab.model)
-        if not mass or not vol then continue end
-        
-        if mass < maxw and vol < maxv then tab.class = "prop_physics_multiplayer" break end
-    end
+    local tab = PDM_SelectRandomProp(maxw, maxv, proplist)
 
     local ent = PDM_FireProp(tab, pos, AngleRand(), vel, VectorRand()*100)
     ent:SetPhysicsAttacker(att)
