@@ -54,6 +54,8 @@ function SWEP:KS_Effect()
             self:Remove()
         end
     end)
+
+    return true
 end
 
 
