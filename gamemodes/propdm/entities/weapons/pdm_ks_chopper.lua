@@ -17,6 +17,8 @@ function SWEP:Initialize()
 end
 
 function SWEP:KS_Effect()
+    if CLIENT then return true end
+
     local own = self:GetOwner()
     local hooktitle = tostring(own).."heli"
     HeliInitTime = CurTime()
@@ -25,37 +27,23 @@ function SWEP:KS_Effect()
         local heli = PDM_HELI
         if not heli:IsValid() then 
             own:ChatPrint("Could not find helicopter!")
-            return 
+            
+            return false
         end
 
-        --heli:AddRelationship("player D_NU 99")
+        heli:AddRelationship("player D_NU 99")
         heli:Fire("GunOff")
 
         --communicate w client
         own:SetNW2Entity("Heli", heli)
     end
 
-    if CLIENT then
-        hook.Add("CalcView", hooktitle, CalcView)
-        hook.Add("CreateMove", hooktitle, ControlThink)
-        
-        timer.Simple(introTime, function() 
-            render.SetLightingMode(2)
-            hook.Add("RenderScreenspaceEffects", hooktitle, RenderFX)
-            hook.Add("PostDrawOpaqueRenderables", hooktitle, RenderPlayers)
-            hook.Add("HUDShouldDraw", hooktitle, function(name) 
-                if not (name == "CHudGMod") then return false end
-            end)
-        end)
-    end
+    --initialize on client if successful
+    net.Start("HeliClientStart")
+        net.WriteEntity(self)
+    net.Send(own)
 
     timer.Simple(self.HeliTime, function()
-        if CLIENT then
-            render.SetLightingMode(0)
-            RemoveHooks(hooktitle)
-            return 
-        end
-
         local heli = PDM_HELI
         if heli and heli:IsValid() then
             heli:AddRelationship("player D_HT 99")
@@ -75,6 +63,7 @@ if SERVER then
 
 util.AddNetworkString("HeliFirePrimary")
 util.AddNetworkString("HeliFireSecondary")
+util.AddNetworkString("HeliClientStart")
 
 --chaingun
 function HeliPrimary(len, ply)
@@ -147,6 +136,32 @@ end
 
 --######### CLIENT ##########
 if CLIENT then
+
+function SWEP:ClientStart()
+    local hooktitle = tostring(self:GetOwner()).."heli"
+    HeliInitTime = CurTime()
+
+    hook.Add("CalcView", hooktitle, CalcView)
+    hook.Add("CreateMove", hooktitle, ControlThink)
+    
+    timer.Simple(introTime, function() 
+        render.SetLightingMode(2)
+        hook.Add("RenderScreenspaceEffects", hooktitle, RenderFX)
+        hook.Add("PostDrawOpaqueRenderables", hooktitle, RenderPlayers)
+        hook.Add("HUDShouldDraw", hooktitle, function(name) 
+            if not (name == "CHudGMod") then return false end
+        end)
+    end)
+
+    timer.Simple(self.HeliTime, function()
+        render.SetLightingMode(0)
+        RemoveHooks(hooktitle)
+    end)
+end
+
+net.Receive("HeliClientStart", function(len, ply)
+    net.ReadEntity():ClientStart()
+end)
 
 function RemoveHooks(hooktitle)
     hook.Remove("CreateMove", hooktitle)
