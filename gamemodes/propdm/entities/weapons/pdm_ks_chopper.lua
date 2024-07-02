@@ -17,7 +17,7 @@ function SWEP:Initialize()
 end
 
 function SWEP:KS_Effect()
-    if CLIENT then return true end
+    if CLIENT then return false end
 
     local own = self:GetOwner()
     local hooktitle = tostring(own).."heli"
@@ -25,7 +25,7 @@ function SWEP:KS_Effect()
 
     if SERVER then
         local heli = PDM_HELI
-        if not heli:IsValid() then 
+        if not heli or not heli:IsValid() then 
             own:ChatPrint("Could not find helicopter!")
             
             return false
@@ -159,6 +159,8 @@ function SWEP:ClientStart()
         render.SetLightingMode(0)
         RemoveHooks(hooktitle)
     end)
+
+    self.Used = true
 end
 
 net.Receive("HeliClientStart", function(len, ply)
