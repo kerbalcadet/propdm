@@ -65,13 +65,14 @@ function SWEP:PrimaryAttack()
     if self.Used then return end
 
     self:EmitSound("k_lab.typing_fast_1")
-    self:KS_Effect()
-    self.Used = true
+    local succeeded = self:KS_Effect()
+
+    if succeeded then self.Used = true end
 end
 
 function SWEP:SecondaryAttack()
 end
 
 function SWEP:KS_Effect()
-    return
+    return true
 end
