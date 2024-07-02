@@ -13,7 +13,7 @@ end
 
 function ENT:Initialize()
     self.Fuse = self.Fuse or 3
-    self.CallTime = 5   --after fuse
+    self.CallTime = self.CallTime or 5   --after fuse
     self.ChuteHeight = 3000
     self.PlaneHeight = 5000
     self.ChuteDrag = 1/200
@@ -136,19 +136,7 @@ function ENT:Think()
 
         --fx
         if CLIENT and not self.Failed then
-            local pos = self:WorldSpaceCenter() + self:GetUp()*5
-            local em = self.Emitter
-            local part = em:Add("particles/pdm/smoke", pos)
-
-            local c = self.Color
-            part:SetColor(c.r, c.g, c.b)
-            part:SetDieTime(3)
-            part:SetEndAlpha(0)
-            part:SetStartSize(5)
-            part:SetEndSize(100)
-            part:SetGravity(Vector(0,0,100))
-            part:SetVelocity(Vector(80, 20, 50) + VectorRand()*20)
-            part:SetAngleVelocity(AngleRand()/100)
+            self:EmitParticle()
         end
     end
 
@@ -158,7 +146,21 @@ function ENT:Think()
     end
 end
 
+function ENT:EmitParticle()
+    local pos = self:WorldSpaceCenter() + self:GetUp()*5
+    local em = self.Emitter
+    local part = em:Add("particles/pdm/smoke", pos)
 
+    local c = self.Color
+    part:SetColor(c.r, c.g, c.b)
+    part:SetDieTime(3)
+    part:SetEndAlpha(0)
+    part:SetStartSize(5)
+    part:SetEndSize(100)
+    part:SetGravity(Vector(0,0,100))
+    part:SetVelocity(Vector(80, 20, 50) + VectorRand()*20)
+    part:SetAngleVelocity(AngleRand()/100)
+end
 
 
 
