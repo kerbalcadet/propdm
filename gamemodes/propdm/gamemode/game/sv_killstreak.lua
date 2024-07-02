@@ -27,10 +27,12 @@ PDM_KILLSTREAKS = {
 }
 
 PDM_CAREPKG_WEPS = {
-    "pdm_clusternade",
     "pdm_launcher",
     "pdm_sentry_spawner",
     "pdm_carepkg_nade",
     "pdm_propify_nade",
-    "pdm_emergency_nade"
+    "pdm_emergency_nade",
+    "pdm_ks_chopper",
+    "pdm_nadelauncher",
+    "pdm_cluster_rocketnade"
 }
