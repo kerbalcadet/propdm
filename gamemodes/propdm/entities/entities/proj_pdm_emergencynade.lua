@@ -3,27 +3,22 @@ ENT.Base = "proj_pdm_carepkgnade"
 ENT.Type = "anim"
 ENT.PrintName = "More is always better"
 
-local carepkgnade = scripted_ents.GetStored(ENT.Base).t
+--sweet jank my beloved
+function ENT:PreCallPlane()
+    timer.Simple(self.CallTime, function()
+        local data = {start=self:GetPos(), endpos=self:GetPos()+Vector(0,0,100000), filter=self, MASK_NPCWORLDSTATIC}
+        self.Trace = util.TraceLine(data)  
 
-function ENT:SpawnCrate(pos)
-    self.SpawnPos = pos
+        for i=1,4 do
+            timer.Simple(math.Rand(0,1), function()
+                --local pvec = VectorRand()
+                --pvec.z = 0
+                --pvec:Normalize()
+                --self:SetPlaneVector(pvec)
 
-    timer.Create(tostring(self).."SpawnCrate", 0.5, 4, function()
-        carepkgnade.SpawnCrate(self, self.SpawnPos)
-
-        self.SpawnPos = self.SpawnPos + VectorRand() * Vector(640, 640, 0)
-    end)
-end
-
-function ENT:SpawnFakeCrate(pos, vpos, skyheight)
-    self.SpawnPos = pos
-    self.VSpawnPos = vpos
-    
-    timer.Create(tostring(self).."SpawnFakeCrate", 0.5, 4, function()
-        carepkgnade.SpawnFakeCrate(self, self.SpawnPos, self.VSpawnPos, skyheight)
-
-        vr = VectorRand() * Vector(640, 640, 0)
-        self.SpawnPos = self.SpawnPos + vr
-        self.VSpawnPos = self.VSpawnPos + vr
+                --self.PlaneHeight = 5000 + math.Rand(-500, 500)
+                self:CallPlane()
+            end)
+        end
     end)
 end
