@@ -7,7 +7,7 @@ function KS_Clusternade(ply)
 end
 
 function KS_EmergencyNade(ply)
-    ply:Give("pdm_emregency_nade")
+    ply:Give("pdm_emergency_nade")
 end
 
 function KS_Launcher(ply)
