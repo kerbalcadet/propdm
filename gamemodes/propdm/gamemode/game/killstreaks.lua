@@ -6,6 +6,10 @@ function KS_Clusternade(ply)
     ply:Give("pdm_clusternade")
 end
 
+function KS_EmergencyNade(ply)
+    ply:Give("pdm_emregency_nade")
+end
+
 function KS_Launcher(ply)
     ply:Give("pdm_launcher")
 end
@@ -18,12 +22,17 @@ function KS_CarePkg(ply)
     ply:Give("pdm_carepkg_nade")
 end
 
+function KS_Chopper(ply)
+    ply:Give("pdm_ks_chopper")
+end
 
 PDM_KILLSTREAKS = {
     {name = "Cluster Nade", kills = 3, func = KS_Clusternade},
     {name = "Care Package", kills = 3, func = KS_CarePkg},
     {name = "Propket Launcher", kills = 5, func = KS_Launcher},
+    {name = "Emergency Airdrop", kills = 5, func = KS_EmergencyNade},
     {name = "Sentry Turret", kills = 7, func = KS_Sentry},
+    {name = "Chopper Gunner", kills = 7, func = KS_Chopper},
 }
 
 PDM_CAREPKG_WEPS = {
