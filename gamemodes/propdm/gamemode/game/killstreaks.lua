@@ -1,7 +1,6 @@
--- [num kills] = [function, name] (takes ply as input)
 -- playerdeath hook called in sv_gamelogic.lua
-
-util.AddNetworkString("PDM_Killstreak")
+AddCSLuaFile()
+if SERVER then util.AddNetworkString("PDM_Killstreak") end
 
 function KS_Clusternade(ply)
     ply:Give("pdm_clusternade")
@@ -19,11 +18,12 @@ function KS_CarePkg(ply)
     ply:Give("pdm_carepkg_nade")
 end
 
+
 PDM_KILLSTREAKS = {
-    [2] = {KS_Clusternade, "Cluster Grenade"},
-    [3] = {KS_CarePkg, "Care Package"},
-    [5] = {KS_Launcher, "Propket Launcher"},
-    [7] = {KS_Sentry, "Sentry Gun"},
+    {name = "Cluster Nade", kills = 3, func = KS_Clusternade},
+    {name = "Care Package", kills = 3, func = KS_CarePkg},
+    {name = "Propket Launcher", kills = 5, func = KS_Launcher},
+    {name = "Sentry Turret", kills = 7, func = KS_Sentry},
 }
 
 PDM_CAREPKG_WEPS = {
