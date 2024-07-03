@@ -11,10 +11,12 @@ SWEP.Spawnable = true
 SWEP.UseHands = true
 SWEP.DrawAmmo = false
 SWEP.ViewModelFOV = 70
+SWEP.AngleOffset = Angle(90,0,0)
 
 SWEP.InRange = false
 SWEP.Green = Color(50, 140, 50, 200)
 
+SWEP.DrawAmmo = true
 game.AddAmmoType({
     name = "Kleiners",
     dmgtype = DMG_BLAST
@@ -38,11 +40,35 @@ function SWEP:Initialize()
 end
 
 function SWEP:PrimaryAttack()
+    if CLIENT then return end
     --TODO: throwing?
     if not self.InRange then return end
 
-    
+    local own = self:GetOwner()
+    local tr = own:GetEyeTrace()
 
+    local klein = ents.Create("pdm_kleiner_mine")
+    klein:SetPos(tr.HitPos)
+    
+    local ang = tr.HitNormal:Angle() + self.AngleOffset
+    ang:RotateAroundAxis(ang:Up(), own:EyeAngles().y)
+    klein:SetAngles(ang)
+
+    klein:SetColor(own:GetColor())
+    klein:SetOwner(own)
+    klein:Spawn()
+
+    local hitent = tr.Entity
+    if hitent and IsValid(hitent) then
+        constraint.Weld(klein, hitent, 0, 0, 0, true, false)
+    end
+
+    if self:Ammo1() < 1 then
+        self:Remove()
+        return
+    end
+
+    own:RemoveAmmo(1, "Kleiners")
     self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
 end
 
@@ -69,15 +95,17 @@ end
 
 if CLIENT then
 
-SWEP.csmodel = ClientsideModel("models/kleiner.mdl", RENDERGROUP_TRANSLUCENT)
-SWEP.csmodel:SetModelScale(SWEP.csmodel:GetModelScale()*0.18)
-SWEP.csmodel:SetNoDraw(true)
+function SWEP:Initialize()
+    self.csmodel = ClientsideModel("models/kleiner.mdl", RENDERGROUP_TRANSLUCENT)
+    self.csmodel:SetModelScale(self.csmodel:GetModelScale()*0.18)
+    self.csmodel:SetNoDraw(true)
 
-SWEP.holo = ClientsideModel("models/kleiner.mdl", RENDERGROUP_TRANSLUCENT)
-SWEP.holo:SetRenderMode(RENDERMODE_TRANSCOLOR)
-SWEP.holo:SetModelScale(SWEP.holo:GetModelScale()*0.3)
-SWEP.holo:SetColor(SWEP.Green)
-SWEP.holo:SetNoDraw(true)
+    self.holo = ClientsideModel("models/kleiner.mdl", RENDERGROUP_TRANSLUCENT)
+    self.holo:SetRenderMode(RENDERMODE_TRANSCOLOR)
+    self.holo:SetModelScale(self.holo:GetModelScale()*0.3)
+    self.holo:SetColor(self.Green)
+    self.holo:SetNoDraw(true)
+end
 
 --draw mini kleiner VM
 local angoff = Angle(20,180,15)
@@ -102,15 +130,21 @@ function SWEP:StartEquipChecker()
     
     hook.Add("Tick", "pdm_checkkleiner", function()
         if not (LocalPlayer():GetActiveWeapon() == self) then 
-            self.holo:SetNoDraw(true)
-            self.EquipChecker = false
+            if IsValid(self) then
+                self.holo:SetNoDraw(true)
+                self.EquipChecker = false
+            end
             hook.Remove("Tick", "pdm_checkkleiner")
         end
     end)
 end
 
+function SWEP:OnRemove()
+    self.holo:Remove()
+end
+
 --hologram rendering
-local holoangoff = Angle(90, 0, 0)
+local holoangoff = SWEP.AngleOffset
 function SWEP:PreDrawViewModel()
     local ply = LocalPlayer()
     if not self.InRange then 
@@ -120,7 +154,7 @@ function SWEP:PreDrawViewModel()
 
     local tr = ply:GetEyeTrace()
     local ang = tr.HitNormal:Angle() + holoangoff
-    ang:RotateAroundAxis(ang:Up(), ply:GetAngles().y)
+    ang:RotateAroundAxis(ang:Up(), ply:EyeAngles().y)
 
     self.holo:SetNoDraw(false)
     self.holo:SetPos(tr.HitPos)

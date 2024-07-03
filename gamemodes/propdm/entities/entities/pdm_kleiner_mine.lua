@@ -6,39 +6,38 @@ ENT.Spawnable = true
 
 function ENT:Initialize()
     self.InitTime = CurTime()
-    self.DeployTime = 1 --seconds
+    self.DeployTime = 0.5 --seconds
    
     self.Spawnlist = self.Spawnlist or PDM_PROPS
     self.PropExpMaxWPer = self.PropExpMaxWPer or 300   --explained in projpdm_propket
     self.PropExpMaxVol = self.PropExpMaxVol or 10000
     self.PropExpNum = self.PropExpNum or 12
-    self.PropExpVel = self.PropExpVel or 5000
+    self.PropExpVel = self.PropExpVel or 3000
     self.PropExpAng = self.PropExpAng or 35
     self.PropDespTime = self.PropDespTime or 15
     self.PropExpAngle = 30  --angle of blast cone in degrees
 
     self.DmgRadius = self.DmgRadius or 300
     self.Dmg = self.Dmg or 200
+    self:SetModel("models/kleiner.mdl")
    
-    if SERVER then
-        self:SetModel("models/kleiner.mdl")
-        self.MinBound = self:LocalToWorld(Vector(7, 25, 0)) - self:GetPos()
-        self.MaxBound = self:LocalToWorld(Vector(-7, -25, 72)) - self:GetPos()
-        self:PhysicsInitBox(self.MinBound, self.MaxBound)
-    end
-end
 
-function ENT:Think()
-    if CurTime() > self.InitTime + self.DeployTime then
 
-    end
+    self:EmitSound("ambient/gas/cannister_loop.wav", 60, 120)
+    timer.Simple(self.DeployTime, function()
+        if not IsValid(self) then return end
+        self:StopSound("ambient/gas/cannister_loop.wav")
 
-    self:NextThink(CurTime())
-    return true
+        if SERVER then
+            self.MinBound = self:LocalToWorld(Vector(7, 25, 0)) - self:GetPos()
+            self.MaxBound = self:LocalToWorld(Vector(-7, -25, 72)) - self:GetPos()
+            self:PhysicsInitBox(self.MinBound, self.MaxBound)
+            self:SetTrigger(true)
+        end
+    end)
 end
 
 function ENT:Explode(normal)
-
     local own = self:GetOwner()
     self:SetOwner(own:IsValid() and own or game.GetWorld())
     local own = self:GetOwner()
@@ -65,6 +64,7 @@ function ENT:Explode(normal)
     end
 
     --fx
+    self:StopSound("ambient/gas/cannister_loop.wav")
     self:EmitSound("BaseExplosionEffect.Sound", 200, 100, 1)
 
     local ef = EffectData()
@@ -82,10 +82,23 @@ function ENT:PhysicsCollide(coldata, collider)
     self:Explode(-coldata.TheirOldVelocity:GetNormalized())
 end
 
+function ENT:StartTouch(ent)
+    if not ent:IsPlayer() or ent == self:GetOwner() then return end
+    self:Explode((ent:WorldSpaceCenter() - self:WorldSpaceCenter()):GetNormalized())
+end
+
 function ENT:OnTakeDamage(info)
     if info:GetAttacker() == self:GetOwner() then return end
     local att = info:GetAttacker()
-    local norm = (att and att:IsValid()) and (att:GetPos() - self:LocalToWorld(self:OBBCenter())):GetNormalized() or nil
+    local norm = (att and att:IsValid()) and (att:WorldSpaceCenter() - self:WorldSpaceCenter()):GetNormalized() or nil
     
     self:Explode(norm)
+end
+
+function ENT:Draw()
+    if CurTime() < self.InitTime + self.DeployTime then
+        self:SetModelScale(0.3 + 0.7*(CurTime() - self.InitTime)/self.DeployTime)
+    end
+
+    self:DrawModel()
 end
