@@ -11,6 +11,23 @@ KSMenu:SetPos(w*50, h*50)
 
 local TextColor = Color(50,50,50)
 local CheckBoxes = {}
+local PDM_KSSelection = {}
+
+--have to include this up here so it can be referenced lol
+function PDM_GetKSSelection()
+    PDM_KSSelection = {}
+    
+    for kills, tab in pairs(CheckBoxes) do
+        for _, tab2 in pairs(tab) do
+            if tab2.box:GetChecked() then
+                PDM_KSSelection[kills] = tab2.name
+                break
+            end
+        end
+    end
+end
+
+--actual ui
 for i, ks in pairs(PDM_KILLSTREAKS) do
     local posx = 40*w
     local posy = 60*h*i
@@ -34,7 +51,7 @@ for i, ks in pairs(PDM_KILLSTREAKS) do
         cb:SetChecked(true)
     end    
     
-    CheckBoxes[ks.kills][ks.name] = cb
+    table.insert(CheckBoxes[ks.kills], {name = ks.name, box = cb})
 
     function btn:OnMousePressed()
         local checked = cb:GetChecked()
@@ -48,13 +65,16 @@ for i, ks in pairs(PDM_KILLSTREAKS) do
             return 
         end
 
-        for _, box in pairs(CheckBoxes[ks.kills]) do
-            if box == cb then continue end
+        for _, tab in pairs(CheckBoxes[ks.kills]) do
+            if tab.box == cb then continue end
             
-            box:SetChecked(false)
+            tab.box:SetChecked(false)
         end
+    
+        PDM_GetKSSelection()    --update KS table
     end
 
+    PDM_GetKSSelection()    --update table with default inputs
 
     --numkills
     local lbl = KSMenu:Add("DLabel")
@@ -76,19 +96,16 @@ for i, ks in pairs(PDM_KILLSTREAKS) do
 
 end
 
-local PDM_KSSelection = {}
-function PDM_GetKSSelection()
-    PDM_KSSelection = {}
-    
-    for kills, tab in pairs(CheckBoxes) do
-        for name, box in pairs(tab) do
-            if box:GetChecked() then
-                PDM_KSSelection[kills] = name
-                break
-            end
-        end
+net.Receive("PDM_KS_Check", function()
+    local streak = net.ReadInt(8)
+    if not streak then return end
+
+    if PDM_KSSelection[streak] then
+        net.Start("PDM_KS_Request")
+            net.WriteString(PDM_KSSelection[streak])
+        net.SendToServer()
     end
-end
+end)
 
 hook.Remove("ScoreboardShow", "KillstreakMenu")
 hook.Add("ScoreboardShow", "KillstreakMenu", function()

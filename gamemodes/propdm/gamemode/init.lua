@@ -12,6 +12,7 @@ include("util/sv_fileutil.lua")
 
 AddCSLuaFile("game/cl/cl_fonts.lua")
 AddCSLuaFile("game/cl/cl_hud.lua")
+AddCSLuaFile("game/cl/cl_menu.lua")
 
 function GM:InitPostEntity()
     --load spawnlists

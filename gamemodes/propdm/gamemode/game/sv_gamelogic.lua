@@ -73,22 +73,10 @@ hook.Add("PlayerDeath", "PDM_PlayerDeath", function(vic, inf, att)
         return
     end
 
+
     --handle killstreaks
-    local ks = att:GetNW2Int("Streak") + 1
-    att:SetNW2Int("Streak", ks)
+    PDM_IncreaseStreak(att)
     
-    local kstab = PDM_KILLSTREAKS[ks]
-    if kstab and not table.IsEmpty(kstab) then
-        local ksfunc = kstab[1]
-        local name = kstab[2]
-
-        ksfunc(att)
-
-        net.Start("PDM_Killstreak")
-            net.WriteString(name)
-        net.Send(att)
-    end
-
     --create global ragdoll
     vic:SetShouldServerRagdoll(true)
 end)
