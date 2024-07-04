@@ -57,6 +57,39 @@ function GM:PlayerSpawn(ply)
             ply:GiveAmmo(1, "Grenade", false)
     end
     end)
+
+    --kept weapons
+    if PDM_KEEPWEPS:GetInt() == 1 and ply.KeepWeps then
+        for _, tab in pairs(ply.KeepWeps) do
+            local newWep = ply:Give(tab.weapon, true)
+            if not IsValid(newWep) then continue end
+
+            local clip1 = math.min(tab.ammo, newWep:GetMaxClip1())
+            local reserve = clip1 < tab.ammo and tab.ammo - clip1 or 0
+
+            newWep:SetClip1(clip1)
+            ply:SetAmmo(reserve, newWep:GetPrimaryAmmoType())
+        end
+    end
+end
+
+--keep weapons on death
+local defaultweps = {"pdm_kirby", "pdm_crowbar", "pdm_gluestick"}
+function PDM_KeepWeapons(ply)
+    ply.KeepWeps = {}
+
+    for _, wep in ipairs(ply:GetWeapons()) do
+        local default = false
+        for _, defwep in pairs(defaultweps) do
+            if defwep == wep:GetClass() then
+                default = true
+                break
+            end
+        end
+
+        if not (wep:Ammo1() + wep:Clip1() > 0) or wep.Used then continue end
+        table.insert(ply.KeepWeps, {weapon = wep:GetClass(), ammo = wep:Ammo1() + wep:Clip1()})
+    end
 end
 
 hook.Remove("ShouldCollide", "PDM_PlayerCollide")

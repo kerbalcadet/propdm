@@ -62,6 +62,9 @@ end
 
 hook.Remove("PlayerDeath", "PDM_PlayerDeath")
 hook.Add("PlayerDeath", "PDM_PlayerDeath", function(vic, inf, att)
+    --keep weapons
+    PDM_KeepWeapons(vic)
+    
     if not att:IsPlayer() or vic == att then return end
     
     att:AddPoints(10)
@@ -72,7 +75,6 @@ hook.Add("PlayerDeath", "PDM_PlayerDeath", function(vic, inf, att)
         RoundEnd(att)
         return
     end
-
 
     --handle killstreaks
     PDM_IncreaseStreak(att)

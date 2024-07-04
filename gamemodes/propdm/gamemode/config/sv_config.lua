@@ -6,3 +6,4 @@ PDM_TIMEAFTERROUND = CreateConVar("pdm_timeafterround", 10, 0, "Number of second
 PDM_SLOMO = CreateConVar("pdm_slomo", 25, 0, "Timescale (1 to 100%) for slomo when the round ends", 1, 100)
 PDM_HEALTHREGEN = CreateConVar("pdm_healthregen", 1, 0, "Health regeneration toggle", 0, 1)
 PDM_HEALTHREGEN_INTERVAL = CreateConVar("pdm_healthregen_interval", 2, 0, "Interval in seconds between health regen events ", 0.1, 100)
+PDM_KEEPWEPS = CreateConVar("pdm_keepweapons", 1, 0, "Whether to keep weapons & kilstreaks on death", 0, 1)
